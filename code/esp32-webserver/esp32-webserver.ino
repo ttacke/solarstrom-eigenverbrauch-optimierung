@@ -39,21 +39,9 @@ void loop(void) {
 
 
 
-String _format_power(bool force_prefix, int value) {
-  char str[50];
-  if(value > 999 || value < -999) {
-    sprintf(str, (force_prefix ? "%+.3f" : "%.3f"), (float) value / 1000);
-  } else {
-    sprintf(str, (force_prefix ? "%+d" : "%d"), value);
-  }
-  return str;
-}
 
-String _format_current(int value) {
-  char str[50];
-  sprintf(str, ("%.1f"), (float) value / 1000);
-  return str;
-}
+
+
 
 DynamicJsonDocument _hole_maximalen_strom_und_phase() {
   const String smartmeter_content = web_client.get(Config::smartmeter_data_url);
@@ -156,7 +144,7 @@ String* _erzeuge_website() {
     return new String[3]{"503", "text/plain", ""};
   }
 
-  const String speicher_ladung = _format_power(false, Config::speicher_groesse / 100 * speicher_stand);
+  const String speicher_ladung = content_converter.formatiere_zahl(false, Config::speicher_groesse / 100 * speicher_stand);
   String speicher_status = "";
   if(speicher_modus != 1 && speicher_modus != 14) {
     speicher_status = "speicher_aus";
@@ -233,12 +221,12 @@ case 14: "maxSocReached"
     ".hat_fehler .markerline td span{color:#000;text-decoration:underline;}"
     "</style>"
     "</head><body onclick=\"reload();\" onload=\"setze_lokale_daten();\">"
-    "<div style=\"display:none\"><span id=max_i_value>" + _format_current(max_i) + "</span><span id=max_i_phase>" + max_i_phase + "</span></div>"
+    "<div style=\"display:none\"><span id=max_i_value>" + content_converter.formatiere_stromstaerke(max_i) + "</span><span id=max_i_phase>" + max_i_phase + "</span></div>"
     "<table cellspacing=0>"
-    "<tr><td class=label>Solar</td><td class=zahl>" + _format_power(false, solar) + "</td><td class=\"label einheit\">W</span></td></tr>"
-    "<tr><td class=label>+Akku<br/></td><td class=zahl>" + _format_power(true, akku) + "</td><td class=\"label einheit\">W</span></td></tr>"
-    "<tr><td class=label>+Netz</td><td class=zahl>" + _format_power(true, grid) + "</td><td class=\"label einheit\">W</span></td></tr>"
-    "<tr class=last><td class=label>=Last</td><td class=zahl>" +  _format_power(false, load) + "</td><td class=\"label einheit\">W</span></td></tr>"
+    "<tr><td class=label>Solar</td><td class=zahl>" + content_converter.formatiere_zahl(false, solar) + "</td><td class=\"label einheit\">W</span></td></tr>"
+    "<tr><td class=label>+Akku<br/></td><td class=zahl>" + content_converter.formatiere_zahl(true, akku) + "</td><td class=\"label einheit\">W</span></td></tr>"
+    "<tr><td class=label>+Netz</td><td class=zahl>" + content_converter.formatiere_zahl(true, grid) + "</td><td class=\"label einheit\">W</span></td></tr>"
+    "<tr class=last><td class=label>=Last</td><td class=zahl>" +  content_converter.formatiere_zahl(false, load) + "</td><td class=\"label einheit\">W</span></td></tr>"
     "<tr class=markerline><td colspan=3><span id=max_i></span><span id=marker>starte...</span><span id=fehler></span></td></tr>"
     "<tr class=\"speicher " + speicher_status + "\"><td class=label>Speicher</td><td class=zahl>" + speicher_ladung + "</td><td class=\"label einheit\">Wh</span></td></tr>"
     "</table>"
