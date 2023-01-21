@@ -14,7 +14,8 @@ public:
 		ESP8266WebServer server(port);
 	}
 
-  void add_page(String path, auto func) {
+  template<typename F>
+  void add_page(String path, F && func) {
     server.on(path, [&]() {
       String* result = func();
       server.send(result[0].toInt(), result[1], result[2]);

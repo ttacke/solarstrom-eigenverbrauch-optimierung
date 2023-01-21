@@ -10,12 +10,15 @@
 #include "config.h"
 #include "wlan.h"
 #include "webserver.h"
+#include "web_client.h"
+//#include "json_parser.h"
 
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 
 Wlan wlan = Wlan(Config::wlan_ssid, Config::wlan_pwd);
 Webserver webserver = Webserver(80);
+WebClient web_client = WebClient(wlan.client);
 
 void setup(void) {
   Serial.begin(Config::log_baud);
@@ -44,27 +47,6 @@ DynamicJsonDocument _string_to_json(String content, int obj_size) {
   return doc;
 }
 
-String _fetch_http_content(char const* url) {
-    HTTPClient http;
-    http.begin(wlan.client, url);
-    http.addHeader("Content-Type", "application/json");
-    int httpCode = http.GET();
-    if (httpCode > 0) {
-      if (httpCode == HTTP_CODE_OK) {
-          const String payload = http.getString();
-          http.end();
-          return payload;
-      } else {
-        Serial.printf("[HTTP] GET failed, code: %d\n", httpCode);
-      }
-    } else {
-      Serial.printf("[HTTP] GET failed, error: ");
-      Serial.printf(http.errorToString(httpCode).c_str());
-    }
-    http.end();
-    return "ERROR";
-}
-
 String _format_power(bool force_prefix, int value) {
   char str[50];
   if(value > 999 || value < -999) {
@@ -82,10 +64,10 @@ String _format_current(int value) {
 }
 
 DynamicJsonDocument _hole_maximalen_strom_und_phase() {
-  const String smartmeter_content = _fetch_http_content(Config::smartmeter_data_url);
+  const String smartmeter_content = web_client.get(Config::smartmeter_data_url);
   DynamicJsonDocument s_data = _string_to_json(smartmeter_content, 8096);
 
-  
+
   // TODO hier klappt der Zugriff auf einmal nicht mehr. Nur, weil Inline? Warum muss an dieser Stelle dieser Umweg passieren?
   DynamicJsonDocument b(1024);
   b = s_data["Body"]["Data"][Config::smartmeter_id]["channels"];
@@ -93,7 +75,7 @@ DynamicJsonDocument _hole_maximalen_strom_und_phase() {
 }
 
 DynamicJsonDocument _hole_wechselrichter_daten() {
-  const String wechselrichter_content = _fetch_http_content(Config::wechselrichter_data_url);
+  const String wechselrichter_content = web_client.get(Config::wechselrichter_data_url);
   DynamicJsonDocument data = _string_to_json(wechselrichter_content, 2048);
 
   DynamicJsonDocument result(512);
