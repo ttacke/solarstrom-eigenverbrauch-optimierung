@@ -11,7 +11,7 @@
 #include "wlan.h"
 #include "webserver.h"
 #include "web_client.h"
-//#include "json_parser.h"
+#include "json_parser.h"//ContentConverter
 
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
@@ -19,6 +19,7 @@
 Wlan wlan = Wlan(Config::wlan_ssid, Config::wlan_pwd);
 Webserver webserver = Webserver(80);
 WebClient web_client = WebClient(wlan.client);
+ContentConverter content_converter = ContentConverter();
 
 void setup(void) {
   Serial.begin(Config::log_baud);
@@ -36,16 +37,7 @@ void loop(void) {
 
 // ###################################################################################
 
-DynamicJsonDocument _string_to_json(String content, int obj_size) {
-  DynamicJsonDocument doc(obj_size);
-  auto error = deserializeJson(doc, content);
-  if (error) {
-    Serial.print(F("deserializeJson() failed with code "));
-    Serial.println(error.c_str());
-    return doc;
-  }
-  return doc;
-}
+
 
 String _format_power(bool force_prefix, int value) {
   char str[50];
@@ -65,7 +57,7 @@ String _format_current(int value) {
 
 DynamicJsonDocument _hole_maximalen_strom_und_phase() {
   const String smartmeter_content = web_client.get(Config::smartmeter_data_url);
-  DynamicJsonDocument s_data = _string_to_json(smartmeter_content, 8096);
+  DynamicJsonDocument s_data = content_converter.string_to_json(smartmeter_content);
 
 
   // TODO hier klappt der Zugriff auf einmal nicht mehr. Nur, weil Inline? Warum muss an dieser Stelle dieser Umweg passieren?
@@ -76,7 +68,7 @@ DynamicJsonDocument _hole_maximalen_strom_und_phase() {
 
 DynamicJsonDocument _hole_wechselrichter_daten() {
   const String wechselrichter_content = web_client.get(Config::wechselrichter_data_url);
-  DynamicJsonDocument data = _string_to_json(wechselrichter_content, 2048);
+  DynamicJsonDocument data = content_converter.string_to_json(wechselrichter_content);
 
   DynamicJsonDocument result(512);
   result["SOC"] = data["inverters"][0]["SOC"];
