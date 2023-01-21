@@ -9,44 +9,29 @@
 
 #include "config.h"
 #include "wlan.h"
+#include "webserver.h"
 
-#include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 
-ESP8266WebServer server(80);
 Wlan wlan = Wlan(Config::wlan_ssid, Config::wlan_pwd);
+Webserver webserver = Webserver(80);
 
 void setup(void) {
   Serial.begin(Config::log_baud);
-  delay(500);
   Serial.println("\nSetup ESP");
   wlan.connect();
-  _start_webserver();
+  webserver.add_page("/", []() {
+     return _erzeuge_website();
+  });
+  webserver.start();
 }
 
 void loop(void) {
-  _webserber_watch_for_client();
+  webserver.watch_for_client();
 }
 
 // ###################################################################################
-
-void _webserber_watch_for_client() {
-  server.handleClient();
-  MDNS.update();
-}
-
-void _start_webserver() {
-  if (MDNS.begin("esp8266")) {
-    Serial.println("MDNS responder started");
-  }
-  server.on("/", _erzeuge_website);
-  server.onNotFound(_erzeuge_not_found_seite);
-  server.begin();
-  Serial.println("HTTP server started");
-}
-
 
 DynamicJsonDocument _string_to_json(String content, int obj_size) {
   DynamicJsonDocument doc(obj_size);
@@ -99,7 +84,12 @@ String _format_current(int value) {
 DynamicJsonDocument _hole_maximalen_strom_und_phase() {
   const String smartmeter_content = _fetch_http_content(Config::smartmeter_data_url);
   DynamicJsonDocument s_data = _string_to_json(smartmeter_content, 8096);
-  return _hole_maximalen_strom_und_phase_aus_json(s_data["Body"]["Data"][Config::smartmeter_id]["channels"]);
+
+  
+  // TODO hier klappt der Zugriff auf einmal nicht mehr. Nur, weil Inline? Warum muss an dieser Stelle dieser Umweg passieren?
+  DynamicJsonDocument b(1024);
+  b = s_data["Body"]["Data"][Config::smartmeter_id]["channels"];
+  return _hole_maximalen_strom_und_phase_aus_json(b);
 }
 
 DynamicJsonDocument _hole_wechselrichter_daten() {
@@ -176,7 +166,7 @@ DynamicJsonDocument _hole_maximalen_strom_und_phase_aus_json(DynamicJsonDocument
   return result;
 }
 
-void _erzeuge_website() {
+String* _erzeuge_website() {
   DynamicJsonDocument data = _hole_daten();
 
   const int speicher_stand = (float) data["SOC"];
@@ -189,8 +179,7 @@ void _erzeuge_website() {
   const int max_i = (int) data["MAX_I"];
   const String max_i_phase = (String) data["MAX_I_PHASE"];
   if(!load && !grid && !solar && !max_i && !max_i_phase) {
-    server.send(503, "text/plain", "");
-    return;
+    return new String[3]{"503", "text/plain", ""};
   }
 
   const String speicher_ladung = _format_power(false, Config::speicher_groesse / 100 * speicher_stand);
@@ -198,6 +187,7 @@ void _erzeuge_website() {
   if(speicher_modus != 1 && speicher_modus != 14) {
     speicher_status = "speicher_aus";
   }
+
 /*
 http://192.168.0.106/main-es2015.57cf3de98e3c435ccd68.js
 BatMode
@@ -213,6 +203,7 @@ case 12: "startup"
 case 13: "stoppedTemperature"
 case 14: "maxSocReached"
 */
+
   String html = "<html><head><title>Sonnenrech 19</title>"
     "<script type=\"text/javascript\">"
     "var anzahl_fehler = 0;\n"
@@ -278,10 +269,5 @@ case 14: "maxSocReached"
     "<tr class=\"speicher " + speicher_status + "\"><td class=label>Speicher</td><td class=zahl>" + speicher_ladung + "</td><td class=\"label einheit\">Wh</span></td></tr>"
     "</table>"
     "</body></html>";
-
-  server.send(200, "text/html", html);
-}
-
-void _erzeuge_not_found_seite() {
-  server.send(404, "text/html", "<h1>Not Found</h1>");
+  return new String[3]{"200", "text/html", html};
 }
