@@ -1,24 +1,16 @@
-// Webserver fuer Anzeige auf einem KindleReader
-// CSS/JS ist auf den dortigen "ExperimentalBrowser" angepasst
-
-// Hinweis: auf dem Kindle den Bildschirm dauerhaft einschalten: "~ds" im Suchfeld eingeben
-// https://ebooks.stackexchange.com/questions/152/what-commands-can-be-given-in-the-kindles-search-box
-
-// Es ist "Selbstheilend": Wenn der ESP nicht antwortet, wird die anzeige ausgegraut und beim nächsten Abruf
-// einfach erneut versucht
-
 #include "config.h"
 #include "wlan.h"
 #include "webserver.h"
 #include "web_client.h"
-#include "json_parser.h"//ContentConverter
-
-#include <ESP8266HTTPClient.h>
+#include "content_converter.h"
+#include "elektro_anlage.h"
 #include <ArduinoJson.h>
 
 Wlan wlan = Wlan(Config::wlan_ssid, Config::wlan_pwd);
 Webserver webserver = Webserver(80);
 WebClient web_client = WebClient(wlan.client);
+
+// DEPRECATED
 ContentConverter content_converter = ContentConverter();
 
 void setup(void) {
@@ -68,35 +60,20 @@ DynamicJsonDocument _hole_wechselrichter_daten() {
   return result;
 }
 
-DynamicJsonDocument _hole_daten() {
+DynamicJsonDocument _hole_daten(ElektroAnlage elektroanlage) {
   DynamicJsonDocument w_data1 = _hole_wechselrichter_daten();
   DynamicJsonDocument max_i1 = _hole_maximalen_strom_und_phase();
 
-  delay(3000);
-  DynamicJsonDocument w_data2 = _hole_wechselrichter_daten();
-  DynamicJsonDocument max_i2 = _hole_maximalen_strom_und_phase();
+  w_data1["MAX_I"] = (int) max_i1["MAX_I"];
+  w_data1["MAX_I_PHASE"] = max_i1["MAX_I_PHASE"];
 
-  delay(3000);
-  DynamicJsonDocument w_data3 = _hole_wechselrichter_daten();
-  DynamicJsonDocument max_i3 = _hole_maximalen_strom_und_phase();
+  w_data1["SOC"] = (float) w_data1["SOC"];
+  w_data1["BatMode"] = (float) w_data1["BatMode"];
+  w_data1["P_Akku"] = (float) w_data1["P_Akku"];
 
-  DynamicJsonDocument max_i = max_i1;
-  if((int) max_i2["MAX_I"] > (int) max_i["MAX_I"]) {
-    max_i = max_i2;
-  }
-  if((int) max_i3["MAX_I"] > (int) max_i["MAX_I"]) {
-    max_i = max_i3;
-  }
-  w_data1["MAX_I"] = (int) max_i["MAX_I"];
-  w_data1["MAX_I_PHASE"] = max_i["MAX_I_PHASE"];
-
-  w_data1["SOC"] = ((float) w_data1["SOC"] + (float) w_data2["SOC"] + (float) w_data3["SOC"]) / 3;
-  w_data1["BatMode"] = ((float) w_data1["BatMode"] + (float) w_data2["BatMode"] + (float) w_data3["BatMode"]) / 3;
-  w_data1["P_Akku"] = ((float) w_data1["P_Akku"] + (float) w_data2["P_Akku"] + (float) w_data3["P_Akku"]) / 3;
-
-  w_data1["P_Load"] = ((float) w_data1["P_Load"] + (float) w_data2["P_Load"] + (float) w_data3["P_Load"]) / 3;
-  w_data1["P_Grid"] = ((float) w_data1["P_Grid"] + (float) w_data2["P_Grid"] + (float) w_data3["P_Grid"]) / 3;
-  w_data1["P_PV"] = ((float) w_data1["P_PV"] + (float) w_data2["P_PV"] + (float) w_data3["P_PV"]) / 3;
+  w_data1["P_Load"] = (float) w_data1["P_Load"];
+  w_data1["P_Grid"] = (float) w_data1["P_Grid"];
+  w_data1["P_PV"] = (float) w_data1["P_PV"];
 
   return w_data1;
 }
@@ -129,7 +106,9 @@ DynamicJsonDocument _hole_maximalen_strom_und_phase_aus_json(DynamicJsonDocument
 }
 
 String* _erzeuge_website() {
-  DynamicJsonDocument data = _hole_daten();
+  ElektroAnlage elektroanlage = ElektroAnlage();
+
+  DynamicJsonDocument data = _hole_daten(elektroanlage);
 
   const int speicher_stand = (float) data["SOC"];
   const int speicher_modus = (int) data["BatMode"];

@@ -44,3 +44,12 @@ anderen Endgerät im gleichen Netz könnte also problemlos Schaden anrichten.
 - Aufzeichnung des Lastprofiles (bzw aller Daten, die da sind; immer Rohdaten nutzen)
   - 1x die Minute refresh, und die Zahlen in Datei schreiben
   - Eine grobe UI dazu kann auch eingebaut werden. Aber erst mal: haben!
+
+// Webserver fuer Anzeige auf einem KindleReader
+// CSS/JS ist auf den dortigen "ExperimentalBrowser" angepasst
+
+// Hinweis: auf dem Kindle den Bildschirm dauerhaft einschalten: "~ds" im Suchfeld eingeben
+// https://ebooks.stackexchange.com/questions/152/what-commands-can-be-given-in-the-kindles-search-box
+
+// Es ist "Selbstheilend": Wenn der ESP nicht antwortet, wird die anzeige ausgegraut und beim nächsten Abruf
+// einfach erneut versucht
