@@ -7,17 +7,7 @@
 // Es ist "Selbstheilend": Wenn der ESP nicht antwortet, wird die anzeige ausgegraut und beim nächsten Abruf
 // einfach erneut versucht
 
-// CONFIG
-const char* wechselrichter_data_url = "http://192.168.0.14/status/powerflow";// Fronius Gen24 8kW
-const char* smartmeter_data_url = "http://192.168.0.14/components/PowerMeter/readable";// FromiusSmartMeter via Fronius Gen24 8kW
-const char* smartmeter_id = "16711680";// Die Nummer wird in der data_url geliefert und ist fix, taucht aber sonst nirgends auf
-const float speicher_groesse = 7650;// in Wh
-const char* wlan_ssid = "[BITTE-EINFUEGEN]";
-const char* wlan_pwd = "[BITTE-EINFUEGEN]";
-const char* refresh_display_interval = "5 * 60";// In welchen Zeitabstaenden (in Sekunden) soll die Anzeige aktualisiert werden
-const int log_baud = 9600;
-// END CONFIG
-
+#include "config.h"
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
@@ -28,8 +18,8 @@ const int log_baud = 9600;
 ESP8266WebServer server(80);
 
 void setup(void) {
-  Serial.begin(log_baud);
-  _connect_to_wlan(wlan_ssid, wlan_pwd);
+  Serial.begin(Config::log_baud);
+  _connect_to_wlan(Config::wlan_ssid, Config::wlan_pwd);
   _start_webserver();
 }
 
@@ -54,7 +44,7 @@ void _start_webserver() {
   Serial.println("HTTP server started");
 }
 
-void _connect_to_wlan(char* wlan_ssid, char* wlan_password) {
+void _connect_to_wlan(const char* wlan_ssid, const char* wlan_password) {
   WiFi.mode(WIFI_STA);
   WiFi.begin(wlan_ssid, wlan_password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -115,13 +105,13 @@ String _format_current(int value) {
 }
 
 DynamicJsonDocument _hole_maximalen_strom_und_phase() {
-  const String smartmeter_content = _fetch_http_content(smartmeter_data_url);
+  const String smartmeter_content = _fetch_http_content(Config::smartmeter_data_url);
   DynamicJsonDocument s_data = _string_to_json(smartmeter_content, 8096);
-  return _hole_maximalen_strom_und_phase_aus_json(s_data["Body"]["Data"][smartmeter_id]["channels"]);
+  return _hole_maximalen_strom_und_phase_aus_json(s_data["Body"]["Data"][Config::smartmeter_id]["channels"]);
 }
 
 DynamicJsonDocument _hole_wechselrichter_daten() {
-  const String wechselrichter_content = _fetch_http_content(wechselrichter_data_url);
+  const String wechselrichter_content = _fetch_http_content(Config::wechselrichter_data_url);
   DynamicJsonDocument data = _string_to_json(wechselrichter_content, 2048);
 
   DynamicJsonDocument result(512);
@@ -211,7 +201,7 @@ void _erzeuge_website() {
     return;
   }
 
-  const String speicher_ladung = _format_power(false, speicher_groesse / 100 * speicher_stand);
+  const String speicher_ladung = _format_power(false, Config::speicher_groesse / 100 * speicher_stand);
   String speicher_status = "";
   if(speicher_modus != 1 && speicher_modus != 14) {
     speicher_status = "speicher_aus";
@@ -266,7 +256,7 @@ case 14: "maxSocReached"
     "  xhr.timeout = 30 * 1000;\n"
     "  xhr.send();\n"
     "}\n"
-    "setInterval(reload, " + refresh_display_interval + " * 1000);\n"
+    "setInterval(reload, " + (String) Config::refresh_display_interval + " * 1000);\n"
     "</script>"
     "<style>"
     "body{padding:0.5rem;padding-top:0.5rem;}"//transform:rotate(180deg); geht im Kindle nicht

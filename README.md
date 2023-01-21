@@ -1,4 +1,6 @@
 # Solarstrom-Eigenverbrauch-Optimierung
+Name: ???
+
 Steuerung für die Haus-Elektrik, um Solarstrom-Eigenverbrauch zu optimieren und die Solar-Batterie dabei
 weitgehend schonend zu behandeln.
 
