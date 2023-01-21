@@ -8,6 +8,8 @@
 // einfach erneut versucht
 
 #include "config.h"
+#include "wlan.h"
+
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
@@ -16,6 +18,7 @@
 #include <ArduinoJson.h>
 
 ESP8266WebServer server(80);
+Wlan wlan = Wlan(Config::wlan_ssid, Config::wlan_pwd);
 
 void setup(void) {
   Serial.begin(Config::log_baud);
@@ -67,9 +70,8 @@ DynamicJsonDocument _string_to_json(String content, int obj_size) {
 }
 
 String _fetch_http_content(char const* url) {
-    WiFiClient client;
     HTTPClient http;
-    http.begin(client, url);
+    http.begin(wlan.client, url);
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.GET();
     if (httpCode > 0) {
