@@ -10,8 +10,6 @@
 #include "config.h"
 #include "wlan.h"
 
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <ESP8266HTTPClient.h>
@@ -22,7 +20,9 @@ Wlan wlan = Wlan(Config::wlan_ssid, Config::wlan_pwd);
 
 void setup(void) {
   Serial.begin(Config::log_baud);
-  _connect_to_wlan(Config::wlan_ssid, Config::wlan_pwd);
+  delay(500);
+  Serial.println("\nSetup ESP");
+  wlan.connect();
   _start_webserver();
 }
 
@@ -47,16 +47,6 @@ void _start_webserver() {
   Serial.println("HTTP server started");
 }
 
-void _connect_to_wlan(const char* wlan_ssid, const char* wlan_password) {
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(wlan_ssid, wlan_password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("WLAN Connected, IP address: ");
-  Serial.println(WiFi.localIP());
-}
 
 DynamicJsonDocument _string_to_json(String content, int obj_size) {
   DynamicJsonDocument doc(obj_size);
