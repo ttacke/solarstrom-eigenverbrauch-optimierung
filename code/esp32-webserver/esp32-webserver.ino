@@ -4,6 +4,7 @@
 #include "web_client.h"
 #include "content_converter.h"
 #include "elektro_anlage.h"
+#include "wechselrichter_leser.h"
 #include <ArduinoJson.h>
 
 Wlan wlan = Wlan(Config::wlan_ssid, Config::wlan_pwd);
@@ -46,22 +47,23 @@ DynamicJsonDocument _hole_maximalen_strom_und_phase() {
   return _hole_maximalen_strom_und_phase_aus_json(b);
 }
 
-DynamicJsonDocument _hole_wechselrichter_daten() {
-  const String wechselrichter_content = web_client.get(Config::wechselrichter_data_url);
-  DynamicJsonDocument data = content_converter.string_to_json(wechselrichter_content);
+DynamicJsonDocument _hole_wechselrichter_daten(Config config, ElektroAnlage elektroanlage) {
+  WechselrichterLeser leser = WechselrichterLeser(config, web_client);
+  leser.daten_holen_und_einsetzen(elektroanlage);
 
-  DynamicJsonDocument result(512);
-  result["SOC"] = data["inverters"][0]["SOC"];
-  result["BatMode"] = data["inverters"][0]["BatMode"];
-  result["P_Akku"] = data["site"]["P_Akku"];
-  result["P_Load"] = data["site"]["P_Load"];
-  result["P_Grid"] = data["site"]["P_Grid"];
-  result["P_PV"] = data["site"]["P_PV"];
-  return result;
+	// DEPRECATED
+	  DynamicJsonDocument result(512);
+	  result["SOC"] = (String) elektroanlage.solarakku_ladestand_prozent;
+	  result["BatMode"] = (String) (elektroanlage.solarakku_ist_an ? "1" : "0");
+	  result["P_Akku"] = (String) elektroanlage.solarakku_wh;
+	  result["P_Load"] = (String) elektroanlage.verbraucher_wh;
+	  result["P_Grid"] = (String) elektroanlage.netz_wh;
+	  result["P_PV"] = (String) elektroanlage.solar_wh;
+	  return result;
 }
 
-DynamicJsonDocument _hole_daten(ElektroAnlage elektroanlage) {
-  DynamicJsonDocument w_data1 = _hole_wechselrichter_daten();
+DynamicJsonDocument _hole_daten(Config config, ElektroAnlage elektroanlage) {
+  DynamicJsonDocument w_data1 = _hole_wechselrichter_daten(config, elektroanlage);
   DynamicJsonDocument max_i1 = _hole_maximalen_strom_und_phase();
 
   w_data1["MAX_I"] = (int) max_i1["MAX_I"];
@@ -106,9 +108,10 @@ DynamicJsonDocument _hole_maximalen_strom_und_phase_aus_json(DynamicJsonDocument
 }
 
 String* _erzeuge_website() {
+  Config config = Config();
   ElektroAnlage elektroanlage = ElektroAnlage();
 
-  DynamicJsonDocument data = _hole_daten(elektroanlage);
+  DynamicJsonDocument data = _hole_daten(config, elektroanlage);
 
   const int speicher_stand = (float) data["SOC"];
   const int speicher_modus = (int) data["BatMode"];
@@ -129,21 +132,7 @@ String* _erzeuge_website() {
     speicher_status = "speicher_aus";
   }
 
-/*
-http://192.168.0.106/main-es2015.57cf3de98e3c435ccd68.js
-BatMode
-case 0: "disabled"
--- 1: aktiv
-case 2: "serviceMode"
-case 3: "chargeBoost"
-case 4: "nearlyDepleted"
-case 5: "suspended"
-case 6: "calibration"
-case 8: "depletedRecovery"
-case 12: "startup"
-case 13: "stoppedTemperature"
-case 14: "maxSocReached"
-*/
+
 
   String html = "<html><head><title>Sonnenrech 19</title>"
     "<script type=\"text/javascript\">"
