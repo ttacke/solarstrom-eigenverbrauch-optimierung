@@ -6,10 +6,11 @@ namespace Local {
 		int solar_wh;
 		int netz_wh;
 		int solarakku_wh;
-		int verbraucher_wh = 12;
+		int verbraucher_wh;
 		int solarakku_ladestand_prozent;
 		bool solarakku_ist_an;
-		int maximale_stromstaerke_ma;
-		int phase_der_maximalen_stromstaerke;
+		int l1_strom_ma;
+		int l2_strom_ma;
+		int l3_strom_ma;
 	};
 }

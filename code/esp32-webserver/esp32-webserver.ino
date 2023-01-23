@@ -5,6 +5,7 @@
 #include "content_converter.h"
 #include "elektro_anlage.h"
 #include "wechselrichter_leser.h"
+#include "smartmeter_leser.h"
 #include <ArduinoJson.h>
 #include "http_response.h"
 
@@ -12,6 +13,14 @@ Local::Wlan wlan(Local::Config::wlan_ssid, Local::Config::wlan_pwd);
 Local::Webserver webserver(80);
 Local::WebClient web_client(wlan.client);
 /* TODO
+Einstellung beim Bauen:
+MMU -> 16kb + 48b IRAM
+
+Speicherprobleme
+kein String, immer char*
+schnell wieder freigeben
+wenige Variablen aufheben
+
 BaseLeser erstellen mit JsonReader und Webclient
 Davon erben
 SmartmeterLeser erstellen und Stromstärken auslesen
@@ -36,15 +45,18 @@ Local::ContentConverter content_converter;
 void setup(void) {
 	// TODO Config meistens als Objekt nutzen
   Serial.begin(Local::Config::log_baud);
+  //Serial.println(ESP.getFreeHeap(),DEC);
   Serial.println("\nSetup ESP");
   wlan.connect();
   Local::Config cfg;
   Local::ElektroAnlage elektroanlage;
   webserver.add_page("/", [&]() {
   	// TODO leser hier schon setzen?
+  	//Serial.println(ESP.getFreeHeap(),DEC);
     return _erzeuge_website(cfg, elektroanlage);
   });
   webserver.start();
+  //Serial.println(ESP.getFreeHeap(),DEC);
 }
 
 void loop(void) {
@@ -54,7 +66,11 @@ void loop(void) {
 // ###################################################################################
 
 
-DynamicJsonDocument _hole_maximalen_strom_und_phase() {
+DynamicJsonDocument _hole_maximalen_strom_und_phase(Local::Config config, Local::ElektroAnlage elektroanlage) {
+	Local::SmartmeterLeser leser(config, web_client);
+	leser.daten_holen_und_einsetzen(elektroanlage);
+	// TODO das untere umwandeln
+
   const String smartmeter_content = web_client.get(Local::Config::smartmeter_data_url);
   Serial.println("strom");
   DynamicJsonDocument s_data = content_converter.string_to_json(smartmeter_content);
@@ -84,7 +100,7 @@ DynamicJsonDocument _hole_wechselrichter_daten(Local::Config config, Local::Elek
 
 DynamicJsonDocument _hole_daten(Local::Config config, Local::ElektroAnlage elektroanlage) {
   DynamicJsonDocument w_data1 = _hole_wechselrichter_daten(config, elektroanlage);
-  DynamicJsonDocument max_i1 = _hole_maximalen_strom_und_phase();
+  DynamicJsonDocument max_i1 = _hole_maximalen_strom_und_phase(config, elektroanlage);
 
   w_data1["MAX_I"] = (int) max_i1["MAX_I"];
   w_data1["MAX_I_PHASE"] = (int) max_i1["MAX_I_PHASE"];
@@ -128,7 +144,9 @@ DynamicJsonDocument _hole_maximalen_strom_und_phase_aus_json(DynamicJsonDocument
 }
 
 Local::HTTPResponse _erzeuge_website(Local::Config cfg, Local::ElektroAnlage elektroanlage) {
-  DynamicJsonDocument data = _hole_daten(cfg, elektroanlage);
+	//Serial.println(ESP.getFreeHeap(),DEC);
+	DynamicJsonDocument data = _hole_daten(cfg, elektroanlage);
+	//Serial.println(ESP.getFreeHeap(),DEC);
 
   const int speicher_stand = (float) data["SOC"];
   const int speicher_modus = (int) data["BatMode"];
