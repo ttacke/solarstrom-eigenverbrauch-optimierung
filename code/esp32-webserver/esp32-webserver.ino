@@ -6,20 +6,45 @@
 #include "elektro_anlage.h"
 #include "wechselrichter_leser.h"
 #include <ArduinoJson.h>
+#include "http_response.h"
 
-Wlan wlan = Wlan(Config::wlan_ssid, Config::wlan_pwd);
-Webserver webserver = Webserver(80);
-WebClient web_client = WebClient(wlan.client);
+Local::Wlan wlan(Local::Config::wlan_ssid, Local::Config::wlan_pwd);
+Local::Webserver webserver(80);
+Local::WebClient web_client(wlan.client);
+/* TODO
+- Alle eigenen Klassen in den Local Namespace
+- Die Batterierechnung ist kaputt?!? Wieso?
+BaseLeser erstellen mit JsonReader und Webclient
+Davon erben
+SmartmeterLeser erstellen und Stromstärken auslesen
+Display erstellen und HTML dort ausgeben
+Berechnungen erfolgen in ElekrtoAnlage
+Alle Leser im Kopf erstellen und dann an passender Stelle nutzen
+Config als Objekt erstelle und nutzen.
+Wechselrichter-IP in der Config, die URL im Leser (die ist eh fix an die Struktur gebunden)
 
+5,5 Zeilen hat das Display in ordentlicher größe
+=========
+Überschuss: 1.500 W <- enthält auch das Laden der Batterie
+SolarBatt:     72 %
+Auto Laden: 54% [nur Überschuss] [normal] <- Ü ist inaktiv, wenn nicht sinnvoll
+Vorhersage: 8:15 - 17:02 [Überschuss wird erwartet] <- woher kriegen wir so einen Wert?
+Last [Netz 2000W + Batterieladestrom (wenn geladen, nicht, wenn entladen)] <-- noch unklar
+=========
+*/
 // DEPRECATED
-ContentConverter content_converter = ContentConverter();
+Local::ContentConverter content_converter;
 
 void setup(void) {
-  Serial.begin(Config::log_baud);
+	// TODO Config meistens als Objekt nutzen
+  Serial.begin(Local::Config::log_baud);
   Serial.println("\nSetup ESP");
   wlan.connect();
-  webserver.add_page("/", []() {
-     return _erzeuge_website();
+  Local::Config cfg;
+  Local::ElektroAnlage elektroanlage;
+  webserver.add_page("/", [&]() {
+  	// TODO leser hier schon setzen?
+    return _erzeuge_website(cfg, elektroanlage);
   });
   webserver.start();
 }
@@ -31,24 +56,21 @@ void loop(void) {
 // ###################################################################################
 
 
-
-
-
-
-
 DynamicJsonDocument _hole_maximalen_strom_und_phase() {
-  const String smartmeter_content = web_client.get(Config::smartmeter_data_url);
+  const String smartmeter_content = web_client.get(Local::Config::smartmeter_data_url);
+  Serial.println("strom");
   DynamicJsonDocument s_data = content_converter.string_to_json(smartmeter_content);
 
 
   // TODO hier klappt der Zugriff auf einmal nicht mehr. Nur, weil Inline? Warum muss an dieser Stelle dieser Umweg passieren?
   DynamicJsonDocument b(1024);
-  b = s_data["Body"]["Data"][Config::smartmeter_id]["channels"];
+  b = s_data["Body"]["Data"][Local::Config::smartmeter_id]["channels"];
   return _hole_maximalen_strom_und_phase_aus_json(b);
 }
 
-DynamicJsonDocument _hole_wechselrichter_daten(Config config, ElektroAnlage elektroanlage) {
-  WechselrichterLeser leser = WechselrichterLeser(config, web_client);
+DynamicJsonDocument _hole_wechselrichter_daten(Local::Config config, Local::ElektroAnlage elektroanlage) {
+	// TODO dennach ganz außen setzen
+  Local::WechselrichterLeser leser(config, web_client);
   leser.daten_holen_und_einsetzen(elektroanlage);
 
 	// DEPRECATED
@@ -62,12 +84,12 @@ DynamicJsonDocument _hole_wechselrichter_daten(Config config, ElektroAnlage elek
 	  return result;
 }
 
-DynamicJsonDocument _hole_daten(Config config, ElektroAnlage elektroanlage) {
+DynamicJsonDocument _hole_daten(Local::Config config, Local::ElektroAnlage elektroanlage) {
   DynamicJsonDocument w_data1 = _hole_wechselrichter_daten(config, elektroanlage);
-  DynamicJsonDocument max_i1 = _hole_maximalen_strom_und_phase();
+  //DynamicJsonDocument max_i1 = _hole_maximalen_strom_und_phase();
 
-  w_data1["MAX_I"] = (int) max_i1["MAX_I"];
-  w_data1["MAX_I_PHASE"] = max_i1["MAX_I_PHASE"];
+  w_data1["MAX_I"] = 0;//(int) max_i1["MAX_I"];
+  w_data1["MAX_I_PHASE"] = 0;//max_i1["MAX_I_PHASE"];
 
   w_data1["SOC"] = (float) w_data1["SOC"];
   w_data1["BatMode"] = (float) w_data1["BatMode"];
@@ -107,11 +129,8 @@ DynamicJsonDocument _hole_maximalen_strom_und_phase_aus_json(DynamicJsonDocument
   return result;
 }
 
-String* _erzeuge_website() {
-  Config config = Config();
-  ElektroAnlage elektroanlage = ElektroAnlage();
-
-  DynamicJsonDocument data = _hole_daten(config, elektroanlage);
+Local::HTTPResponse _erzeuge_website(Local::Config cfg, Local::ElektroAnlage elektroanlage) {
+  DynamicJsonDocument data = _hole_daten(cfg, elektroanlage);
 
   const int speicher_stand = (float) data["SOC"];
   const int speicher_modus = (int) data["BatMode"];
@@ -123,10 +142,10 @@ String* _erzeuge_website() {
   const int max_i = (int) data["MAX_I"];
   const String max_i_phase = (String) data["MAX_I_PHASE"];
   if(!load && !grid && !solar && !max_i && !max_i_phase) {
-    return new String[3]{"503", "text/plain", ""};
+    return Local::HTTPResponse(503, "text/plain", "<h1>503: Error</h1>");
   }
 
-  const String speicher_ladung = content_converter.formatiere_zahl(false, Config::speicher_groesse / 100 * speicher_stand);
+  const String speicher_ladung = content_converter.formatiere_zahl(false, Local::Config::speicher_groesse / 100 * speicher_stand);
   String speicher_status = "";
   if(speicher_modus != 1 && speicher_modus != 14) {
     speicher_status = "speicher_aus";
@@ -169,7 +188,7 @@ String* _erzeuge_website() {
     "  xhr.timeout = 30 * 1000;\n"
     "  xhr.send();\n"
     "}\n"
-    "setInterval(reload, " + (String) Config::refresh_display_interval + " * 1000);\n"
+    "setInterval(reload, " + (String) Local::Config::refresh_display_interval + " * 1000);\n"
     "</script>"
     "<style>"
     "body{padding:0.5rem;padding-top:0.5rem;}"//transform:rotate(180deg); geht im Kindle nicht
@@ -199,5 +218,5 @@ String* _erzeuge_website() {
     "<tr class=\"speicher " + speicher_status + "\"><td class=label>Speicher</td><td class=zahl>" + speicher_ladung + "</td><td class=\"label einheit\">Wh</span></td></tr>"
     "</table>"
     "</body></html>";
-  return new String[3]{"200", "text/html", html};
+  return Local::HTTPResponse(200, "text/html", html);
 }
