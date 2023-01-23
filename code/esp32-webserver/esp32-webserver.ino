@@ -12,8 +12,6 @@ Local::Wlan wlan(Local::Config::wlan_ssid, Local::Config::wlan_pwd);
 Local::Webserver webserver(80);
 Local::WebClient web_client(wlan.client);
 /* TODO
-- Alle eigenen Klassen in den Local Namespace
-- Die Batterierechnung ist kaputt?!? Wieso?
 BaseLeser erstellen mit JsonReader und Webclient
 Davon erben
 SmartmeterLeser erstellen und Stromstärken auslesen
@@ -89,7 +87,7 @@ DynamicJsonDocument _hole_daten(Local::Config config, Local::ElektroAnlage elekt
   DynamicJsonDocument max_i1 = _hole_maximalen_strom_und_phase();
 
   w_data1["MAX_I"] = (int) max_i1["MAX_I"];
-  w_data1["MAX_I_PHASE"] = max_i1["MAX_I_PHASE"];
+  w_data1["MAX_I_PHASE"] = (int) max_i1["MAX_I_PHASE"];
 
   w_data1["SOC"] = (float) w_data1["SOC"];
   w_data1["BatMode"] = (int) w_data1["BatMode"];
@@ -157,9 +155,9 @@ Local::HTTPResponse _erzeuge_website(Local::Config cfg, Local::ElektroAnlage ele
     "<script type=\"text/javascript\">"
     "var anzahl_fehler = 0;\n"
     "function setze_lokale_daten() {\n"
-    "  var max_i = document.getElementById('max_i_value').innerHTML;\n"
+    "  var max_i = document.getElementById('max_i_value').innerHTML * 1;\n"
     "  if(!document.max_i || document.max_i < max_i) {\n"
-    "   document.max_i = max_i;\n"
+    "   document.max_i = max_i * 1;\n"
     "   document.max_i_phase = document.getElementById('max_i_phase').innerHTML;\n"
     "   var now = new Date();\n"
     "   document.max_i_uhrzeit = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();\n"

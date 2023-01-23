@@ -26,8 +26,9 @@ sind fest codierte und "zertifizierten Handwerkern" bekannt. Also jedem. Ein Vir
 anderen Endgerät im gleichen Netz könnte also problemlos Schaden anrichten.
 
 ## TODO
-- warum ist max-I immer bei 9,9? Macht der einen Stringvergleich statt zahlen?
-- die Verrechnung mit 3 abrufen entfernen
+- Wird iMax jetzt korrekt gezeigt?
+- Alle Meddungen mehrfach machen und Meridian ermitteln. Diesen dann nutzen (ist ruhiger)
+  - maxI aber nicht, da wird das Maximum genutzt
 - Nachts deaktivieren und auch keine Abrufe machen, außer Auto lädt
   - Dazu muss aber der Sonnenauf/Untergang ermittelt werden? Im Netz ggf?
   - Oder intern speichern, wann Gestern Sonnenauf/Untergang war. Das ändert sich ja nur langsam und der Solarertrag=0 ist ja genau der Indikator, den es braucht
