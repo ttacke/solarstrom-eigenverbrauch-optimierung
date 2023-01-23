@@ -76,7 +76,7 @@ DynamicJsonDocument _hole_wechselrichter_daten(Local::Config config, Local::Elek
 	// DEPRECATED
 	  DynamicJsonDocument result(512);
 	  result["SOC"] = (String) elektroanlage.solarakku_ladestand_prozent;
-	  result["BatMode"] = (String) (elektroanlage.solarakku_ist_an ? "1" : "0");
+	  result["BatMode"] = (int) (elektroanlage.solarakku_ist_an ? 1 : 0);
 	  result["P_Akku"] = (String) elektroanlage.solarakku_wh;
 	  result["P_Load"] = (String) elektroanlage.verbraucher_wh;
 	  result["P_Grid"] = (String) elektroanlage.netz_wh;
@@ -86,13 +86,13 @@ DynamicJsonDocument _hole_wechselrichter_daten(Local::Config config, Local::Elek
 
 DynamicJsonDocument _hole_daten(Local::Config config, Local::ElektroAnlage elektroanlage) {
   DynamicJsonDocument w_data1 = _hole_wechselrichter_daten(config, elektroanlage);
-  //DynamicJsonDocument max_i1 = _hole_maximalen_strom_und_phase();
+  DynamicJsonDocument max_i1 = _hole_maximalen_strom_und_phase();
 
-  w_data1["MAX_I"] = 0;//(int) max_i1["MAX_I"];
-  w_data1["MAX_I_PHASE"] = 0;//max_i1["MAX_I_PHASE"];
+  w_data1["MAX_I"] = (int) max_i1["MAX_I"];
+  w_data1["MAX_I_PHASE"] = max_i1["MAX_I_PHASE"];
 
   w_data1["SOC"] = (float) w_data1["SOC"];
-  w_data1["BatMode"] = (float) w_data1["BatMode"];
+  w_data1["BatMode"] = (int) w_data1["BatMode"];
   w_data1["P_Akku"] = (float) w_data1["P_Akku"];
 
   w_data1["P_Load"] = (float) w_data1["P_Load"];

@@ -47,7 +47,8 @@ namespace Local {
 				case 13: "stoppedTemperature"
 				case 14: "maxSocReached"
 			*/
-			if(((String) d["inverters"][0]["BatMode"]).compareTo("1")) {
+			int batt_mode = (int) d["inverters"][0]["BatMode"];
+			if(batt_mode == 1 || batt_mode == 14) {
 				elektroanlage.solarakku_ist_an = true;
 			} else {
 				elektroanlage.solarakku_ist_an = false;
