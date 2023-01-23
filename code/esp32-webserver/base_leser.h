@@ -12,8 +12,7 @@ namespace Local {
 		Local::Config cfg;
 
 		DynamicJsonDocument string_to_json(String content) {
-		  DynamicJsonDocument doc(content.length() * 2);
-		  Serial.println(content.length());
+		  DynamicJsonDocument doc(round(content.length() * 1.5));
 		  DeserializationError error = deserializeJson(doc, content);
 		  if (error) {
 			Serial.print(F("deserializeJson() failed with code "));

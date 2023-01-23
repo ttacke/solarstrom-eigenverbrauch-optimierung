@@ -15,7 +15,7 @@ namespace Local {
 			HTTPClient http;
 			http.begin(wlan_client, url);
 			http.addHeader("Content-Type", "application/json");
-			http.setTimeout(30);
+			http.setTimeout(15000);// ms, vermutlich
 			int httpCode = http.GET();
 			if (httpCode > 0) {
 			  if (httpCode == HTTP_CODE_OK) {
