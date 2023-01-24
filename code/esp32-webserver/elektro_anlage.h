@@ -3,15 +3,15 @@
 namespace Local {
 	class ElektroAnlage {
 	public:
-		int solar_wh = 0;
-		int netz_wh = 0;
-		int solarakku_wh = 0;
-		int verbraucher_wh = 0;
-		int solarakku_ladestand_prozent = 0;
+		int solar_wh;
+		int netz_wh;
+		int solarakku_wh;
+		int verbraucher_wh;
+		int solarakku_ladestand_prozent;
 		bool solarakku_ist_an = false;
-		int l1_strom_ma = 0;
-		int l2_strom_ma = 0;
-		int l3_strom_ma = 0;
+		int l1_strom_ma;
+		int l2_strom_ma;
+		int l3_strom_ma;
 
 		int max_i_ma() {
 			if(l1_strom_ma > l2_strom_ma && l1_strom_ma > l3_strom_ma) {

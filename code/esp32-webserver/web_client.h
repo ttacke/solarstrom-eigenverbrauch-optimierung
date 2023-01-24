@@ -7,10 +7,10 @@ namespace Local {
 	protected:
 		WiFiClient wlan_client;
 	public:
-		WebClient(WiFiClient wlan_client_param) {
+		WebClient(WiFiClient& wlan_client_param) {
 			wlan_client = wlan_client_param;
 		}
-		// DEPRECATED, soll in die Leser
+		// TODO DEPRECATED, soll in die Leser
 		String get(char const* url) {
 			HTTPClient http;
 			http.begin(wlan_client, url);

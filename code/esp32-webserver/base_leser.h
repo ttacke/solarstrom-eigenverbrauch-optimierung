@@ -12,7 +12,7 @@ namespace Local {
 		Local::Config cfg;
 
 		DynamicJsonDocument string_to_json(String content) {
-		  DynamicJsonDocument doc(round(content.length() * 1.5));
+		  DynamicJsonDocument doc(round(content.length() * 2));
 		  DeserializationError error = deserializeJson(doc, content);
 		  if (error) {
 			Serial.print(F("deserializeJson() failed with code "));
@@ -22,7 +22,7 @@ namespace Local {
 		  return doc;
 		}
 	public:
-		explicit BaseLeser(Local::Config cfg, Local::WebClient web_client): cfg(cfg), web_client(web_client) {
+		explicit BaseLeser(Local::Config& cfg, Local::WebClient& web_client): cfg(cfg), web_client(web_client) {
 		}
 
 		virtual void daten_holen_und_einsetzen(Local::ElektroAnlage& elektroanlage) = 0;
