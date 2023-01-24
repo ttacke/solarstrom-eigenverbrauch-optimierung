@@ -22,9 +22,9 @@ sonnenauf+untergang steht da auch
 
 Vorhersage: der Zeitpunkt ist der Start. D.h. das Erste Element stellt "jetzt" dar.
 
-https://api.openweathermap.org/data/2.5/forecast?lat=50.00514185255658&lon=7.946735251534589&appid=c988edcd8dd00959cff411e7cdea0ac5
+https://api.openweathermap.org/data/2.5/forecast?lat=50.00514185255658&lon=7.946735251534589&appid=API-KEY
 
-https://api.openweathermap.org/data/2.5/weather?lat=50.00514185255658&lon=7.946735251534589&appid=c988edcd8dd00959cff411e7cdea0ac5
+https://api.openweathermap.org/data/2.5/weather?lat=50.00514185255658&lon=7.946735251534589&appid=API-KEY
 
 Anzeige:
 ---------------
