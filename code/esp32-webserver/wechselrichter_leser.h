@@ -9,6 +9,12 @@ namespace Local {
 
 	public:
 		void daten_holen_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
+
+//			char* url = strdup(cfg.wechselrichter_adresse);
+//			url = strcat(url, "/status/powerflow");
+//			Serial.println(url);
+//			free(url);
+
 			DynamicJsonDocument d = string_to_json(
 				web_client.get(cfg.wechselrichter_data_url)
 			);

@@ -15,6 +15,32 @@ Local::WebClient web_client(wlan.client);
 Einstellung beim Bauen:
 MMU -> 16kb + 48b IRAM
 
+Wetter:
+> desc + visibility + cloudiness mit dokumentieren
+> im Nachhinein Zusammenhänge suchen
+sonnenauf+untergang steht da auch
+
+Vorhersage: der Zeitpunkt ist der Start. D.h. das Erste Element stellt "jetzt" dar.
+
+https://api.openweathermap.org/data/2.5/forecast?lat=50.00514185255658&lon=7.946735251534589&appid=c988edcd8dd00959cff411e7cdea0ac5
+
+https://api.openweathermap.org/data/2.5/weather?lat=50.00514185255658&lon=7.946735251534589&appid=c988edcd8dd00959cff411e7cdea0ac5
+
+Anzeige:
+---------------
+Ü +1.200 W / 13 %		--> aus = gestrichen? oder normal
+heute: 8:12-16:15 +   --> potential
+morgen: 8:13-14:12 +++
+übermorgen: 8:13-14:12 -
+Auto: 53% [ü Laden]		--> nur an oder aus; an = nur an, wenn Ü > 2200 (oder was das minimum ist)
+---------------
+-> Imax (und alles andere) wird nur geloggt auf der SD
+-> jeder Abruf schreibt 1x die SD
+-> Wetterdaten: nur rufen, wenn Speicher leer oder zeitpunkt für nächsten Zeitslot überschritten
+
+
+
+
 Display erstellen und HTML dort ausgeben
 Berechnungen erfolgen in ElekrtoAnlage
 Wechselrichter-IP in der Config, die URL im Leser (die ist eh fix an die Struktur gebunden)
@@ -107,28 +133,34 @@ void _erzeuge_website() {
 		"td{font-size:5rem;line-height:1.1;}"
 		"table{width:100%;}"
 		"tr.last td {border-top:5px solid #000;}"
-		".zahl{text-align:right;padding-left:1rem;}"
+		".zahl{text-align:right;padding-left:0.3rem;}"
 		".label{font-size:2rem;}"
-		".einheit{padding-left:0.3rem;}"
-		".markerline td{text-align:center;font-size:2.5rem;}"
-		".markerline td span{color:#999;}"
-		".markerline td #max_i{}"
-		".markerline td #marker{}"
+		".einheit{padding-left:0.3rem;width:0%;}"
+		".markerline div{text-align:center;font-size:2.5rem;}"
+		".markerline div span{color:#999;}"
+		".markerline div #max_i{}"
+		".markerline div #marker{}"
 		".speicher_aus td{color:#999;}"
 		".hat_fehler *{color:#999;}"
-		".hat_fehler .markerline td span{color:#000;text-decoration:underline;}"
+		".hat_fehler .markerline div span{color:#000;text-decoration:underline;}"
 		"</style>"
 	);
 	s("</head><body onclick=\"reload();\" onload=\"setze_lokale_daten();\">"
 		"<div style=\"display:none\"><span id=max_i_value>" + Local::Formatierer::wert_als_k_mit_1stellen(elektroanlage.max_i_ma()) + "</span><span id=max_i_phase>" + elektroanlage.max_i_phase() + "</span></div>"
-		"<table cellspacing=0>"
-		"<tr><td class=label>Solar</td><td class=zahl>" + Local::Formatierer::wert_als_k(false, elektroanlage.solar_wh) + "</td><td class=\"label einheit\">W</span></td></tr>"
-		"<tr><td class=label>+Akku<br/></td><td class=zahl>" + Local::Formatierer::wert_als_k(true, elektroanlage.solarakku_wh) + "</td><td class=\"label einheit\">W</span></td></tr>"
-		"<tr><td class=label>+Netz</td><td class=zahl>" + Local::Formatierer::wert_als_k(true, elektroanlage.netz_wh) + "</td><td class=\"label einheit\">W</span></td></tr>"
-		"<tr class=last><td class=label>=Last</td><td class=zahl>" + Local::Formatierer::wert_als_k(false, elektroanlage.verbraucher_wh * -1) + "</td><td class=\"label einheit\">W</span></td></tr>"
-		"<tr class=markerline><td colspan=3><span id=max_i></span><span id=marker>starte...</span><span id=fehler></span></td></tr>"
-		"<tr class=\"speicher " + (elektroanlage.solarakku_ist_an ? "speicher_status" : "") + "\"><td class=label>Speicher</td><td class=zahl>" + Local::Formatierer::wert_als_k(false, cfg.speicher_groesse / 100 * elektroanlage.solarakku_ladestand_prozent) + "</td><td class=\"label einheit\">Wh</span></td></tr>"
+		"<table cellspacing=0 border=0>"
+		"<tr>"
+			"<td class=zahl style=\"width:auto\">" + Local::Formatierer::wert_als_k(false, elektroanlage.gib_ueberschuss_in_wh()) + "</td>"
+			"<td class=\"label einheit\" style=\"width:0.5em\">W</span></td>"
+			"<td class=zahl style=\"width:1.8em;\">" + (String) elektroanlage.solarakku_ladestand_prozent + "</td>"
+			"<td class=\"label einheit\" style=\"width:0.5em\">%</span></td>"
+		"</tr>"
+//		"<tr><td class=label>+Akku<br/></td><td class=zahl>" + Local::Formatierer::wert_als_k(true, elektroanlage.solarakku_wh) + "</td><td class=\"label einheit\">W</span></td></tr>"
+//		"<tr><td class=label>+Netz</td><td class=zahl>" + Local::Formatierer::wert_als_k(true, elektroanlage.netz_wh) + "</td><td class=\"label einheit\">W</span></td></tr>"
+//		"<tr class=last><td class=label>=Last</td><td class=zahl>" + Local::Formatierer::wert_als_k(false, elektroanlage.verbraucher_wh * -1) + "</td><td class=\"label einheit\">W</span></td></tr>"
+//		"<tr class=markerline><td colspan=3><span id=max_i></span><span id=marker>starte...</span><span id=fehler></span></td></tr>"
+//		"<tr class=\"speicher " + (elektroanlage.solarakku_ist_an ? "" : "speicher_aus") + "\"><td class=label>Speicher</td><td class=zahl>" + Local::Formatierer::wert_als_k(false, cfg.speicher_groesse / 100 * elektroanlage.solarakku_ladestand_prozent) + "</td><td class=\"label einheit\">%</span></td></tr>"
 		"</table>"
+		"<div class=markerline><div><span id=max_i></span><span id=marker>starte...</span><span id=fehler></span></div></div>"
 		"</body></html>"
 	);
 }

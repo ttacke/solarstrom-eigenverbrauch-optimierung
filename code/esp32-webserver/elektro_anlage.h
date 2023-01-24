@@ -3,6 +3,7 @@
 namespace Local {
 	class ElektroAnlage {
 	public:
+		// TODO "in_wh" ist verstaendlicher
 		int solar_wh;
 		int netz_wh;
 		int solarakku_wh;
@@ -12,6 +13,17 @@ namespace Local {
 		int l1_strom_ma;
 		int l2_strom_ma;
 		int l3_strom_ma;
+
+		int gib_ueberschuss_in_wh() {
+			int ueberschuss = 0;
+			if(solarakku_wh < 0) {
+				ueberschuss += solarakku_wh;
+			}
+			if(netz_wh < 0) {
+				ueberschuss += netz_wh;
+			}
+			return ueberschuss * -1;
+		}
 
 		int max_i_ma() {
 			if(l1_strom_ma > l2_strom_ma && l1_strom_ma > l3_strom_ma) {
