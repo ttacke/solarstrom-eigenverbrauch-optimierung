@@ -13,9 +13,9 @@ namespace Local {
 		  return (String) str;
 		}
 
-		static String wert_als_k_mit_1stellen(int value) {
+		static String format(char* format_str, float value) {
 		  char str[10];
-		  sprintf(str, ("%.1f"), (float) value / 1000);
+		  sprintf(str, format_str, value);
 		  return (String) str;
 		}
 	};

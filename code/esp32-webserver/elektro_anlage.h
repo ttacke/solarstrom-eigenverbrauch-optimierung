@@ -3,29 +3,25 @@
 namespace Local {
 	class ElektroAnlage {
 	public:
-		// TODO "in_wh" ist verstaendlicher
-		int solar_wh;
-		int netz_wh;
-		int solarakku_wh;
-		int verbraucher_wh;
-		int solarakku_ladestand_prozent;
+		int netzbezug_in_wh;// + = bezug, - = einspeisung
+		int solarakku_zuschuss_in_wh;// + = entladung, - = ladung
+		unsigned int solarerzeugung_in_wh;
+		unsigned int stromverbrauch_in_wh;
+		unsigned int solarakku_ladestand_in_promille;
 		bool solarakku_ist_an = false;
 		int l1_strom_ma;
 		int l2_strom_ma;
 		int l3_strom_ma;
 
 		int gib_ueberschuss_in_wh() {
-			int ueberschuss = 0;
-			if(solarakku_wh < 0) {
-				ueberschuss += solarakku_wh;
+			int ueberschuss = (netzbezug_in_wh * -1);
+			if(solarakku_zuschuss_in_wh < 0) {// Wenn der laedt...
+				ueberschuss -= solarakku_zuschuss_in_wh;// die Ladeleistung zum Ueberschuss zaehlen
 			}
-			if(netz_wh < 0) {
-				ueberschuss += netz_wh;
-			}
-			return ueberschuss * -1;
+			return ueberschuss;
 		}
 
-		int max_i_ma() {
+		int max_i_in_ma() {
 			if(l1_strom_ma > l2_strom_ma && l1_strom_ma > l3_strom_ma) {
 				return l1_strom_ma;
 			} else if(l2_strom_ma > l3_strom_ma) {

@@ -9,20 +9,14 @@ namespace Local {
 
 	public:
 		void daten_holen_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
-
-//			char* url = strdup(cfg.wechselrichter_adresse);
-//			url = strcat(url, "/status/powerflow");
-//			Serial.println(url);
-//			free(url);
-
 			DynamicJsonDocument d = string_to_json(
 				web_client.get(cfg.wechselrichter_data_url)
 			);
-			elektroanlage.solar_wh = round((float) d["site"]["P_PV"]);
-			elektroanlage.solarakku_wh = round((float) d["site"]["P_Akku"]);
-			elektroanlage.solarakku_ladestand_prozent = round((float) d["inverters"][0]["SOC"]);
-			elektroanlage.netz_wh = round((float) d["site"]["P_Grid"]);
-			elektroanlage.verbraucher_wh = round((float) d["site"]["P_Load"]);
+			elektroanlage.solarerzeugung_in_wh = round((float) d["site"]["P_PV"]);
+			elektroanlage.solarakku_zuschuss_in_wh = round((float) d["site"]["P_Akku"]);
+			elektroanlage.solarakku_ladestand_in_promille = round((float) d["inverters"][0]["SOC"] * 10);
+			elektroanlage.netzbezug_in_wh = round((float) d["site"]["P_Grid"]);
+			elektroanlage.stromverbrauch_in_wh = round((float) d["site"]["P_Load"]) * -1;
 			/*
 				http://192.168.0.106/main-es2015.57cf3de98e3c435ccd68.js
 				BatMode
@@ -38,7 +32,7 @@ namespace Local {
 				case 13: "stoppedTemperature"
 				case 14: "maxSocReached"
 			*/
-			int batt_mode = (int) d["inverters"][0]["BatMode"];
+			int batt_mode = (int) d["inverters"][0]["BatMode"];// das ist ne Dezimalzahl, warum auch immer
 			if(batt_mode == 1 || batt_mode == 14) {
 				elektroanlage.solarakku_ist_an = true;
 			} else {
