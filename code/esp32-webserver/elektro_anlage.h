@@ -40,5 +40,18 @@ namespace Local {
 				return 3;
 			}
 		}
+
+		String gib_log_zeile() {
+			return "E;" + (String) netzbezug_in_wh + ";"
+				+ (String) solarakku_zuschuss_in_wh + ";"
+				+ (String) solarerzeugung_in_wh + ";"
+				+ (String) stromverbrauch_in_wh + ";"
+				+ (String) solarakku_ladestand_in_promille + ";"
+				+ (String) l1_strom_ma + ";"
+				+ (String) l2_strom_ma + ";"
+				+ (String) l3_strom_ma
+				+ "\n"
+			;
+		}
 	};
 }

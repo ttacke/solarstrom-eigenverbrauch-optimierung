@@ -7,11 +7,13 @@
 #include "wechselrichter_leser.h"
 #include "wettervorhersage_leser.h"
 #include "smartmeter_leser.h"
+#include "persistenz.h"
 
 Local::Config cfg;
 Local::Wlan wlan(cfg.wlan_ssid, cfg.wlan_pwd);
 Local::Webserver webserver(80);
 Local::WebClient web_client(wlan.client);
+Local::Persistenz persistenz;
 /* TODO
 Einstellung beim Bauen:
 MMU -> 16kb + 48b IRAM
@@ -100,6 +102,8 @@ void _erzeuge_website() {
 
 	Local::WettervorhersageLeser wetter_leser(cfg, web_client);
 	wetter_leser.daten_holen_und_einsetzen(elektroanlage);
+
+	persistenz.append2file((char*) "anlage.log", elektroanlage.gib_log_zeile());
 
 	webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 	webserver.server.send(200, "text/html", "");
