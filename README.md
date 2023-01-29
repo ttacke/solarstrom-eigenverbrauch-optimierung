@@ -26,14 +26,6 @@ sind fest codierte und "zertifizierten Handwerkern" bekannt. Also jedem. Ein Vir
 anderen Endgerät im gleichen Netz könnte also problemlos Schaden anrichten.
 
 ## TODO
-- Wird iMax jetzt korrekt gezeigt?
-- Alle Meddungen mehrfach machen und Meridian ermitteln. Diesen dann nutzen (ist ruhiger)
-  - maxI aber nicht, da wird das Maximum genutzt
-- Nachts deaktivieren und auch keine Abrufe machen, außer Auto lädt
-  - Dazu muss aber der Sonnenauf/Untergang ermittelt werden? Im Netz ggf?
-  - Oder intern speichern, wann Gestern Sonnenauf/Untergang war. Das ändert sich ja nur langsam und der Solarertrag=0 ist ja genau der Indikator, den es braucht
-- Vorhersage des Solarertrages. Wo gibts Sonnenscheindaten? Für die nächsten Stunden reicht ja
-  - Ist das nötig? Das Ziel ist ja Eigentnutzung. Da braucht es keine Vorhersage. Aber der Jahresverlauf wirds zeigen
 - Wallboxnutzung optimieren.
   - Simpel: wenn SolarBatterie voll dann erst laden (verringert sicher überschuss, belastet Solarbatterie)
   - Besser: aktivierbare Steuerung des Ladevorganges: wenn Auto angeschlossen und nicht voll, dann...
@@ -42,12 +34,17 @@ anderen Endgerät im gleichen Netz könnte also problemlos Schaden anrichten.
 - WP einschalten, wenn Überschuss
   - Das gleiche, wie mit der Wallbox
   - hängt das Auto dran und ist nicht voll, dann die WP nachrangig nutzen (weil ineffizient in dem Modus)
-- Aufzeichnung des Lastprofiles (bzw aller Daten, die da sind; immer Rohdaten nutzen)
-  - 1x die Minute refresh, und die Zahlen in Datei schreiben
-  - Eine grobe UI dazu kann auch eingebaut werden. Aber erst mal: haben!
+
+  - Einstellung beim Bauen:
+MMU -> 16kb + 48b IRAM
+
+forecast.json:city.sunrise
+forecast.json:city.sunset
+
+ESPWebClient -> StreamHTTPClient Beispiel -> blockweise GET lesen
 
 // Webserver fuer Anzeige auf einem KindleReader
-// CSS/JS ist auf den dortigen "ExperimentalBrowser" angepasst
+// CSS/JS ist auf den dortigen "BetaBrowser" angepasst
 
 // Hinweis: auf dem Kindle den Bildschirm dauerhaft einschalten: "~ds" im Suchfeld eingeben
 // https://ebooks.stackexchange.com/questions/152/what-commands-can-be-given-in-the-kindles-search-box
