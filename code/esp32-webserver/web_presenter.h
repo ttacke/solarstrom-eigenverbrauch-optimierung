@@ -9,6 +9,7 @@
 #include "smartmeter_leser.h"
 #include "wechselrichter_leser.h"
 #include "wettervorhersage_leser.h"
+#include <TimeLib.h>
 
 namespace Local {
 	class WebPresenter {
@@ -32,6 +33,8 @@ namespace Local {
 		}
 
 		void zeige_hauptseite() {
+			int now_timestamp = webserver.server.arg("time").toInt();
+
 			Local::WechselrichterLeser wechselrichter_leser(cfg, web_client);
 			wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
 
@@ -41,7 +44,10 @@ namespace Local {
 			Local::WettervorhersageLeser wetter_leser(cfg, web_client);
 			wetter_leser.daten_holen_und_einsetzen(elektroanlage);
 
-			persistenz.append2file((char*) "anlage.log", elektroanlage.gib_log_zeile());
+			if(now_timestamp > 1674987010) {// Gueltiger timestamp noetig
+//				Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
+				persistenz.append2file((char*) "anlage.log", elektroanlage.gib_log_zeile(now_timestamp));
+			}
 
 			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 			webserver.server.send(200, "text/html", "");
@@ -77,7 +83,7 @@ namespace Local {
 				"      }\n"
 				"    }\n"
 				"  };\n"
-				"  xhr.open('GET', '/', true);\n"
+				"  xhr.open('GET', '/?time=' + Math.floor(new Date().getTime() / 1000), true);\n"
 				"  xhr.timeout = 30 * 1000;\n"
 				"  xhr.send();\n"
 				"}\n"
