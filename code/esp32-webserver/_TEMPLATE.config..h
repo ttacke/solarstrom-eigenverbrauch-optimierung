@@ -4,6 +4,7 @@ namespace Local {
 	class Config {
 	public:
 		const int log_baud = 115200;
+		const int webserver_port = 80;
 		// Fronius Gen24 8kW
 		const char* wechselrichter_data_url = (char*) "http://192.168.0.14/status/powerflow";
 		// FromiusSmartMeter via Fronius Gen24 8kW
