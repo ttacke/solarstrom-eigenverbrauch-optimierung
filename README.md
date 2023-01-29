@@ -54,3 +54,7 @@ anderen Endgerät im gleichen Netz könnte also problemlos Schaden anrichten.
 
 // Es ist "Selbstheilend": Wenn der ESP nicht antwortet, wird die anzeige ausgegraut und beim nächsten Abruf
 // einfach erneut versucht
+
+## SD Verdrahtung
+https://www.mischianti.org/2019/12/15/how-to-use-sd-card-with-esp8266-and-arduino/#esp8266
+Kopiertes, lokales Bild daraus: sd-card-anschlussplan.jpeg

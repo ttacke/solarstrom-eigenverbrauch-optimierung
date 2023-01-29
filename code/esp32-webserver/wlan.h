@@ -8,9 +8,7 @@ namespace Local {
 		WiFiClient client;
 		const char* ssid;
 		const char* pwd;
-		Wlan(const char* ssid_param, const char* pwd_param) {
-			ssid = ssid_param;
-			pwd = pwd_param;
+		Wlan(const char* ssid, const char* pwd): ssid(ssid), pwd(pwd) {
 		}
 		void connect() {
 			Serial.println("Try to conect to WLAN " + (String) ssid);
