@@ -9,6 +9,7 @@ namespace Local {
 
 	public:
 		void daten_holen_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
+			Serial.println("HoleWetter");
 			// TODO Auf dem String direkt arbeiten und via Regex die Werte holen
 			// JSON ist hier zu gross, weil es doppelten Speicher belegt
 			// das auch überall tun

@@ -41,12 +41,20 @@ namespace Local {
 			Local::SmartmeterLeser smartmeter_leser(cfg, web_client);
 			smartmeter_leser.daten_holen_und_einsetzen(elektroanlage);
 
-			Local::WettervorhersageLeser wetter_leser(cfg, web_client);
-			wetter_leser.daten_holen_und_einsetzen(elektroanlage);
-
 			if(now_timestamp > 1674987010) {// Gueltiger timestamp noetig
 //				Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
-				persistenz.append2file((char*) "anlage.log", elektroanlage.gib_log_zeile(now_timestamp));
+				persistenz.append2file((char*) "anlage.csv", elektroanlage.gib_log_zeile(now_timestamp));
+
+				String last_weather_request_timestamp = persistenz.read_file_content((char*) "last_weather_request.txt");
+				if(
+					last_weather_request_timestamp.toInt() < now_timestamp - 60*45// max alle 45min
+					&& minute(now_timestamp) < 15
+					&& minute(now_timestamp) >= 3// immer kurz nach um, damit die ForecastAPI Zeit hat
+				) {// Insgesamt also 1x die Stunde ca 3 nach um
+					Local::WettervorhersageLeser wetter_leser(cfg, web_client);
+					wetter_leser.daten_holen_und_einsetzen(elektroanlage);
+					persistenz.write2file((char*) "last_weather_request.txt", (String) now_timestamp);
+				}
 			}
 
 			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
@@ -112,7 +120,7 @@ namespace Local {
 				"<div style=\"display:none\"><span id=max_i_value>" + Local::Formatierer::format((char*) "%.1f", (float) elektroanlage.max_i_in_ma() / 1000) + "</span><span id=max_i_phase>" + elektroanlage.max_i_phase() + "</span></div>"
 				"<table cellspacing=0 border=1>"
 				"<tr>"
-					"<td class=zahl style=\"width:auto\">" + Local::Formatierer::wert_als_k(false, elektroanlage.gib_ueberschuss_in_wh()) + "</td>"
+					"<td class=zahl style=\"width:auto\">" + Local::Formatierer::wert_als_k(true, elektroanlage.gib_ueberschuss_in_wh()) + "</td>"
 					"<td class=\"label einheit\" style=\"width:0.5rem\">W</span></td>"
 					"<td class=zahl style=\"width:1.8em;font-size:3.5rem;\">" + Local::Formatierer::format((char*) "%.1f", (float) elektroanlage.solarakku_ladestand_in_promille / 10) + "</td>"
 					"<td class=\"label einheit\" style=\"width:0.5rem\">%</span></td>"

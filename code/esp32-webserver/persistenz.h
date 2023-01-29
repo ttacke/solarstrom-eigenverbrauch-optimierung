@@ -27,6 +27,36 @@ namespace Local {
 			dataFile.print(content);
 			dataFile.close();
 		}
+
+		void write2file(char* filename, String content) {
+			if(!_init()) {
+				return;
+			}
+			File dataFile1 = SD.open(filename, T_CREATE | O_WRITE | O_TRUNC);
+			dataFile1.close();
+
+			File dataFile = SD.open(filename, FILE_WRITE);
+			//dataFile.seek(0);
+			dataFile.print(content);
+			dataFile.close();
+		}
+
+		String read_file_content(char* filename) {
+			if(!SD.exists(filename)) {
+				return "";
+			}
+			File fh = SD.open(filename);
+			int size = fh.size();
+			uint8_t buffer[size + 1];
+			fh.read(buffer, size);
+			buffer[size] = 0;// Null an Ende setzen
+			char content[size + 1];
+			for (int i = 0; i < size + 1; i++) {
+				content[i] = (char) buffer[i];
+			}
+			return (String) content;
+		}
+
 //		read(char* filename) {
 //			fh = SD.open(filename);
 //			if (fh) {
