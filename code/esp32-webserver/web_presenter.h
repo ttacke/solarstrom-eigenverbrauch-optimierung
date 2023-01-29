@@ -1,13 +1,14 @@
 #pragma once
+#include "config.h"
+#include "wlan.h"
+#include "webserver.h"
+#include "web_client.h"
 #include "persistenz.h"
 #include "formatierer.h"
 #include "elektro_anlage.h"
 #include "smartmeter_leser.h"
 #include "wechselrichter_leser.h"
 #include "wettervorhersage_leser.h"
-#include "web_client.h"
-#include "config.h"
-#include "wlan.h"
 
 namespace Local {
 	class WebPresenter {
@@ -18,17 +19,19 @@ namespace Local {
 		Local::Persistenz persistenz;
 		Local::WebClient web_client;
 
-		void s(Local::Webserver& ws, String content) {// Schmutzige Abkuerzung
-			ws.server.sendContent(content);
+		void s(String content) {// TODO besser von SD laden!
+			webserver.server.sendContent(content);
 		}
 
 	public:
+		Local::Webserver webserver;
+
 		WebPresenter(
 			Local::Config& cfg, Local::Wlan& wlan
-		): cfg(cfg), web_client(wlan.client) {
+		): cfg(cfg), web_client(wlan.client), webserver(cfg.webserver_port) {
 		}
 
-		void zeige_hauptseite(Local::Webserver& ws) {
+		void zeige_hauptseite() {
 			Local::WechselrichterLeser wechselrichter_leser(cfg, web_client);
 			wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
 
@@ -40,9 +43,9 @@ namespace Local {
 
 			persistenz.append2file((char*) "anlage.log", elektroanlage.gib_log_zeile());
 
-			ws.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-			ws.server.send(200, "text/html", "");
-			s(ws, "<html><head><title>Sonnenrech 19</title>"
+			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+			webserver.server.send(200, "text/html", "");
+			s("<html><head><title>Sonnenrech 19</title>"
 				"<script type=\"text/javascript\">"
 				"var anzahl_fehler = 0;\n"
 				"function setze_lokale_daten() {\n"
@@ -57,7 +60,7 @@ namespace Local {
 				"  document.getElementById('max_i').innerHTML = 'max I=' + document.max_i + 'A&nbsp(' + document.max_i_phase + ')&nbsp;';\n"
 				"}\n"
 			);
-			s(ws, "function reload() {\n"
+			s("function reload() {\n"
 				"  var xhr = new XMLHttpRequest();\n"
 				"  xhr.onreadystatechange = function(args) {\n"
 				"    if(this.readyState == this.DONE) {\n"
@@ -79,7 +82,7 @@ namespace Local {
 				"  xhr.send();\n"
 				"}\n"
 			);
-			s(ws, "setInterval(reload, " + (String) cfg.refresh_display_interval + " * 1000);\n"
+			s("setInterval(reload, " + (String) cfg.refresh_display_interval + " * 1000);\n"
 				"</script>"
 				"<style>"
 				"body{padding:0.5rem;padding-top:0.5rem;}"//transform:rotate(180deg); geht im Kindle nicht
@@ -99,7 +102,7 @@ namespace Local {
 				".hat_fehler .markerline div span{color:#000;text-decoration:underline;}"
 				"</style>"
 			);
-			s(ws, "</head><body onclick=\"reload();\" onload=\"setze_lokale_daten();\">"
+			s("</head><body onclick=\"reload();\" onload=\"setze_lokale_daten();\">"
 				"<div style=\"display:none\"><span id=max_i_value>" + Local::Formatierer::format((char*) "%.1f", (float) elektroanlage.max_i_in_ma() / 1000) + "</span><span id=max_i_phase>" + elektroanlage.max_i_phase() + "</span></div>"
 				"<table cellspacing=0 border=1>"
 				"<tr>"
