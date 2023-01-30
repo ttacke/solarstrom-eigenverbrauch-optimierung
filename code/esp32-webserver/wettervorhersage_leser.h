@@ -1,9 +1,7 @@
 #pragma once
-#include <ArduinoJson.h>
 #include "base_leser.h"
 #include "persistenz.h"
 #include "wetter.h"
-#include <Regexp.h>
 
 namespace Local {
 	class WettervorhersageLeser: public BaseLeser {
@@ -11,7 +9,6 @@ namespace Local {
 	using BaseLeser::BaseLeser;
 	protected:
 		const char* filename = "wetter_stundenvorhersage.json";
-		MatchState ms;
 
 	public:
 		// TODO das geh auch in einem Schritt, Response blockweise lesen und scannen, und nur
@@ -22,23 +19,6 @@ namespace Local {
 				web_client.get(cfg.wetter_stundenvorhersage_url)
 			);
 			Serial.println("Wetterdaten geschrieben");
-		}
-
-		String _finde(char* regex, String content) {
-			char c_content[content.length() + 1];
-			for(int i = 0; i < content.length(); i++) {
-				c_content[i] = content.charAt(i);
-			}
-
-			ms.Target(c_content);
-			char result = ms.Match(regex);
-			if(result > 0) {
-				// content.substring(ms.MatchStart, ms.MatchStart + ms.MatchLength);
-				char cap[16];
-				ms.GetCapture(cap, 0);
-				return (String) cap;
-			}
-			return "";
 		}
 
 		void persistierte_daten_einsetzen(Local::Persistenz& persistenz, Local::Wetter& wetter) {

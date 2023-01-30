@@ -44,6 +44,7 @@ namespace Local {
 			smartmeter_leser.daten_holen_und_einsetzen(elektroanlage);
 
 			Local::WettervorhersageLeser wetter_leser(cfg, web_client);
+
 			if(now_timestamp > 1674987010) {// Gueltiger timestamp noetig
 				// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
 				String last_weather_request_timestamp = persistenz.read_file_content((char*) "last_weather_request.txt");
@@ -58,6 +59,7 @@ namespace Local {
 					wetter_leser.daten_holen_und_persistieren(persistenz);
 					persistenz.write2file((char*) "last_weather_request.txt", (String) now_timestamp);
 				}
+
 				wetter_leser.persistierte_daten_einsetzen(persistenz, wetter);
 				persistenz.append2file(
 					(char*) "anlage.csv",
@@ -142,13 +144,9 @@ namespace Local {
 		//		"<tr class=\"speicher " + (elektroanlage.solarakku_ist_an ? "" : "speicher_aus") + "\"><td class=label>Speicher</td><td class=zahl>" + Local::Formatierer::wert_als_k(false, cfg.speicher_groesse / 100 * elektroanlage.solarakku_ladestand_in_promille) + "</td><td class=\"label einheit\">%</span></td></tr>"
 				"</table>"
 			);
-			if(wetter.daten_vorhanden) {
-				s("<b>Wolken:" + (String) wetter.gib_stundenvorhersage_wolkendichte(0) + "</b>"
-					"<b>Sonne:" + (String) wetter.gib_stundenvorhersage_solarstrahlung(0) + "</b>"
-				);
-			} else {
-				s("<b>Kein Wetterdaten</b>");
-			}
+			s("<b>Wolken:" + (String) wetter.gib_stundenvorhersage_wolkendichte(0) + "</b>"
+				"<b>Sonne:" + (String) wetter.gib_stundenvorhersage_solarstrahlung(0) + "</b>"
+			);
 			s("<div class=markerline><div><span id=max_i></span><span id=marker>starte...</span><span id=fehler></span></div></div>"
 				"</body></html>"
 			);
