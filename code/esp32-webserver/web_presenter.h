@@ -6,6 +6,7 @@
 #include "persistenz.h"
 #include "formatierer.h"
 #include "elektro_anlage.h"
+#include "wetter.h"
 #include "smartmeter_leser.h"
 #include "wechselrichter_leser.h"
 #include "wettervorhersage_leser.h"
@@ -17,6 +18,7 @@ namespace Local {
 		Local::Config cfg;
 
 		Local::ElektroAnlage elektroanlage;
+		Local::Wetter wetter;
 		Local::Persistenz persistenz;
 		Local::WebClient web_client;
 
@@ -44,20 +46,26 @@ namespace Local {
 			Local::WettervorhersageLeser wetter_leser(cfg, web_client);
 			if(now_timestamp > 1674987010) {// Gueltiger timestamp noetig
 				// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
-				persistenz.append2file((char*) "anlage.csv", elektroanlage.gib_log_zeile(now_timestamp));
-
 				String last_weather_request_timestamp = persistenz.read_file_content((char*) "last_weather_request.txt");
 				if(
-					last_weather_request_timestamp.toInt() < now_timestamp - 60*45// max alle 45min
-					&& minute(now_timestamp) < 15
-					&& minute(now_timestamp) >= 3// immer kurz nach um, damit die ForecastAPI Zeit hat
+					(
+						last_weather_request_timestamp.toInt() < now_timestamp - 60*45// max alle 45min
+						&& minute(now_timestamp) < 15
+						&& minute(now_timestamp) >= 3// immer kurz nach um, damit die ForecastAPI Zeit hat
+					)
+					|| webserver.server.arg("reset").toInt() == 1 // DEBUG
 				) {// Insgesamt also 1x die Stunde ca 3 nach um
-//TODO sicherheitshalber abgeschalten
-//					wetter_leser.daten_holen_und_persistieren(persistenz);
-//					persistenz.write2file((char*) "last_weather_request.txt", (String) now_timestamp);
+					wetter_leser.daten_holen_und_persistieren(persistenz);
+					persistenz.write2file((char*) "last_weather_request.txt", (String) now_timestamp);
 				}
+				wetter_leser.persistierte_daten_einsetzen(persistenz, wetter);
+				persistenz.append2file(
+					(char*) "anlage.csv",
+					(String) now_timestamp + ";"
+					+ elektroanlage.gib_log_zeile() + ";"
+					+ wetter.gib_log_zeile()
+				);
 			}
-			wetter_leser.persistierte_daten_einsetzen(persistenz, elektroanlage);
 
 			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 			webserver.server.send(200, "text/html", "");
@@ -133,7 +141,15 @@ namespace Local {
 		//		"<tr class=markerline><td colspan=3><span id=max_i></span><span id=marker>starte...</span><span id=fehler></span></td></tr>"
 		//		"<tr class=\"speicher " + (elektroanlage.solarakku_ist_an ? "" : "speicher_aus") + "\"><td class=label>Speicher</td><td class=zahl>" + Local::Formatierer::wert_als_k(false, cfg.speicher_groesse / 100 * elektroanlage.solarakku_ladestand_in_promille) + "</td><td class=\"label einheit\">%</span></td></tr>"
 				"</table>"
-				"<div class=markerline><div><span id=max_i></span><span id=marker>starte...</span><span id=fehler></span></div></div>"
+			);
+			if(wetter.daten_vorhanden) {
+				s("<b>Wolken:" + (String) wetter.gib_stundenvorhersage_wolkendichte(0) + "</b>"
+					"<b>Sonne:" + (String) wetter.gib_stundenvorhersage_solarstrahlung(0) + "</b>"
+				);
+			} else {
+				s("<b>Kein Wetterdaten</b>");
+			}
+			s("<div class=markerline><div><span id=max_i></span><span id=marker>starte...</span><span id=fehler></span></div></div>"
 				"</body></html>"
 			);
 		}

@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include "base_leser.h"
 #include "persistenz.h"
+#include "wetter.h"
 #include <Regexp.h>
 
 namespace Local {
@@ -13,6 +14,8 @@ namespace Local {
 		MatchState ms;
 
 	public:
+		// TODO das geh auch in einem Schritt, Response blockweise lesen und scannen, und nur
+		// in Wettervorhersage speichern
 		void daten_holen_und_persistieren(Local::Persistenz& persistenz) {
 			persistenz.write2file(
 				(char*) filename,
@@ -38,7 +41,7 @@ namespace Local {
 			return "";
 		}
 
-		void persistierte_daten_einsetzen(Local::Persistenz& persistenz, Local::ElektroAnlage& elektroanlage) {
+		void persistierte_daten_einsetzen(Local::Persistenz& persistenz, Local::Wetter& wetter) {
 			int offset = 0;
 			String old_block = "";
 			int zeitpunkt_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
@@ -82,14 +85,17 @@ namespace Local {
 					break;
 				}
 			}
-			// TODO die Werte ablegen
-			// Auch pruefen, ob "jetzt" auch zu dem ersten Zeitstempel passt (Stunde muesste das gleiche sein)
-			for(int i = 0; i < 12; i++) {
-				Serial.println("");
-				Serial.println(i);
-				Serial.println(zeitpunkt_liste[i]);
-				Serial.println(solarstrahlung_liste[i]);
-				Serial.println(wolkendichte_liste[i]);
+			// TODO ggf mal pruefen, ob der ersteZeitstempel in der vergangenheit, drer 2, in der Zukunf liegt
+			// aber das knallt immer on um bis zum abholen des nächsten :/
+			Serial.println(zeitpunkt_liste[0]);// TODO
+			if(zeitpunkt_liste[0] > 0) {
+				wetter.daten_vorhanden = true;
+				for(int i = 0; i < 12; i++) {
+					wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_liste[i]);
+					wetter.setze_stundenvorhersage_wolkendichte(i, wolkendichte_liste[i]);
+				}
+			} else {
+				wetter.daten_vorhanden = false;
 			}
 		}
 	};

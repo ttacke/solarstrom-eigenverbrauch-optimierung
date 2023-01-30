@@ -41,8 +41,8 @@ namespace Local {
 			}
 		}
 
-		String gib_log_zeile(int time) {
-			return "Ev1;" + (String) time + ";"
+		String gib_log_zeile() {
+			return "Ev1;"
 				+ (String) netzbezug_in_wh + ";"
 				+ (String) solarakku_zuschuss_in_wh + ";"
 				+ (String) solarerzeugung_in_wh + ";"
@@ -51,7 +51,6 @@ namespace Local {
 				+ (String) l1_strom_ma + ";"
 				+ (String) l2_strom_ma + ";"
 				+ (String) l3_strom_ma
-				+ "\n"
 			;
 		}
 	};
