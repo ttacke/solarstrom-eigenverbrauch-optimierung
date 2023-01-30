@@ -41,9 +41,29 @@ namespace Local {
 			dataFile.close();
 		}
 
+		String read_file_content_block(char* filename, int offset) {
+			if(!SD.exists(filename)) {
+				return (String) "";
+			}
+			File fh = SD.open(filename);
+			fh.seek(offset);
+			int size = 64;
+			if(fh.size() - offset < size) {
+				size = fh.size() - offset;
+			}
+			uint8_t buffer[size];
+			fh.read(buffer, size - 1);
+			buffer[size - 1] = 0;// Null an Ende setzen
+			char content[size];
+			for (int i = 0; i < size; i++) {
+				content[i] = (char) buffer[i];
+			}
+			return (String) content;
+		}
+
 		String read_file_content(char* filename) {
 			if(!SD.exists(filename)) {
-				return "";
+				return (String) "";
 			}
 			File fh = SD.open(filename);
 			int size = fh.size();
@@ -54,7 +74,7 @@ namespace Local {
 			for (int i = 0; i < size + 1; i++) {
 				content[i] = (char) buffer[i];
 			}
-			return (String) content;
+			return (String) content;// TODO das macht eine Kopie. Geht das auch ohne?
 		}
 
 //		read(char* filename) {

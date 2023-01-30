@@ -24,7 +24,5 @@ namespace Local {
 	public:
 		explicit BaseLeser(Local::Config& cfg, Local::WebClient& web_client): cfg(cfg), web_client(web_client) {
 		}
-
-		virtual void daten_holen_und_einsetzen(Local::ElektroAnlage& elektroanlage) = 0;
 	};
 }

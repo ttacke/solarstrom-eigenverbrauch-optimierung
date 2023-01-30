@@ -41,8 +41,9 @@ namespace Local {
 			Local::SmartmeterLeser smartmeter_leser(cfg, web_client);
 			smartmeter_leser.daten_holen_und_einsetzen(elektroanlage);
 
+			Local::WettervorhersageLeser wetter_leser(cfg, web_client);
 			if(now_timestamp > 1674987010) {// Gueltiger timestamp noetig
-//				Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
+				// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
 				persistenz.append2file((char*) "anlage.csv", elektroanlage.gib_log_zeile(now_timestamp));
 
 				String last_weather_request_timestamp = persistenz.read_file_content((char*) "last_weather_request.txt");
@@ -51,11 +52,12 @@ namespace Local {
 					&& minute(now_timestamp) < 15
 					&& minute(now_timestamp) >= 3// immer kurz nach um, damit die ForecastAPI Zeit hat
 				) {// Insgesamt also 1x die Stunde ca 3 nach um
-					Local::WettervorhersageLeser wetter_leser(cfg, web_client);
-					wetter_leser.daten_holen_und_einsetzen(elektroanlage);
-					persistenz.write2file((char*) "last_weather_request.txt", (String) now_timestamp);
+//TODO sicherheitshalber abgeschalten
+//					wetter_leser.daten_holen_und_persistieren(persistenz);
+//					persistenz.write2file((char*) "last_weather_request.txt", (String) now_timestamp);
 				}
 			}
+			wetter_leser.persistierte_daten_einsetzen(persistenz, elektroanlage);
 
 			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 			webserver.server.send(200, "text/html", "");
