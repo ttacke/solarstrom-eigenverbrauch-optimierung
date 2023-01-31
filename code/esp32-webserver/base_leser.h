@@ -10,21 +10,22 @@ namespace Local {
 	protected:
 		Local::WebClient web_client;
 		Local::Config cfg;
-		MatchState ms;
+		MatchState match_state;
+		char capture[32];
 
 		String _finde(char* regex, String content) {
 			char c_content[content.length() + 1];
 			for(int i = 0; i < content.length(); i++) {
 				c_content[i] = content.charAt(i);
 			}
+			c_content[content.length() + 1] = '\0';// Null am ende explizit setzen
 
-			ms.Target(c_content);
-			char result = ms.Match(regex);
+			match_state.Target(c_content);
+			char result = match_state.Match(regex);
 			if(result > 0) {
-				// content.substring(ms.MatchStart, ms.MatchStart + ms.MatchLength);
-				char cap[16];
-				ms.GetCapture(cap, 0);
-				return (String) cap;
+				// content.substring(match_state.MatchStart, match_state.MatchStart + match_state.MatchLength);
+				match_state.GetCapture(capture, 0);
+				return (String) capture;
 			}
 			return "";
 		}

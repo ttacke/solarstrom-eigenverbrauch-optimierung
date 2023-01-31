@@ -44,7 +44,7 @@ namespace Local {
 
 				// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
 				int solarstrahlung = _finde(
-					(char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9]+).[0-9][,}]",
+					(char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]",
 					old_block + block
 				).toInt();
 				if(solarstrahlung != 0 && solarstrahlung_liste[i] != solarstrahlung) {
