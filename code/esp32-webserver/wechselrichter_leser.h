@@ -1,5 +1,4 @@
 #pragma once
-//#include <ArduinoJson.h>
 #include "base_leser.h"
 
 namespace Local {

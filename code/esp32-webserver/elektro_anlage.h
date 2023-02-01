@@ -3,15 +3,16 @@
 namespace Local {
 	class ElektroAnlage {
 	public:
-		int netzbezug_in_wh;// + = bezug, - = einspeisung
-		int solarakku_zuschuss_in_wh;// + = entladung, - = ladung
-		unsigned int solarerzeugung_in_wh;
-		unsigned int stromverbrauch_in_wh;
-		unsigned int solarakku_ladestand_in_promille;
+		// TODO Initialwerte zum erkennen, dass da was schief ist
+		int netzbezug_in_wh = 999;// + = bezug, - = einspeisung
+		int solarakku_zuschuss_in_wh = 999;// + = entladung, - = ladung
+		unsigned int solarerzeugung_in_wh = 999;
+		unsigned int stromverbrauch_in_wh = 999;
+		unsigned int solarakku_ladestand_in_promille = 999;
 		bool solarakku_ist_an = false;
-		int l1_strom_ma;
-		int l2_strom_ma;
-		int l3_strom_ma;
+		int l1_strom_ma = 999;
+		int l2_strom_ma = 999;
+		int l3_strom_ma = 999;
 
 		int gib_ueberschuss_in_wh() {
 			int ueberschuss = (netzbezug_in_wh * -1);

@@ -41,10 +41,7 @@ namespace Local {
 			wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
 
 			Local::SmartmeterLeser smartmeter_leser(cfg, web_client);
-
-			// TODO hier drin ist das Stack-Smash-Problem. Vermutlich ist der Content-Blob zu gross
-			// D.h. beim Wechselrichter ist das auch, aber der Blob passt gerade noch so
-//			smartmeter_leser.daten_holen_und_einsetzen(elektroanlage);
+			smartmeter_leser.daten_holen_und_einsetzen(elektroanlage);
 
 			Local::WettervorhersageLeser wetter_leser(cfg, web_client);
 

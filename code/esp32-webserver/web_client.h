@@ -6,12 +6,25 @@ namespace Local {
 	class WebClient {
 	protected:
 		WiFiClient wlan_client;
+
 	public:
 		WebClient(WiFiClient& wlan_client_param) {
 			wlan_client = wlan_client_param;
 		}
-		// TODO DEPRECATED, soll in die Leser
-		String get(char const* url) {
+		// TODO DEPRECATED, soll in die Leser verschoben werden
+
+		// TODO hier weiter: Blockweise lesen!
+
+		String get(const char* url) {
+//TODO immer charArray nutzen
+//		String a = "ABCDE";
+//	char b[a.length() + 1];
+//	a.toCharArray(b, sizeof(b));
+//	Serial.println(strlen(b));
+//	Serial.println(b);
+
+// Hier das Blockweise abrufen einbauen! Sonst wird das zu groß
+
 			HTTPClient http;
 			http.begin(wlan_client, url);
 			http.addHeader("Content-Type", "application/json");
@@ -30,7 +43,7 @@ namespace Local {
 			  Serial.printf(http.errorToString(httpCode).c_str());
 			}
 			http.end();
-			return "{\"msg\":\"internal error\"}";
+			return "";
 		}
 	};
 }
