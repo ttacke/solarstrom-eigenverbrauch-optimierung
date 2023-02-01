@@ -53,5 +53,7 @@ ESPWebClient -> StreamHTTPClient Beispiel -> blockweise GET lesen
 // einfach erneut versucht
 
 ## SD Verdrahtung
-https://www.mischianti.org/2019/12/15/how-to-use-sd-card-with-esp8266-and-arduino/#esp8266
-Kopiertes, lokales Bild daraus: sd-card-anschlussplan.jpeg
+
+![Schaltplan zum Anschluss der SD-Karte an den ESP8266-12E](sd-card-anschlussplan.png)
+Quelle: <https://www.mischianti.org/2019/12/15/how-to-use-sd-card-with-esp8266-and-arduino/#esp8266>
+
