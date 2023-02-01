@@ -10,10 +10,11 @@
 */
 #include "config.h"
 #include "wlan.h"
+#include "web_client.h"
 //#include "web_presenter.h"
 
-#include "elektro_anlage.h"
-#include "wechselrichter_leser.h"
+//#include "elektro_anlage.h"
+//#include "wechselrichter_leser.h"
 
 
 Local::Config cfg;
@@ -40,7 +41,10 @@ void loop(void) {
 // TODO das macht immer nur 2 Runden. Wieso?
 	Serial.println("LOOP");
 	Local::WebClient web_client(wlan.client);
-	web_client.get_http_content();
+	web_client.send_http_get_request("192.168.0.14", 80, "/status/powerflow");
+	while(web_client.read_next_block_to_buffer()) {
+		Serial.println(web_client.buffer);
+	}
 //	Local::WechselrichterLeser wechselrichter_leser(cfg, web_client);
 //	Local::ElektroAnlage elektroanlage;
 //	wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
