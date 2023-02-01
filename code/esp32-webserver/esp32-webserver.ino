@@ -22,7 +22,10 @@ Local::Wlan wlan(cfg.wlan_ssid, cfg.wlan_pwd);
 
 void setup(void) {
 	Serial.begin(cfg.log_baud);
-	Serial.println("\nSetup ESP");
+	delay(10);
+	Serial.println();
+	Serial.println();
+	Serial.println("Setup ESP");
 	wlan.connect();
 //	web_presenter.webserver.add_page("/", []() {
 //		web_presenter.zeige_hauptseite();
@@ -37,10 +40,11 @@ void loop(void) {
 // TODO das macht immer nur 2 Runden. Wieso?
 	Serial.println("LOOP");
 	Local::WebClient web_client(wlan.client);
-	Local::WechselrichterLeser wechselrichter_leser(cfg, web_client);
-	Local::ElektroAnlage elektroanlage;
-	wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
-	Serial.println(elektroanlage.gib_log_zeile());
+	web_client.get_http_content();
+//	Local::WechselrichterLeser wechselrichter_leser(cfg, web_client);
+//	Local::ElektroAnlage elektroanlage;
+//	wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
+//	Serial.println(elektroanlage.gib_log_zeile());
 	Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
 	delay(5000);
 }
