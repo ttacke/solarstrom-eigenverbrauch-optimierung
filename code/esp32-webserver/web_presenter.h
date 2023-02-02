@@ -3,7 +3,7 @@
 #include "wlan.h"
 #include "webserver.h"
 #include "web_client.h"
-//#include "persistenz.h"
+#include "persistenz.h"
 #include "elektro_anlage.h"
 #include "wetter.h"
 #include "smartmeter_leser.h"
@@ -16,7 +16,7 @@ namespace Local {
 	protected:
 		Local::Config* cfg;
 		Local::WebClient web_client;
-//		Local::Persistenz persistenz;
+		Local::Persistenz persistenz;
 
 		Local::ElektroAnlage elektroanlage;
 		Local::Wetter wetter;
@@ -71,7 +71,7 @@ namespace Local {
 //				persistenz.write2file((char*) "last_weather_request.txt", (String) now_timestamp);
 //			}
 //
-//			wetter_leser.persistierte_daten_einsetzen(persistenz, wetter);
+			wetter_leser.persistierte_daten_einsetzen(persistenz, wetter);
 //			persistenz.append2file(
 //				(char*) "anlage.csv",
 //				(String) now_timestamp + ";"

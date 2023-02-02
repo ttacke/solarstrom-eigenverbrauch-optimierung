@@ -9,7 +9,7 @@ namespace Local {
 	using BaseLeser::BaseLeser;
 
 	protected:
-//		const char* filename = "wetter_stundenvorhersage.json";
+		const char* filename = "wetter_stundenvorhersage.json";
 //		MatchState match_state;
 //		char capture[32];
 
@@ -49,6 +49,12 @@ namespace Local {
 //			int solarstrahlung_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 //			int wolkendichte_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 //			int i = 0;
+			if(persistenz.open_file_to_read(filename)) {
+				while(persistenz.read_next_block_to_buffer()) {
+				}
+//				.find_in_content
+//				.finding_buffer
+			}
 //			while(true) {
 //				String block = persistenz.read_file_content_block((char*) filename, offset);
 //
