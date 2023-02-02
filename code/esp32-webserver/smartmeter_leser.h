@@ -5,6 +5,7 @@ namespace Local {
 	class SmartmeterLeser: public BaseLeser {
 
 	using BaseLeser::BaseLeser;
+
 	protected:
 		void _daten_extrahieren_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
 			if(web_client->find_in_content((char*) "\"SMARTMETER_CURRENT_01_F64\" *: *([0-9.]+)[^0-9]")) {

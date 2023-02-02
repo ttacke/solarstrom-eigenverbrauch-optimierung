@@ -9,7 +9,27 @@ namespace Local {
 	using BaseLeser::BaseLeser;
 
 	protected:
-		const char* filename = "wetter_stundenvorhersage.json";
+//		const char* filename = "wetter_stundenvorhersage.json";
+//		MatchState match_state;
+//		char capture[32];
+
+		//TODO DEPRECATED
+//		String _finde(char* regex, String content) {
+//			char c_content[content.length() + 1];
+//			for(int i = 0; i < content.length(); i++) {
+//				c_content[i] = content.charAt(i);
+//			}
+//			c_content[content.length() + 1] = '\0';// Null am ende explizit setzen
+//
+//			match_state.Target(c_content);
+//			char result = match_state.Match(regex);
+//			if(result > 0) {
+//				// content.substring(match_state.MatchStart, match_state.MatchStart + match_state.MatchLength);
+//				match_state.GetCapture(capture, 0);
+//				return (String) capture;
+//			}
+//			return "";
+//		}
 
 	public:
 		// TODO das geh auch in einem Schritt, Response blockweise lesen und scannen, und nur

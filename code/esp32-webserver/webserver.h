@@ -6,8 +6,8 @@ namespace Local {
 	class Webserver {
 	public:
 		ESP8266WebServer server;// ist via unique_ptr gesichert, es kann nur einen Pointer geben!
-		Webserver(int port) {
-			ESP8266WebServer server(port);
+
+		Webserver(int port): server(ESP8266WebServer(port)) {
 		}
 
 		template<typename F>
