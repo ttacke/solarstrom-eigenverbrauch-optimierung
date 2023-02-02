@@ -42,36 +42,19 @@ namespace Local {
 		}
 
 		bool _content_start_reached() {
-			memcpy(search_buffer, old_buffer, strlen(old_buffer));
-			for(int i = 0; i < strlen(buffer); i++) {
-				search_buffer[strlen(old_buffer) + i] = buffer[i];
+			int old_buffer_strlen = strlen(old_buffer);
+			memcpy(search_buffer, old_buffer, old_buffer_strlen + 1);
+			for(int i = 0; i < strlen(buffer) + 1; i++) {
+				search_buffer[old_buffer_strlen + i] = buffer[i];
 			}
-			search_buffer[strlen(old_buffer) + strlen(buffer)] = '\0';
-//			Serial.println("CP");
-//			Serial.println(search_buffer);
-//			Serial.println("<<<");
 
 			match_state.Target(search_buffer);
 			char result = match_state.Match("\r\n\r\n");
 			if(result > 0) {
 				int start = match_state.MatchStart + match_state.MatchLength;
-				//TODO hier passt noch was nicht
-				Serial.println("START");
-				Serial.println(search_buffer);
-				Serial.println("<<<");
-				Serial.println(start);
-				int i = 0;
-				for(; i < strlen(search_buffer) - start; i++) {
-					Serial.println(search_buffer[start + i]);
+				for(int i = 0; i < strlen(search_buffer) + 1 - start; i++) {
 					buffer[i] = search_buffer[start + i];
 				}
-				i++;
-				buffer[i] = 'Z';
-				i++;
-				buffer[i] = '\0';
-				Serial.println(">>>");
-				Serial.println(buffer);
-				Serial.println("END");
 				return true;
 			}
 			return false;
