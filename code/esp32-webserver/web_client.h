@@ -41,6 +41,20 @@ namespace Local {
 			return false;
 		}
 
+		void _read_content_length_header() {
+			if(content_length == 0 && find_in_content((char*) "\r\nContent[-]Length: *([0-9]+)\r\n")) {
+				content_length = atoi(finding_buffer);
+			}
+		}
+
+		void _prepare_search_buffer() {
+			int old_buffer_strlen = strlen(old_buffer);
+			memcpy(search_buffer, old_buffer, old_buffer_strlen + 1);
+			for(int i = 0; i < strlen(buffer) + 1; i++) {
+				search_buffer[old_buffer_strlen + i] = buffer[i];
+			}
+		}
+
 	public:
 		const size_t buffer_length = 32;
 		char buffer[32];
@@ -51,14 +65,8 @@ namespace Local {
 		}
 
 		bool find_in_content(char* regex) {
-			int old_buffer_strlen = strlen(old_buffer);
-			memcpy(search_buffer, old_buffer, old_buffer_strlen + 1);
-			for(int i = 0; i < strlen(buffer) + 1; i++) {
-				search_buffer[old_buffer_strlen + i] = buffer[i];
-			}
-
 			match_state.Target(search_buffer);
-			char result = match_state.Match("\r\n\r\n(.*)$");
+			char result = match_state.Match(regex);
 			if(result > 0) {
 				match_state.GetCapture(finding_buffer, 0);
 				return true;
@@ -79,45 +87,47 @@ namespace Local {
 
 			old_buffer[0] = '\0';
 			while(wlan_client.available()) {
+				memcpy(old_buffer, buffer, strlen(buffer) + 1);
 				int read_length = wlan_client.readBytes(buffer, buffer_length - 1);
 				buffer[read_length] = '\0';
+				_prepare_search_buffer();
+
 				if(read_length < buffer_length - 1) {
-					break;
-				} else if(_content_start_reached()) {
-					remaining_content_after_header = true;
-					break;
+					return;// Irgendwas lief schief
 				} else {
-					memcpy(old_buffer, buffer, strlen(buffer));
+					_read_content_length_header();
+					if(_content_start_reached()) {
+						remaining_content_after_header = true;
+						return;
+					}
 				}
-				// TODO hier nach dem ContentLength Header suchen
 			}
 		}
 
 		bool read_next_block_to_buffer() {
+			if(content_length <=0) {
+				return false;
+			}
 			if(remaining_content_after_header) {
 				remaining_content_after_header = false;
+				content_length -= strlen(buffer);
 				return true;
 			}
 			if(wlan_client.available()) {
-				// TODO das content_lngth hier nutzen um nicht ueber das ende zu schiessen
-				int read_length = wlan_client.readBytes(buffer, buffer_length - 1);
+				int read_length = wlan_client.readBytes(
+					buffer,
+					std::min((size_t) content_length, (size_t) (buffer_length - 1))
+				);
 				buffer[read_length] = '\0';
+				content_length -= strlen(buffer);
 				return true;
 			}
 			buffer[0] = '\0';
+			content_length = 0;
 			return false;
 		}
 
-		String get(const char* url) {
-//TODO immer charArray nutzen
-//		String a = "ABCDE";
-//	char b[a.length() + 1];
-//	a.toCharArray(b, sizeof(b));
-//	Serial.println(strlen(b));
-//	Serial.println(b);
-
-// Hier das Blockweise abrufen einbauen! Sonst wird das zu groß
-
+		String get(const char* url) {// TODO DEPRECATED
 			HTTPClient http;
 			http.begin(wlan_client, url);
 			http.addHeader("Content-Type", "application/json");
