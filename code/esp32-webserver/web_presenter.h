@@ -6,7 +6,7 @@
 //#include "persistenz.h"
 //#include "formatierer.h"
 #include "elektro_anlage.h"
-//#include "wetter.h"
+#include "wetter.h"
 //#include "smartmeter_leser.h"
 #include "wechselrichter_leser.h"
 //#include "wettervorhersage_leser.h"
@@ -18,7 +18,7 @@ namespace Local {
 		Local::Config cfg;
 
 		Local::ElektroAnlage elektroanlage;
-//		Local::Wetter wetter;
+		Local::Wetter wetter;
 //		Local::Persistenz persistenz;
 		Local::WebClient web_client;
 
@@ -83,9 +83,11 @@ namespace Local {
 			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 			webserver.server.send(200, "application/json", "");
 			_print_char_to_web((char*) "{");
+
 				_print_char_to_web((char*)  "\"max_i_in_ma\":");
 					_print_int_to_web(elektroanlage.max_i_in_ma());
 					_print_char_to_web((char*) ",");
+
 				_print_char_to_web((char*) "\"max_i_phase\":");
 					_print_int_to_web(elektroanlage.max_i_phase());
 					_print_char_to_web((char*) ",");
@@ -99,11 +101,23 @@ namespace Local {
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"wolkendichte\":[");
-	//				s((String) wetter.gib_stundenvorhersage_wolkendichte(0));
+					for(int i = 0; i < 12; i++) {
+						_print_int_to_web(wetter.gib_stundenvorhersage_wolkendichte(i));
+						if(i != 12) {
+							_print_char_to_web((char*) ",");
+						}
+					}
 				_print_char_to_web((char*) "],");
+
 				_print_char_to_web((char*) "\"solarstrahlung\":[");
-	//				s((String) wetter.gib_stundenvorhersage_solarstrahlung(0));
+					for(int i = 0; i < 12; i++) {
+						_print_int_to_web(wetter.gib_stundenvorhersage_solarstrahlung(i));
+						if(i != 12) {
+							_print_char_to_web((char*) ",");
+						}
+					}
 				_print_char_to_web((char*) "]");
+
 			_print_char_to_web((char*) "}");
 		}
 	};
