@@ -8,7 +8,6 @@ namespace Local {
 	using BaseLeser::BaseLeser;
 
 	protected:
-		// TODO die Daten werden nicht immer korrekt gelesen. Wieso? Sind die zu lang für die Buffer? Mehr als 32 Zeichen?
 		void _daten_extrahieren_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
 			if(web_client.find_in_content((char*) "\"P_PV\":([-0-9.]+)[^0-9]")) {
 				elektroanlage.solarerzeugung_in_wh = round(atof(web_client.finding_buffer));
@@ -40,11 +39,8 @@ namespace Local {
 				case 13: "stoppedTemperature"
 				case 14: "maxSocReached"
 			*/
-			// TODO das trifft nicht!
-			if(web_client.find_in_content((char*) "\"BatMode\":([0-9]+)[^0-9]")) {
-				int batt_mode = atoi(web_client.finding_buffer);// das ist ne Dezimalzahl, warum auch immer
-				Serial.println("Vatt:");
-				Serial.println(batt_mode);
+			if(web_client.find_in_content((char*) "\"BatMode\":([0-9]+)[^0-9]")) {// das ist ne Dezimalzahl, warum auch immer
+				int batt_mode = atoi(web_client.finding_buffer);
 				if(batt_mode == 1 || batt_mode == 14) {
 					elektroanlage.solarakku_ist_an = true;
 				} else {

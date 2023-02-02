@@ -7,9 +7,9 @@
 #include "formatierer.h"
 #include "elektro_anlage.h"
 #include "wetter.h"
-#include "smartmeter_leser.h"
+//#include "smartmeter_leser.h"
 #include "wechselrichter_leser.h"
-#include "wettervorhersage_leser.h"
+//#include "wettervorhersage_leser.h"
 #include <TimeLib.h>
 
 namespace Local {

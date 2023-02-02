@@ -1,25 +1,21 @@
 // TODO bis auf ein Minimum ist alles deaktiviert, um das Speicherproblem zu beheben
-/*
-	- WLAN blockweise lesen
-	- alles auf bekannte speichergroessen begrenzen
-	- char[] nutzen, statt String
-	- immer pointer herumreichen. Im Zweiffen den Rückgabewert IN die Funktion geben. malloc+free ist nur ein Notnagel
-	- Objektreferenzen immer nutzen, nie kopien
-	- Wenn geht, für alles dauerhafte Variablen nutzen, wo der Speicher fixiert ist und dieser dann wiederverwendet wird
-	-- Grund: Speicherfragmentierung vermeiden
+/* TODO Als naechstes:
+- HTML Datei von SD-Karte ausliefern
+- Daten als JSON ausgeben
+- Stromdaten auch in JSON einfuegen
+- Wetterdaten in JSON einfuegen
+- Wetterdaten in UI darstellen
 */
 #include "config.h"
 #include "wlan.h"
 #include "web_client.h"
 //#include "web_presenter.h"
-
 #include "elektro_anlage.h"
 #include "wechselrichter_leser.h"
 
 Local::Config cfg;
 Local::Wlan wlan(cfg.wlan_ssid, cfg.wlan_pwd);
 Local::WebClient web_client(wlan.client);
-
 //Local::WebPresenter web_presenter(cfg, wlan);
 
 void setup(void) {

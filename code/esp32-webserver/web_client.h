@@ -9,10 +9,12 @@ namespace Local {
 	class WebClient {
 	protected:
 		WiFiClient wlan_client;
-		char old_buffer[32];
+		MatchState match_state;
 		int content_length = 0;
 		bool remaining_content_after_header = true;
-		MatchState match_state;
+		char old_buffer[64];
+		char buffer[64];
+		char search_buffer[128];
 
 		bool _send_request(const char* host, const char* request_uri) {
 			wlan_client.print("GET ");
@@ -55,11 +57,7 @@ namespace Local {
 		}
 
 	public:
-		// TODO alles verstecken,
-		const size_t buffer_length = 32;
-		char buffer[32];
-		char finding_buffer[33];
-		char search_buffer[64];
+		char finding_buffer[65];
 
 		WebClient(WiFiClient& wlan_client_param) {
 			wlan_client = wlan_client_param;
@@ -89,15 +87,17 @@ namespace Local {
 			old_buffer[0] = '\0';
 			while(wlan_client.available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
-				int read_length = wlan_client.readBytes(buffer, buffer_length - 1);
+				int read_length = wlan_client.readBytes(buffer, sizeof(buffer) - 1);
 				buffer[read_length] = '\0';
 				_prepare_search_buffer();
 
-				if(read_length < buffer_length - 1) {
+				if(read_length < sizeof(buffer) - 1) {
 					return;// Irgendwas lief schief
 				} else {
 					_read_content_length_header();
 					if(_content_start_reached()) {
+						old_buffer[0] = '\0';
+						_prepare_search_buffer();
 						remaining_content_after_header = true;
 						return;
 					}
@@ -115,9 +115,10 @@ namespace Local {
 				return true;
 			}
 			if(wlan_client.available()) {
+				memcpy(old_buffer, buffer, strlen(buffer) + 1);
 				int read_length = wlan_client.readBytes(
 					buffer,
-					std::min((size_t) content_length, (size_t) (buffer_length - 1))
+					std::min((size_t) content_length, (size_t) (sizeof(buffer) - 1))
 				);
 				buffer[read_length] = '\0';
 				_prepare_search_buffer();
