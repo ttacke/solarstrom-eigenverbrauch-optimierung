@@ -15,14 +15,6 @@ namespace Local {
 		bool remaining_content_after_header = true;
 		MatchState match_state;
 
-	public:
-		const size_t buffer_length = 32;
-		char buffer[32];
-
-		WebClient(WiFiClient& wlan_client_param) {
-			wlan_client = wlan_client_param;
-		}
-
 		bool _send_request(const char* host, const char* request_uri) {
 			wlan_client.print("GET ");
 			wlan_client.print(request_uri);
@@ -42,6 +34,23 @@ namespace Local {
 		}
 
 		bool _content_start_reached() {
+			if(find_in_content((char*) "\r\n\r\n(.*)$")) {
+				memcpy(buffer, finding_buffer, strlen(finding_buffer) + 1);
+				return true;
+			}
+			return false;
+		}
+
+	public:
+		const size_t buffer_length = 32;
+		char buffer[32];
+		char finding_buffer[33];
+
+		WebClient(WiFiClient& wlan_client_param) {
+			wlan_client = wlan_client_param;
+		}
+
+		bool find_in_content(char* regex) {
 			int old_buffer_strlen = strlen(old_buffer);
 			memcpy(search_buffer, old_buffer, old_buffer_strlen + 1);
 			for(int i = 0; i < strlen(buffer) + 1; i++) {
@@ -49,12 +58,9 @@ namespace Local {
 			}
 
 			match_state.Target(search_buffer);
-			char result = match_state.Match("\r\n\r\n");
+			char result = match_state.Match("\r\n\r\n(.*)$");
 			if(result > 0) {
-				int start = match_state.MatchStart + match_state.MatchLength;
-				for(int i = 0; i < strlen(search_buffer) + 1 - start; i++) {
-					buffer[i] = search_buffer[start + i];
-				}
+				match_state.GetCapture(finding_buffer, 0);
 				return true;
 			}
 			return false;
