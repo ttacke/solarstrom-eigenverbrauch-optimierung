@@ -38,10 +38,12 @@ void setup(void) {
 
 void loop(void) {
 //	web_presenter.webserver.watch_for_client();
-// TODO das macht immer nur 2 Runden. Wieso?
-	Serial.println("LOOP");
 	Local::WebClient web_client(wlan.client);
-	web_client.send_http_get_request("192.168.0.14", 80, "/status/powerflow");
+	web_client.send_http_get_request(
+		cfg.wechselrichter_host,
+		cfg.wechselrichter_port,
+		cfg.wechselrichter_data_request_uri
+	);
 	while(web_client.read_next_block_to_buffer()) {
 		Serial.println(web_client.buffer);
 	}

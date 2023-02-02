@@ -8,7 +8,7 @@ namespace Local {
 
 	public:
 		void daten_holen_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
-			String content = web_client.get(cfg.wechselrichter_data_url);
+			String content = web_client.get(cfg.wechselrichter_data_request_uri);
 			// TODO Das sollte schon so aus dem Netz geholt werden
 			int offset = 0;
 			int block_size = 64;
