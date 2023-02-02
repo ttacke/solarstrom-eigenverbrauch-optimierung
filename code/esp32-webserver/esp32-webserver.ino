@@ -13,12 +13,13 @@
 #include "web_client.h"
 //#include "web_presenter.h"
 
-//#include "elektro_anlage.h"
-//#include "wechselrichter_leser.h"
-
+#include "elektro_anlage.h"
+#include "wechselrichter_leser.h"
 
 Local::Config cfg;
 Local::Wlan wlan(cfg.wlan_ssid, cfg.wlan_pwd);
+Local::WebClient web_client(wlan.client);
+
 //Local::WebPresenter web_presenter(cfg, wlan);
 
 void setup(void) {
@@ -38,19 +39,10 @@ void setup(void) {
 
 void loop(void) {
 //	web_presenter.webserver.watch_for_client();
-	Local::WebClient web_client(wlan.client);
-	web_client.send_http_get_request(
-		cfg.wechselrichter_host,
-		cfg.wechselrichter_port,
-		cfg.wechselrichter_data_request_uri
-	);
-	while(web_client.read_next_block_to_buffer()) {
-		Serial.println(web_client.buffer);
-	}
-//	Local::WechselrichterLeser wechselrichter_leser(cfg, web_client);
-//	Local::ElektroAnlage elektroanlage;
-//	wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
-//	Serial.println(elektroanlage.gib_log_zeile());
+	Local::WechselrichterLeser wechselrichter_leser(cfg, web_client);
+	Local::ElektroAnlage elektroanlage;
+	wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
+	Serial.println(elektroanlage.gib_log_zeile());
 	Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
 	delay(5000);
 }

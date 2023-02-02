@@ -10,7 +10,6 @@ namespace Local {
 	protected:
 		WiFiClient wlan_client;
 		char old_buffer[32];
-		char search_buffer[64];
 		int content_length = 0;
 		bool remaining_content_after_header = true;
 		MatchState match_state;
@@ -56,9 +55,11 @@ namespace Local {
 		}
 
 	public:
+		// TODO alles verstecken,
 		const size_t buffer_length = 32;
 		char buffer[32];
 		char finding_buffer[33];
+		char search_buffer[64];
 
 		WebClient(WiFiClient& wlan_client_param) {
 			wlan_client = wlan_client_param;
@@ -119,6 +120,7 @@ namespace Local {
 					std::min((size_t) content_length, (size_t) (buffer_length - 1))
 				);
 				buffer[read_length] = '\0';
+				_prepare_search_buffer();
 				content_length -= strlen(buffer);
 				return true;
 			}
