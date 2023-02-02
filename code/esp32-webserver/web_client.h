@@ -9,8 +9,8 @@ namespace Local {
 	class WebClient {
 	protected:
 		WiFiClient wlan_client;
-		char tmp_char_list[256];
 		char old_buffer[32];
+		char search_buffer[64];
 		int content_length = 0;
 		bool remaining_content_after_header = true;
 		MatchState match_state;
@@ -24,12 +24,11 @@ namespace Local {
 		}
 
 		bool _send_request(const char* host, const char* request_uri) {
-			sprintf(
-				tmp_char_list,
-				"GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",
-				request_uri, host
-			);
-			wlan_client.print(tmp_char_list);
+			wlan_client.print("GET ");
+			wlan_client.print(request_uri);
+			wlan_client.print(" HTTP/1.1\r\nHost: ");
+			wlan_client.print(host);
+			wlan_client.print("\r\nConnection: close\r\n\r\n");
 
 			int i = 0;
 			while(!wlan_client.available()) {
@@ -43,15 +42,36 @@ namespace Local {
 		}
 
 		bool _content_start_reached() {
-			match_state.Target(buffer);
-			// TODO hier muss auch mit 2 Bloecken gearbeitet werden, damit man sicher sein kann
+			memcpy(search_buffer, old_buffer, strlen(old_buffer));
+			for(int i = 0; i < strlen(buffer); i++) {
+				search_buffer[strlen(old_buffer) + i] = buffer[i];
+			}
+			search_buffer[strlen(old_buffer) + strlen(buffer)] = '\0';
+//			Serial.println("CP");
+//			Serial.println(search_buffer);
+//			Serial.println("<<<");
+
+			match_state.Target(search_buffer);
 			char result = match_state.Match("\r\n\r\n");
 			if(result > 0) {
-				memcpy(old_buffer, buffer, strlen(buffer));
 				int start = match_state.MatchStart + match_state.MatchLength;
-				for(int i = 0; i < buffer_length - start; i++) {
-					buffer[i] = old_buffer[start + i];
+				//TODO hier passt noch was nicht
+				Serial.println("START");
+				Serial.println(search_buffer);
+				Serial.println("<<<");
+				Serial.println(start);
+				int i = 0;
+				for(; i < strlen(search_buffer) - start; i++) {
+					Serial.println(search_buffer[start + i]);
+					buffer[i] = search_buffer[start + i];
 				}
+				i++;
+				buffer[i] = 'Z';
+				i++;
+				buffer[i] = '\0';
+				Serial.println(">>>");
+				Serial.println(buffer);
+				Serial.println("END");
 				return true;
 			}
 			return false;
@@ -68,6 +88,7 @@ namespace Local {
 				return;
 			}
 
+			old_buffer[0] = '\0';
 			while(wlan_client.available()) {
 				int read_length = wlan_client.readBytes(buffer, buffer_length - 1);
 				buffer[read_length] = '\0';
