@@ -9,20 +9,20 @@ namespace Local {
 
 	protected:
 		void _daten_extrahieren_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
-			if(web_client.find_in_content((char*) "\"P_PV\":([-0-9.]+)[^0-9]")) {
-				elektroanlage.solarerzeugung_in_wh = round(atof(web_client.finding_buffer));
+			if(web_client->find_in_content((char*) "\"P_PV\":([-0-9.]+)[^0-9]")) {
+				elektroanlage.solarerzeugung_in_wh = round(atof(web_client->finding_buffer));
 			}
-			if(web_client.find_in_content((char*) "\"P_Akku\":([-0-9.]+)[^0-9]")) {
-				elektroanlage.solarakku_zuschuss_in_wh = round(atof(web_client.finding_buffer));
+			if(web_client->find_in_content((char*) "\"P_Akku\":([-0-9.]+)[^0-9]")) {
+				elektroanlage.solarakku_zuschuss_in_wh = round(atof(web_client->finding_buffer));
 			}
-			if(web_client.find_in_content((char*) "\"SOC\":([-0-9.]+)[^0-9]")) {
-				elektroanlage.solarakku_ladestand_in_promille = round(atof(web_client.finding_buffer) * 10);
+			if(web_client->find_in_content((char*) "\"SOC\":([-0-9.]+)[^0-9]")) {
+				elektroanlage.solarakku_ladestand_in_promille = round(atof(web_client->finding_buffer) * 10);
 			}
-			if(web_client.find_in_content((char*) "\"P_Grid\":([-0-9.]+)[^0-9]")) {
-				elektroanlage.netzbezug_in_wh = round(atof(web_client.finding_buffer));
+			if(web_client->find_in_content((char*) "\"P_Grid\":([-0-9.]+)[^0-9]")) {
+				elektroanlage.netzbezug_in_wh = round(atof(web_client->finding_buffer));
 			}
-			if(web_client.find_in_content((char*) "\"P_Load\":([-0-9.]+)[^0-9]")) {
-				elektroanlage.stromverbrauch_in_wh = round(atof(web_client.finding_buffer) * -1);
+			if(web_client->find_in_content((char*) "\"P_Load\":([-0-9.]+)[^0-9]")) {
+				elektroanlage.stromverbrauch_in_wh = round(atof(web_client->finding_buffer) * -1);
 			}
 			/*
 				http://192.168.0.106/main-es2015.57cf3de98e3c435ccd68.js
@@ -39,8 +39,8 @@ namespace Local {
 				case 13: "stoppedTemperature"
 				case 14: "maxSocReached"
 			*/
-			if(web_client.find_in_content((char*) "\"BatMode\":([0-9]+)[^0-9]")) {// das ist ne Dezimalzahl, warum auch immer
-				int batt_mode = atoi(web_client.finding_buffer);
+			if(web_client->find_in_content((char*) "\"BatMode\":([0-9]+)[^0-9]")) {// das ist ne Dezimalzahl, warum auch immer
+				int batt_mode = atoi(web_client->finding_buffer);
 				if(batt_mode == 1 || batt_mode == 14) {
 					elektroanlage.solarakku_ist_an = true;
 				} else {
@@ -51,12 +51,12 @@ namespace Local {
 
 	public:
 		void daten_holen_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
-			web_client.send_http_get_request(
-				cfg.wechselrichter_host,
-				cfg.wechselrichter_port,
-				cfg.wechselrichter_data_request_uri
+			web_client->send_http_get_request(
+				cfg->wechselrichter_host,
+				cfg->wechselrichter_port,
+				cfg->wechselrichter_data_request_uri
 			);
-			while(web_client.read_next_block_to_buffer()) {
+			while(web_client->read_next_block_to_buffer()) {
 				_daten_extrahieren_und_einsetzen(elektroanlage);
 			}
 		}

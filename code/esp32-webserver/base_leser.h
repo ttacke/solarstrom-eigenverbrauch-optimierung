@@ -7,11 +7,12 @@ namespace Local {
 	class BaseLeser {
 
 	protected:
-		Local::WebClient web_client;
-		Local::Config cfg;
+		Local::WebClient* web_client;
+		Local::Config* cfg;
 		MatchState match_state;
 		char capture[32];
 
+		//TODO DEPRECATED
 		String _finde(char* regex, String content) {
 			char c_content[content.length() + 1];
 			for(int i = 0; i < content.length(); i++) {
@@ -30,7 +31,7 @@ namespace Local {
 		}
 
 	public:
-		explicit BaseLeser(Local::Config& cfg, Local::WebClient& web_client): cfg(cfg), web_client(web_client) {
+		BaseLeser(Local::Config& cfg, Local::WebClient& web_client): cfg(&cfg), web_client(&web_client) {
 		}
 	};
 }

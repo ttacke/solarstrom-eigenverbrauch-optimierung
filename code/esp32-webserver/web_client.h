@@ -8,7 +8,7 @@
 namespace Local {
 	class WebClient {
 	protected:
-		WiFiClient wlan_client;
+		WiFiClient* wlan_client;
 		MatchState match_state;
 		int content_length = 0;
 		bool remaining_content_after_header = true;
@@ -17,14 +17,14 @@ namespace Local {
 		char search_buffer[128];
 
 		bool _send_request(const char* host, const char* request_uri) {
-			wlan_client.print("GET ");
-			wlan_client.print(request_uri);
-			wlan_client.print(" HTTP/1.1\r\nHost: ");
-			wlan_client.print(host);
-			wlan_client.print("\r\nConnection: close\r\n\r\n");
+			wlan_client->print("GET ");
+			wlan_client->print(request_uri);
+			wlan_client->print(" HTTP/1.1\r\nHost: ");
+			wlan_client->print(host);
+			wlan_client->print("\r\nConnection: close\r\n\r\n");
 
 			int i = 0;
-			while(!wlan_client.available()) {
+			while(!wlan_client->available()) {
 				i++;
 				if(i > 1000) {// 10s timeout
 					return false;
@@ -59,8 +59,7 @@ namespace Local {
 	public:
 		char finding_buffer[65];
 
-		WebClient(WiFiClient& wlan_client_param) {
-			wlan_client = wlan_client_param;
+		WebClient(WiFiClient& wlan_client): wlan_client(&wlan_client) {
 		}
 
 		bool find_in_content(char* regex) {
@@ -77,7 +76,7 @@ namespace Local {
 			remaining_content_after_header = false;
 			content_length = 0;
 			buffer[0] = '\0';
-			if(!wlan_client.connect(host, port)) {
+			if(!wlan_client->connect(host, port)) {
 				return;
 			}
 			if(!_send_request(host, request_uri)) {
@@ -85,9 +84,9 @@ namespace Local {
 			}
 
 			old_buffer[0] = '\0';
-			while(wlan_client.available()) {
+			while(wlan_client->available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
-				int read_length = wlan_client.readBytes(buffer, sizeof(buffer) - 1);
+				int read_length = wlan_client->readBytes(buffer, sizeof(buffer) - 1);
 				buffer[read_length] = '\0';
 				_prepare_search_buffer();
 
@@ -114,9 +113,9 @@ namespace Local {
 				content_length -= strlen(buffer);
 				return true;
 			}
-			if(wlan_client.available()) {
+			if(wlan_client->available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
-				int read_length = wlan_client.readBytes(
+				int read_length = wlan_client->readBytes(
 					buffer,
 					std::min((size_t) content_length, (size_t) (sizeof(buffer) - 1))
 				);

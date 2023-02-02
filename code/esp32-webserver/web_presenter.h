@@ -9,12 +9,13 @@
 #include "wetter.h"
 #include "smartmeter_leser.h"
 #include "wechselrichter_leser.h"
-//#include "wettervorhersage_leser.h"
+#include "wettervorhersage_leser.h"
 #include <TimeLib.h>
 
 namespace Local {
 	class WebPresenter {
 	protected:
+		//TODO nur pointer speichern
 		Local::Config cfg;
 
 		Local::ElektroAnlage elektroanlage;
@@ -56,8 +57,8 @@ namespace Local {
 			Local::SmartmeterLeser smartmeter_leser(cfg, web_client);
 			smartmeter_leser.daten_holen_und_einsetzen(elektroanlage);
 
-//			Local::WettervorhersageLeser wetter_leser(cfg, web_client);
-//
+			Local::WettervorhersageLeser wetter_leser(cfg, web_client);
+
 //			String last_weather_request_timestamp = persistenz.read_file_content((char*) "last_weather_request.txt");
 //			if(
 //				(
