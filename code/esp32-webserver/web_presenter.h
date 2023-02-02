@@ -7,7 +7,7 @@
 //#include "formatierer.h"
 #include "elektro_anlage.h"
 #include "wetter.h"
-//#include "smartmeter_leser.h"
+#include "smartmeter_leser.h"
 #include "wechselrichter_leser.h"
 //#include "wettervorhersage_leser.h"
 #include <TimeLib.h>
@@ -53,9 +53,9 @@ namespace Local {
 			Local::WechselrichterLeser wechselrichter_leser(cfg, web_client);
 			wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
 
-//			Local::SmartmeterLeser smartmeter_leser(cfg, web_client);
-//			smartmeter_leser.daten_holen_und_einsetzen(elektroanlage);
-//
+			Local::SmartmeterLeser smartmeter_leser(cfg, web_client);
+			smartmeter_leser.daten_holen_und_einsetzen(elektroanlage);
+
 //			Local::WettervorhersageLeser wetter_leser(cfg, web_client);
 //
 //			String last_weather_request_timestamp = persistenz.read_file_content((char*) "last_weather_request.txt");

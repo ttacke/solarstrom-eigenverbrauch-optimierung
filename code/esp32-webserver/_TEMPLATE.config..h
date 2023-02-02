@@ -16,10 +16,10 @@ namespace Local {
 // TODO in Leser schieben!
 		// Fronius Gen24 8kW
 		const char* wechselrichter_data_request_uri = (char*) "http://[WECHLELRICHTER-IP]/status/powerflow";
+		// FromiusSmartMeter via Fronius Gen24 8kW
+		const char* wechselrichter_smartmeter_data_request_uri = (char*) "/components/PowerMeter/readable";
 
 // ---- alt
-		// FromiusSmartMeter via Fronius Gen24 8kW
-		const char* smartmeter_data_url = (char*) "http://[WECHLELRICHTER-IP]/components/PowerMeter/readable";
 		// Die Nummer wird in der smartmeter_data_url geliefert und ist fix, taucht aber sonst nirgends auf
 //		const char* smartmeter_id = (char*) "[SMARTMETER-ID]";
 		// In welchen Zeitabstaenden (in Sekunden) soll die Anzeige aktualisiert werden
