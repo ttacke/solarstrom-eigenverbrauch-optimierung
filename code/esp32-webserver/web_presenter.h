@@ -14,13 +14,12 @@
 namespace Local {
 	class WebPresenter {
 	protected:
-		//TODO nur pointer speichern
-		Local::Config cfg;
+		Local::Config* cfg;
+		Local::WebClient web_client;
+//		Local::Persistenz persistenz;
 
 		Local::ElektroAnlage elektroanlage;
 		Local::Wetter wetter;
-//		Local::Persistenz persistenz;
-		Local::WebClient web_client;
 
 		char int_as_char[16];
 
@@ -39,7 +38,7 @@ namespace Local {
 
 		WebPresenter(
 			Local::Config& cfg, Local::Wlan& wlan
-		): cfg(cfg), web_client(wlan.client), webserver(cfg.webserver_port) {
+		): cfg(&cfg), web_client(wlan.client), webserver(cfg.webserver_port) {
 		}
 
 		void zeige_hauptseite() {
@@ -50,13 +49,13 @@ namespace Local {
 				return;
 			}
 
-			Local::WechselrichterLeser wechselrichter_leser(cfg, web_client);
+			Local::WechselrichterLeser wechselrichter_leser(*cfg, web_client);
 			wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
 
-			Local::SmartmeterLeser smartmeter_leser(cfg, web_client);
+			Local::SmartmeterLeser smartmeter_leser(*cfg, web_client);
 			smartmeter_leser.daten_holen_und_einsetzen(elektroanlage);
 
-			Local::WettervorhersageLeser wetter_leser(cfg, web_client);
+			Local::WettervorhersageLeser wetter_leser(*cfg, web_client);
 
 //			String last_weather_request_timestamp = persistenz.read_file_content((char*) "last_weather_request.txt");
 //			if(
