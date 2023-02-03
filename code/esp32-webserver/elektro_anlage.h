@@ -42,6 +42,7 @@ namespace Local {
 		}
 
 		String gib_log_zeile() {
+			// TODO auf Char umstellen
 			return "Ev1;"
 				+ (String) netzbezug_in_wh + ";"
 				+ (String) solarakku_zuschuss_in_wh + ";"

@@ -10,7 +10,6 @@ namespace Local {
 		MatchState match_state;
 		int offset = 0;
 		char old_buffer[64];
-		char buffer[64];
 		uint8_t bin_buffer[63];
 		char search_buffer[128];
 
@@ -29,6 +28,8 @@ namespace Local {
 		void _prepare_search_buffer() {
 			int old_buffer_strlen = strlen(old_buffer);
 			memcpy(search_buffer, old_buffer, old_buffer_strlen + 1);
+			//TODO memcpy(&localData, incomingPacket + 6, sizeof(localData));
+			// mit + kann man auch den ZielPointer verschieben. Das schreibt direkt in dem RAM
 			for(int i = 0; i < strlen(buffer) + 1; i++) {
 				search_buffer[old_buffer_strlen + i] = buffer[i];
 			}
@@ -36,6 +37,11 @@ namespace Local {
 
 	public:
 		char finding_buffer[65];
+		char buffer[64];
+
+		void close_file() {
+			fh.close();
+		}
 
 		bool open_file_to_read(const char* filename) {
 			if(!_init() || !SD.exists(filename)) {
@@ -77,77 +83,28 @@ namespace Local {
 			return false;
 		}
 
-//		void append2file(char* filename, String content) {
-//			if(!_init()) {
-//				return;
-//			}
-//			File dataFile = SD.open(filename, FILE_WRITE);
-//			dataFile.print(content);
-//			dataFile.close();
-//		}
+		bool open_file_to_overwrite(const char* filename) {
+			if(!_init()) {
+				return false;
+			}
+			fh = SD.open(filename, T_CREATE | O_WRITE | O_TRUNC);
+			fh.close();
 
-//		void write2file(char* filename, String content) {
-//			if(!_init()) {
-//				return;
-//			}
-//			File dataFile1 = SD.open(filename, T_CREATE | O_WRITE | O_TRUNC);
-//			dataFile1.close();
-//
-//			File dataFile = SD.open(filename, FILE_WRITE);
-//			//dataFile.seek(0);
-//			dataFile.print(content);
-//			dataFile.close();
-//		}
+			return open_file_to_append(filename);
+		}
 
+		bool open_file_to_append(const char* filename) {
+			if(!_init()) {
+				return false;
+			}
+			offset = 0;
+			buffer[0] = '\0';
+			fh = SD.open(filename, FILE_WRITE);
+			return true;
+		}
 
-
-
-//
-//
-//		String read_file_content_block(char* filename, int offset) {
-//			if(!SD.exists(filename)) {
-//				return (String) "";
-//			}
-//			File fh = SD.open(filename);
-//			fh.seek(offset);
-//			int size = 64;
-//			if(fh.size() - offset < size) {
-//				size = fh.size() - offset;
-//			}
-//			uint8_t buffer[size];
-//			fh.read(buffer, size - 1);
-//			buffer[size - 1] = 0;// Null an Ende setzen
-//			char content[size];
-//			for (int i = 0; i < size; i++) {
-//				content[i] = (char) buffer[i];
-//			}
-//			return (String) content;
-//		}
-
-//		String read_file_content(char* filename) {
-//			if(!SD.exists(filename)) {
-//				return (String) "";
-//			}
-//			File fh = SD.open(filename);
-//			int size = fh.size();
-//			uint8_t buffer[size + 1];
-//			fh.read(buffer, size);
-//			buffer[size] = 0;// Null an Ende setzen
-//			char content[size + 1];
-//			for (int i = 0; i < size + 1; i++) {
-//				content[i] = (char) buffer[i];
-//			}
-//			return (String) content;// TODO das macht eine Kopie. Geht das auch ohne?
-//		}
-
-//		read(char* filename) {
-//			fh = SD.open(filename);
-//			if (fh) {
-//				while (fh.available()) {// TODO wie liest der? Wir sollen bereiche haben. Oder Blockweise.
-//					Serial.write(fh.read());
-//				}
-//				fh.close();
-//			}
-//		}
+		void print_buffer_to_file() {
+			fh.print(buffer);
+		}
 	};
 }

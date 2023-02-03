@@ -25,6 +25,8 @@ namespace Local {
 		Local::Wetter wetter;
 
 		char int_as_char[16];
+		const char* last_weather_request_timestamp_filename = "system_status.csv";
+		const char* anlagen_log_filename = "anlage.csv";
 
 		void _print_char_to_web(char* c) {
 			webserver.server.sendContent(c);
@@ -34,6 +36,41 @@ namespace Local {
 			char int_as_char[16];
 			itoa(i, int_as_char, 10);
 			webserver.server.sendContent((char*) int_as_char);
+		}
+
+		int _read_last_weather_request_timestamp() {
+			int last_weather_request_timestamp = 0;
+			if(persistenz.open_file_to_read(last_weather_request_timestamp_filename)) {
+				while(persistenz.read_next_block_to_buffer()) {
+					if(persistenz.find_in_content((char*) "\nlast_weather_request,([0-9]+),")) {
+						last_weather_request_timestamp = atoi(persistenz.finding_buffer);
+					}
+				}
+				persistenz.close_file();
+			}
+			return last_weather_request_timestamp;
+		}
+
+		void _write_last_weather_request_timestamp(int timestamp) {
+			if(persistenz.open_file_to_overwrite(last_weather_request_timestamp_filename)) {
+				sprintf(persistenz.buffer, "\nlast_weather_request,%d,", timestamp);
+				persistenz.print_buffer_to_file();
+				persistenz.close_file();
+			}
+		}
+
+		void _append_log_data(int now_timestamp) {
+			if(persistenz.open_file_to_append(anlagen_log_filename)) {
+				sprintf(
+					persistenz.buffer,
+					"%d;%s;%s\n",
+					now_timestamp,
+					elektroanlage.gib_log_zeile(),
+					wetter.gib_log_zeile()
+				);
+				persistenz.print_buffer_to_file();
+				persistenz.close_file();
+			}
 		}
 
 	public:
@@ -60,27 +97,22 @@ namespace Local {
 
 			Local::WettervorhersageLeser wetter_leser(*cfg, web_client);
 
-//			String last_weather_request_timestamp = persistenz.read_file_content((char*) "last_weather_request.txt");
-//			if(
-//				(
-//					last_weather_request_timestamp.toInt() < now_timestamp - 60*45// max alle 45min
-//					&& minute(now_timestamp) < 15
-//					&& minute(now_timestamp) >= 3// immer kurz nach um, damit die ForecastAPI Zeit hat
-//				)
-//				|| webserver.server.arg("reset").toInt() == 1 // DEBUG
-//			) {// Insgesamt also 1x die Stunde ca 3 nach um
-//				Serial.println("Reset");
-//				wetter_leser.daten_holen_und_persistieren(persistenz);
-//				persistenz.write2file((char*) "last_weather_request.txt", (String) now_timestamp);
-//			}
-//
+			int last_weather_request_timestamp = _read_last_weather_request_timestamp();
+			Serial.println(last_weather_request_timestamp);
+			if(
+				(
+					last_weather_request_timestamp < now_timestamp - 60*45// max alle 45min
+					&& minute(now_timestamp) < 15
+					&& minute(now_timestamp) >= 3// immer kurz nach um, damit die ForecastAPI Zeit hat
+				)
+				|| webserver.server.arg("reset").toInt() == 1 // DEBUG
+			) {// Insgesamt also 1x die Stunde ca 3 nach um
+				Serial.println("Schreibe wetterdaten");
+				// TODO hier weiter! wetter_leser.daten_holen_und_persistieren(persistenz);
+				_write_last_weather_request_timestamp(now_timestamp);
+			}
+
 			wetter_leser.persistierte_daten_einsetzen(persistenz, wetter);
-//			persistenz.append2file(
-//				(char*) "anlage.csv",
-//				(String) now_timestamp + ";"
-//				+ elektroanlage.gib_log_zeile() + ";"
-//				+ wetter.gib_log_zeile()
-//			);
 
 			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 			webserver.server.send(200, "application/json", "");

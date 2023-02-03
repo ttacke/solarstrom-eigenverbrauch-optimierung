@@ -53,6 +53,7 @@ namespace Local {
 						}
 					}
 				}
+				persistenz.close_file();
 			}
 			// TODO ggf mal pruefen, ob der ersteZeitstempel in der vergangenheit, der 2, in der Zukunf liegt
 			// Allerdings entsteht da kaum ein Schaden

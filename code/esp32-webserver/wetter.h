@@ -24,6 +24,7 @@ namespace Local {
 		}
 
 		String gib_log_zeile() {
+			// TODO auf Char umstellen
 			return "WHv1;"
 				+ (String) stundenvorhersage_solarstrahlung_liste[0] + ";"
 				+ (String) stundenvorhersage_wolkendichte_liste[0] + ";"
