@@ -146,7 +146,7 @@ namespace Local {
 				_print_char_to_web((char*) "\"wolkendichte\":[");
 					for(int i = 0; i < 12; i++) {
 						_print_int_to_web(wetter.gib_stundenvorhersage_wolkendichte(i));
-						if(i != 12) {
+						if(i != 11) {
 							_print_char_to_web((char*) ",");
 						}
 					}
@@ -155,7 +155,7 @@ namespace Local {
 				_print_char_to_web((char*) "\"solarstrahlung\":[");
 					for(int i = 0; i < 12; i++) {
 						_print_int_to_web(wetter.gib_stundenvorhersage_solarstrahlung(i));
-						if(i != 12) {
+						if(i != 11) {
 							_print_char_to_web((char*) ",");
 						}
 					}
