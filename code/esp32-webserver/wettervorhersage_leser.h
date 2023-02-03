@@ -10,26 +10,6 @@ namespace Local {
 
 	protected:
 		const char* filename = "wetter_stundenvorhersage.json";
-//		MatchState match_state;
-//		char capture[32];
-
-		//TODO DEPRECATED
-//		String _finde(char* regex, String content) {
-//			char c_content[content.length() + 1];
-//			for(int i = 0; i < content.length(); i++) {
-//				c_content[i] = content.charAt(i);
-//			}
-//			c_content[content.length() + 1] = '\0';// Null am ende explizit setzen
-//
-//			match_state.Target(c_content);
-//			char result = match_state.Match(regex);
-//			if(result > 0) {
-//				// content.substring(match_state.MatchStart, match_state.MatchStart + match_state.MatchLength);
-//				match_state.GetCapture(capture, 0);
-//				return (String) capture;
-//			}
-//			return "";
-//		}
 
 	public:
 		// TODO das geh auch in einem Schritt, Response blockweise lesen und scannen, und nur
@@ -43,67 +23,48 @@ namespace Local {
 //		}
 
 		void persistierte_daten_einsetzen(Local::Persistenz& persistenz, Local::Wetter& wetter) {
-//			int offset = 0;
-//			String old_block = "";
-//			int zeitpunkt_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
-//			int solarstrahlung_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
-//			int wolkendichte_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
-//			int i = 0;
+			int zeitpunkt_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+			int solarstrahlung_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+			int wolkendichte_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+			int i = 0;
 			if(persistenz.open_file_to_read(filename)) {
 				while(persistenz.read_next_block_to_buffer()) {
+					if(persistenz.find_in_content((char*) "\"EpochDateTime\":([0-9]+)[,}]")) {
+						int zeitpunkt = atoi(persistenz.finding_buffer);
+						if(zeitpunkt != 0 && zeitpunkt_liste[i] != zeitpunkt) {
+							if(zeitpunkt_liste[0] != 0) {
+								i++;
+							}
+							zeitpunkt_liste[i] = zeitpunkt;
+						}
+					}
+					// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
+					if(persistenz.find_in_content((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")) {
+						int solarstrahlung = round(atof(persistenz.finding_buffer));
+						if(solarstrahlung != 0 && solarstrahlung_liste[i] != solarstrahlung) {
+							solarstrahlung_liste[i] = solarstrahlung;
+						}
+					}
+
+					if(persistenz.find_in_content((char*) "\"CloudCover\":([0-9]+)[,}]")) {
+						int wolkendichte = round(atof(persistenz.finding_buffer));
+						if(wolkendichte != 0 && wolkendichte_liste[i] != wolkendichte) {
+							wolkendichte_liste[i] = wolkendichte;
+						}
+					}
 				}
-//				.find_in_content
-//				.finding_buffer
 			}
-//			while(true) {
-//				String block = persistenz.read_file_content_block((char*) filename, offset);
-//
-//				int zeitpunkt = _finde(
-//					(char*) "\"EpochDateTime\":([0-9]+)[,}]",
-//					old_block + block
-//				).toInt();
-//				if(zeitpunkt != 0 && zeitpunkt_liste[i] != zeitpunkt) {
-//					if(zeitpunkt_liste[0] != 0) {
-//						i++;
-//					}
-//					zeitpunkt_liste[i] = zeitpunkt;
-//				}
-//
-//				// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
-//				int solarstrahlung = _finde(
-//					(char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]",
-//					old_block + block
-//				).toInt();
-//				if(solarstrahlung != 0 && solarstrahlung_liste[i] != solarstrahlung) {
-//					solarstrahlung_liste[i] = solarstrahlung;
-//				}
-//
-//				int wolkendichte = _finde(
-//					(char*) "\"CloudCover\":([0-9]+)[,}]",
-//					old_block + block
-//				).toInt();
-//				if(wolkendichte != 0 && wolkendichte_liste[i] != wolkendichte) {
-//					wolkendichte_liste[i] = wolkendichte;
-//				}
-//
-//				old_block = block;
-//				offset += block.length();
-//				if(block.length() == 0) {
-//					break;
-//				}
-//			}
-//			// TODO ggf mal pruefen, ob der ersteZeitstempel in der vergangenheit, drer 2, in der Zukunf liegt
-//			// aber das knallt immer on um bis zum abholen des nächsten :/
-//			Serial.println(zeitpunkt_liste[0]);// TODO
-//			if(zeitpunkt_liste[0] > 0) {
-//				wetter.daten_vorhanden = true;
-//				for(int i = 0; i < 12; i++) {
-//					wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_liste[i]);
-//					wetter.setze_stundenvorhersage_wolkendichte(i, wolkendichte_liste[i]);
-//				}
-//			} else {
-//				wetter.daten_vorhanden = false;
-//			}
+			// TODO ggf mal pruefen, ob der ersteZeitstempel in der vergangenheit, der 2, in der Zukunf liegt
+			// Allerdings entsteht da kaum ein Schaden
+			if(zeitpunkt_liste[0] > 0) {
+				wetter.daten_vorhanden = true;
+				for(int i = 0; i < 12; i++) {
+					wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_liste[i]);
+					wetter.setze_stundenvorhersage_wolkendichte(i, wolkendichte_liste[i]);
+				}
+			} else {
+				wetter.daten_vorhanden = false;
+			}
 		}
 	};
 }
