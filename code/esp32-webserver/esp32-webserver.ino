@@ -1,7 +1,5 @@
-// TODO bis auf ein Minimum ist alles deaktiviert, um das Speicherproblem zu beheben
-/* TODO Als naechstes:
+/* TODO noch offen:
 - HTML Datei von SD-Karte ausliefern
-- Wetterdaten in JSON einfuegen
 - Wetterdaten in UI darstellen
 */
 #include "config.h"

@@ -67,13 +67,13 @@ namespace Local {
 				elektroanlage.set_log_data(persistenz.buffer);
 				persistenz.print_buffer_to_file();
 
-				persistenz.buffer = ",";
+				memcpy(persistenz.buffer, ",\0", 2);
 				persistenz.print_buffer_to_file();
 
 				wetter.set_log_data(persistenz.buffer);
 				persistenz.print_buffer_to_file();
 
-				persistenz.buffer = "\n";
+				memcpy(persistenz.buffer, "\n\0", 2);
 				persistenz.print_buffer_to_file();
 
 				persistenz.close_file();
@@ -115,7 +115,7 @@ namespace Local {
 				|| webserver.server.arg("reset").toInt() == 1 // DEBUG
 			) {// Insgesamt also 1x die Stunde ca 3 nach um
 				Serial.println("Schreibe wetterdaten");
-				// TODO hier weiter! wetter_leser.daten_holen_und_persistieren(persistenz);
+				wetter_leser.daten_holen_und_persistieren(persistenz);
 				_write_last_weather_request_timestamp(now_timestamp);
 			}
 

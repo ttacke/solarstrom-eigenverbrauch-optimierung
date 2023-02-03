@@ -12,15 +12,22 @@ namespace Local {
 		const char* filename = "wetter_stundenvorhersage.json";
 
 	public:
-		// TODO das geh auch in einem Schritt, Response blockweise lesen und scannen, und nur
-		// in Wettervorhersage speichern
-//		void daten_holen_und_persistieren(Local::Persistenz& persistenz) {
-//			persistenz.write2file(
-//				(char*) filename,
-//				web_client.get(cfg.wetter_stundenvorhersage_url)
-//			);
-//			Serial.println("Wetterdaten geschrieben");
-//		}
+		void daten_holen_und_persistieren(Local::Persistenz& persistenz) {
+			// TODO geht der Abruf schief, wird die vorherige Datei zerstoehrt. Das muss anders sein
+			if(persistenz.open_file_to_overwrite(filename)) {
+				web_client->send_http_get_request(
+					"dataservice.accuweather.com",
+					80,
+					cfg->wetter_stundenvorhersage_request_url
+				);
+				while(web_client->read_next_block_to_buffer()) {
+					memcpy(persistenz.buffer, web_client->buffer, strlen(web_client->buffer) + 1);
+					persistenz.print_buffer_to_file();
+				}
+				persistenz.close_file();
+				Serial.println("Wetterdaten geschrieben");
+			}
+		}
 
 		void persistierte_daten_einsetzen(Local::Persistenz& persistenz, Local::Wetter& wetter) {
 			int zeitpunkt_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
@@ -55,8 +62,6 @@ namespace Local {
 				}
 				persistenz.close_file();
 			}
-			// TODO ggf mal pruefen, ob der ersteZeitstempel in der vergangenheit, der 2, in der Zukunf liegt
-			// Allerdings entsteht da kaum ein Schaden
 			if(zeitpunkt_liste[0] > 0) {
 				wetter.daten_vorhanden = true;
 				for(int i = 0; i < 12; i++) {

@@ -13,7 +13,6 @@ namespace Local {
 		int content_length = 0;
 		bool remaining_content_after_header = true;
 		char old_buffer[64];
-		char buffer[64];
 		char search_buffer[128];
 
 		bool _send_request(const char* host, const char* request_uri) {
@@ -51,6 +50,8 @@ namespace Local {
 		void _prepare_search_buffer() {
 			int old_buffer_strlen = strlen(old_buffer);
 			memcpy(search_buffer, old_buffer, old_buffer_strlen + 1);
+			//TODO memcpy(&localData, incomingPacket + 6, sizeof(localData));
+			// mit + kann man auch den ZielPointer verschieben. Das schreibt direkt in dem RAM
 			for(int i = 0; i < strlen(buffer) + 1; i++) {
 				search_buffer[old_buffer_strlen + i] = buffer[i];
 			}
@@ -58,6 +59,7 @@ namespace Local {
 
 	public:
 		char finding_buffer[65];
+		char buffer[64];
 
 		WebClient(WiFiClient& wlan_client): wlan_client(&wlan_client) {
 		}
