@@ -1,117 +1,130 @@
 <html>
 <head>
-	<title>Sonnenrech 19</title>
+	<title>Solarstrom Eigenverbrauch Optimierung</title>
 	<script type="text/javascript">
-		var anzahl_fehler = 0;
-		
-		function setze_lokale_daten() {
-			var max_i = document.getElementById('max_i_value').innerHTML * 1;
-			if (!document.max_i || document.max_i < max_i) {
-				document.max_i = max_i * 1;
-				document.max_i_phase = document.getElementById('max_i_phase').innerHTML;
-				var now = new Date();
-				document.max_i_uhrzeit = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
-			}
-			document.getElementById('marker').innerHTML = document.max_i_uhrzeit;
-			document.getElementById('max_i').innerHTML = 'max I=' + document.max_i + 'A&nbsp(' + document.max_i_phase + ')&nbsp;';
+		function refesh() {
+			_lies_daten();
+			_setze_wetter_stunden_label();
+			
+			// setTimeout(function() {
+			// 	document.location.href = '/?t=' + new Date().getTime();
+			// }, 3000);
 		}
-		
-		function reload() {
+		function _setze_daten_ein(daten) {
+			// TODO fehler markieren!
+			_setze_wetter_stunden(daten);
+		}
+		function _setze_wetter_stunden_label() {
+			var table = document.getElementById('wetter_stunden');
+			// "let" funktioniert im KindleBrowser nicht
+			var t = new Date();
+			var footer_cell = table.getElementsByTagName('tfoot')[0].getElementsByTagName('td');
+			for(var i = 0; i < footer_cell.length; i++) {
+				footer_cell[i].innerHTML = t.getHours();
+				t.setHours(t.getHours() + 1);
+			}
+		}
+		function _setze_wetter_stunden(daten) {
+			var table = document.getElementById('wetter_stunden');
+			var body_tr = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+			for(var zeile_nr = 0; zeile_nr < body_tr.length; zeile_nr++) {
+				var schwelle = (10 - zeile_nr);// 10..1
+				var td_list = body_tr[zeile_nr].getElementsByTagName('td');
+				for(var spalte_nr = 0; spalte_nr < td_list.length; spalte_nr++) {
+					var wert = daten['solarstrahlung_stunden'][spalte_nr] / 100;
+					if(wert >= schwelle) {
+						td_list[spalte_nr].className = "on";
+					} else {
+						td_list[spalte_nr].className = "";
+					}
+				}
+			}
+		}
+		function _lies_daten() {
 			var xhr = new XMLHttpRequest();
 			xhr.onreadystatechange = function(args) {
-				if (this.readyState == this.DONE) {
-					if (this.status == 200) {
-						anzahl_fehler = 0;
-						document.getElementsByTagName('html')[0].innerHTML = this.responseText;
-						setze_lokale_daten();
-						document.getElementsByTagName('body')[0].className = '';
-					} else {
-						anzahl_fehler++;
-						document.getElementById('max_i').innerHTML = '';
-						document.getElementById('fehler').innerHTML = ' ' + anzahl_fehler + ' FEHLER!';
-						document.getElementsByTagName('body')[0].className = 'hat_fehler';
+				if(this.readyState == this.DONE) {
+					if(this.status == 200) {
+						_setze_daten_ein(JSON.parse(this.responseText));
 					}
 				}
 			};
-			xhr.open('GET', '/?time=' + Math.floor(new Date().getTime() / 1000), true);
+			xhr.open('GET', '/data.json?time=' + Math.floor(new Date().getTime() / 1000), true);
 			xhr.timeout = 30 * 1000;
 			xhr.send();
 		}
-		
-		// TODO setInterval(reload, 60 * 1000);
 	</script>
 	<style>
 		body {
 			padding: 0.5rem;
 			padding-top: 0.5rem;
 		}
-		
 		/*transform:rotate(180deg); geht im Kindle nicht*/
 		* {
 			font-family: sans-serif;
 			font-weight: bold;
 			color: #000;
 		}
+		table {
+			width: 100%;
+		}
+		
 		
 		td {
 			font-size: 5rem;
 			line-height: 1.1;
 		}
-		
-		table {
-			width: 100%;
-		}
-		
-		tr.last td {
-			border-top: 5px solid #000;
-		}
-		
 		.zahl {
 			text-align: right;
 			padding-left: 0.3rem;
 		}
-		
 		.label {
 			font-size: 1.5rem;
 			text-align: right;
 		}
-		
 		.einheit {
 			padding-left: 0.3rem;
 			width: 0%;
 		}
 		
-		.markerline div {
+		
+		.wetter {
+			width: 100%;
+			border-collapse: separate;
+			border-spacing: 0.1rem 0.1rem;
+			margin-top: 0.5rem;
+		}
+		.wetter thead td {
+			border-bottom: solid 0.1rem black;
+		}
+		.wetter tfoot td {
+			border-top: solid 0.1rem black;
+		}
+		.wetter tbody td {
+			height: 0.5rem;
+			width: 8%;
+			background-color: #CCC;
+		}
+		.wetter tbody td.on {
+			background-color: black;
+		}
+		.wetter tfoot td {
+			border-top: solid 0.1rem black;
+			font-size: 1rem;
+			font-weight: normal;
 			text-align: center;
-			font-size: 2.5rem;
 		}
-		
-		.markerline div span {
-			color: #999;
+		.wetter tfoot td sup {
+			font-size: 0.5rem;
 		}
-		
-		.markerline div #max_i {
-		}
-		
-		.markerline div #marker {
-		}
-		
-		.speicher_aus td {
-			color: #999;
-		}
-		
-		.hat_fehler * {
-			color: #999;
-		}
-		
-		.hat_fehler .markerline div span {
-			color: #000;
-			text-decoration: underline;
+		.wetter tfoot td:after {
+			content: "00";
+			font-size: 0.5rem;
+			vertical-align: top;
 		}
 	</style>
 </head>
-<body onclick="reload();" onload="setze_lokale_daten();">
-<div style="display:none"><span id=max_i_value>1.2</span><span id=max_i_phase>3</span></div>
+<body onclick="refesh();" onload="refesh();">
 <table cellspacing=0 border=1>
 	<tr>
 		<td class=zahl style="width:auto">-230</td>
@@ -120,10 +133,27 @@
 		<td class="label einheit" style="width:0.5rem">%</td>
 	</tr>
 </table>
-<b>Wolken:67 %</b>
-<b>Sonne:0 &permil;</b>
-<div class=markerline>
-	<div><span id=max_i></span><span id=marker>starte...</span><span id=fehler></span></div>
-</div>
+<span id="abc"></span>
+<table class="wetter" id="wetter_stunden">
+	<thead>
+		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+	</thead>
+	<tbody>
+		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+	</tbody>
+	<tfoot>
+		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+	</tfoot>
+</table>
+
 </body>
 </html>

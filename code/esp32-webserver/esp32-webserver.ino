@@ -1,6 +1,7 @@
 /* TODO noch offen:
-- HTML Datei von SD-Karte ausliefern
+- UI mit JSON befuellen (ingl time-Parmeter)
 - Wetterdaten in UI darstellen
+- HTML Datei von SD-Karte ausliefern
 */
 #include "config.h"
 #include "wlan.h"

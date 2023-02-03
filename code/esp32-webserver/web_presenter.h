@@ -105,7 +105,6 @@ namespace Local {
 			Local::WettervorhersageLeser wetter_leser(*cfg, web_client);
 
 			int last_weather_request_timestamp = _read_last_weather_request_timestamp();
-			Serial.println(last_weather_request_timestamp);
 			if(
 				(
 					last_weather_request_timestamp < now_timestamp - 60*45// max alle 45min
@@ -152,7 +151,7 @@ namespace Local {
 					}
 				_print_char_to_web((char*) "],");
 
-				_print_char_to_web((char*) "\"solarstrahlung\":[");
+				_print_char_to_web((char*) "\"solarstrahlung_stunden\":[");
 					for(int i = 0; i < 12; i++) {
 						_print_int_to_web(wetter.gib_stundenvorhersage_solarstrahlung(i));
 						if(i != 11) {
