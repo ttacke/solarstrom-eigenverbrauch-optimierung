@@ -59,16 +59,20 @@ namespace Local {
 			}
 		}
 
-		void _append_log_data(int now_timestamp) {
+		void _write_log_data(int now_timestamp) {
 			if(persistenz.open_file_to_append(anlagen_log_filename)) {
-				sprintf(
-					persistenz.buffer,
-					"%d;%s;%s\n",
-					now_timestamp,
-					elektroanlage.gib_log_zeile(),
-					wetter.gib_log_zeile()
-				);
+				sprintf(persistenz.buffer, "%d;", now_timestamp);
 				persistenz.print_buffer_to_file();
+
+				elektroanlage.set_log_data(persistenz.buffer);
+				persistenz.print_buffer_to_file();
+
+				wetter.set_log_data(persistenz.buffer);
+				persistenz.print_buffer_to_file();
+
+				sprintf(persistenz.buffer, "\n");
+				persistenz.print_buffer_to_file();
+
 				persistenz.close_file();
 			}
 		}
@@ -113,6 +117,8 @@ namespace Local {
 			}
 
 			wetter_leser.persistierte_daten_einsetzen(persistenz, wetter);
+
+			_write_log_data(now_timestamp);
 
 			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 			webserver.server.send(200, "application/json", "");

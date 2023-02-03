@@ -23,13 +23,14 @@ namespace Local {
 			return stundenvorhersage_wolkendichte_liste[stunden_in_der_zukunft];
 		}
 
-		String gib_log_zeile() {
-			// TODO auf Char umstellen
-			return "WHv1;"
-				+ (String) stundenvorhersage_solarstrahlung_liste[0] + ";"
-				+ (String) stundenvorhersage_wolkendichte_liste[0] + ";"
-				+ (daten_vorhanden ? "1" : "0")
-			;
+		void set_log_data(char* buffer) {
+			sprintf(
+				buffer,
+				"whv1;%d,%d,%d,%d",
+				stundenvorhersage_solarstrahlung_liste[0],
+				stundenvorhersage_wolkendichte_liste[0],
+				(daten_vorhanden ? 1 : 0)
+			);
 		}
 	};
 }

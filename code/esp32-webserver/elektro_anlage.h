@@ -41,18 +41,19 @@ namespace Local {
 			}
 		}
 
-		String gib_log_zeile() {
-			// TODO auf Char umstellen
-			return "Ev1;"
-				+ (String) netzbezug_in_wh + ";"
-				+ (String) solarakku_zuschuss_in_wh + ";"
-				+ (String) solarerzeugung_in_wh + ";"
-				+ (String) stromverbrauch_in_wh + ";"
-				+ (String) solarakku_ladestand_in_promille + ";"
-				+ (String) l1_strom_ma + ";"
-				+ (String) l2_strom_ma + ";"
-				+ (String) l3_strom_ma
-			;
+		void set_log_data(char* buffer) {
+			sprintf(
+				buffer,
+				"ev1,%d,%d,%d,%d,%d,%d,%d,%d",
+				netzbezug_in_wh,
+				solarakku_zuschuss_in_wh,
+				solarerzeugung_in_wh,
+				stromverbrauch_in_wh,
+				solarakku_ladestand_in_promille,
+				l1_strom_ma,
+				l2_strom_ma,
+				l3_strom_ma
+			);
 		}
 	};
 }
