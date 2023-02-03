@@ -25,8 +25,8 @@ namespace Local {
 		Local::Wetter wetter;
 
 		char int_as_char[16];
-		const char* last_weather_request_timestamp_filename = "system_status.csv";
-		const char* anlagen_log_filename = "anlage.csv";
+		const char* last_weather_request_timestamp_filename = "last_weather_request.csv";
+		const char* anlagen_log_filename = "anlage_log.csv";
 
 		void _print_char_to_web(char* c) {
 			webserver.server.sendContent(c);
@@ -61,16 +61,19 @@ namespace Local {
 
 		void _write_log_data(int now_timestamp) {
 			if(persistenz.open_file_to_append(anlagen_log_filename)) {
-				sprintf(persistenz.buffer, "%d;", now_timestamp);
+				sprintf(persistenz.buffer, "%d,", now_timestamp);
 				persistenz.print_buffer_to_file();
 
 				elektroanlage.set_log_data(persistenz.buffer);
 				persistenz.print_buffer_to_file();
 
+				persistenz.buffer = ",";
+				persistenz.print_buffer_to_file();
+
 				wetter.set_log_data(persistenz.buffer);
 				persistenz.print_buffer_to_file();
 
-				sprintf(persistenz.buffer, "\n");
+				persistenz.buffer = "\n";
 				persistenz.print_buffer_to_file();
 
 				persistenz.close_file();
