@@ -79,7 +79,7 @@
 			xhr.ontimeout = function(args) {
 				_zaehle_fehler(true);
 			}
-			xhr.open('GET', '/data.json?time=' + Math.floor(new Date().getTime() / 1000), true);
+			xhr.open('GET', '/daten.json?time=' + Math.floor(new Date().getTime() / 1000), true);
 			xhr.timeout = 30 * 1000;
 			xhr.send();
 		}

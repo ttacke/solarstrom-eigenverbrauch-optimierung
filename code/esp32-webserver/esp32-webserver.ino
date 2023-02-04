@@ -1,8 +1,3 @@
-/* TODO noch offen:
-- UI mit JSON befuellen (ingl time-Parmeter)
-- Wetterdaten in UI darstellen
-- HTML Datei von SD-Karte ausliefern
-*/
 #include "config.h"
 #include "wlan.h"
 #include "web_client.h"
@@ -20,9 +15,13 @@ void setup(void) {
 	Serial.println();
 	Serial.println("Setup ESP");
 	wlan.connect();
+	web_presenter.webserver.add_page("/daten.json", []() {
+		web_presenter.zeige_daten();
+		// Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
+	});
 	web_presenter.webserver.add_page("/", []() {
-		web_presenter.zeige_hauptseite();
-		Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
+		web_presenter.zeige_ui();
+		// Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
 	});
 	web_presenter.webserver.start();
 	Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());

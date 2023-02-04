@@ -27,6 +27,7 @@ namespace Local {
 		char int_as_char[16];
 		const char* last_weather_request_timestamp_filename = "last_weather_request.csv";
 		const char* anlagen_log_filename = "anlage_log.csv";
+		const char* ui_filename = "index.html";
 
 		void _print_char_to_web(char* c) {
 			webserver.server.sendContent(c);
@@ -88,7 +89,20 @@ namespace Local {
 		): cfg(&cfg), web_client(wlan.client), webserver(cfg.webserver_port) {
 		}
 
-		void zeige_hauptseite() {
+		void zeige_ui() {
+			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+			webserver.server.send(200, "text/html", "");
+			if(persistenz.open_file_to_read(ui_filename)) {
+				while(persistenz.read_next_block_to_buffer()) {
+					_print_char_to_web(persistenz.buffer);
+				}
+				persistenz.close_file();
+			} else {
+				_print_char_to_web((char*) "<h1>Bitte die code/htdocs/index.html auf die SD-Karte im root-Ordner ablegen</h1>");
+			}
+		}
+
+		void zeige_daten() {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
 			int now_timestamp = webserver.server.arg("time").toInt();
 			if(now_timestamp < 1674987010) {
