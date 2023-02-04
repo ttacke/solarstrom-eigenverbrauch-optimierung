@@ -2,17 +2,20 @@
 <head>
 	<title>Solarstrom Eigenverbrauch Optimierung</title>
 	<script type="text/javascript">
-		function refesh() {
+		function refresh() {
 			_lies_daten();
 			_setze_wetter_stunden_label();
+			
+			setTimeout(refresh, 60000);
 			
 			// setTimeout(function() {
 			// 	document.location.href = '/?t=' + new Date().getTime();
 			// }, 3000);
 		}
 		function _setze_daten_ein(daten) {
-			// TODO fehler markieren!
+			// TODO fehler markieren! (ausgrauen?? Overlay?)
 			_setze_wetter_stunden(daten);
+			_setze_elektrische_daten(daten);
 		}
 		function _setze_wetter_stunden_label() {
 			var table = document.getElementById('wetter_stunden');
@@ -40,6 +43,19 @@
 				}
 			}
 		}
+		function _setze_elektrische_daten(daten) {
+			var ueberschuss_in_wh = (daten.ueberschuss_in_wh > 0 ? '+' : '') + daten.ueberschuss_in_wh;
+			ueberschuss_in_wh = ueberschuss_in_wh.replace(/^([\-+]?\d+)(\d\d\d)$/, "$1.$2");
+			document.getElementById("ueberschuss").innerHTML = ueberschuss_in_wh;
+			if(daten.ueberschuss_in_wh < 0) {
+				document.getElementById("elektrische_daten").className = "verbrauch";
+			} else {
+				document.getElementById("elektrische_daten").className = "";
+			}
+			var ladestand = "" + daten.solarakku_ladestand_in_promille;
+			ladestand = ladestand.replace(/^(.+)(\d)$/, "$1.$2");
+			document.getElementById("batterie_ladestand").innerHTML = ladestand;
+		}
 		function _lies_daten() {
 			var xhr = new XMLHttpRequest();
 			xhr.onreadystatechange = function(args) {
@@ -57,83 +73,110 @@
 	<style>
 		body {
 			padding: 0.5rem;
-			padding-top: 0.5rem;
 		}
 		/*transform:rotate(180deg); geht im Kindle nicht*/
 		* {
 			font-family: sans-serif;
-			font-weight: bold;
 			color: #000;
 		}
-		table {
-			width: 100%;
-		}
+
 		
-		
-		td {
-			font-size: 5rem;
-			line-height: 1.1;
+		#elektrische_daten {
+			position: relative;
+			font-weight: bold;
+			white-space: nowrap;
+			height: 4.5rem;
 		}
-		.zahl {
+		#elektrische_daten .energie {
+			position: absolute;
 			text-align: right;
-			padding-left: 0.3rem;
+			width: 70%;
+			top: -30px;
 		}
-		.label {
+			#elektrische_daten.verbrauch .energie {
+				width: 45%;
+				top: 10px;
+			}
+		#elektrische_daten #ueberschuss {
+			font-size: 5.0rem;
+			text-align: right;
+			vertical-align: center;
+		}
+			#elektrische_daten.verbrauch #ueberschuss {
+				font-size: 2.3rem;
+			}
+		#elektrische_daten .batterie {
+			position: absolute;
+			right: 0;
+			top: 15px;
+		}
+			#elektrische_daten.verbrauch .batterie {
+				top: -35px;
+			}
+		#elektrische_daten #batterie_ladestand {
+			font-size: 2.3rem;
+			text-align: right;
+			height: 3rem;
+			vertical-align: center;
+		}
+			#elektrische_daten.verbrauch #batterie_ladestand {
+				font-size: 5.0rem;
+			}
+		#elektrische_daten .einheit {
+			height: 3rem;
 			font-size: 1.5rem;
-			text-align: right;
-		}
-		.einheit {
-			padding-left: 0.3rem;
-			width: 0%;
 		}
 		
 		
-		.wetter {
+		#wetter_stunden {
 			width: 100%;
 			border-collapse: separate;
 			border-spacing: 0.1rem 0.1rem;
 			margin-top: 0.5rem;
 		}
-		.wetter thead td {
+		#wetter_stunden thead td {
 			border-bottom: solid 0.1rem black;
 		}
-		.wetter tfoot td {
+		#wetter_stunden tfoot td {
 			border-top: solid 0.1rem black;
 		}
-		.wetter tbody td {
+		#wetter_stunden tbody td {
 			height: 0.5rem;
 			width: 8%;
 			background-color: #CCC;
 		}
-		.wetter tbody td.on {
+		#wetter_stunden tbody td.on {
 			background-color: black;
 		}
-		.wetter tfoot td {
+		#wetter_stunden tfoot td {
 			border-top: solid 0.1rem black;
 			font-size: 1rem;
 			font-weight: normal;
 			text-align: center;
 		}
-		.wetter tfoot td sup {
+		#wetter_stunden tfoot td sup {
 			font-size: 0.5rem;
 		}
-		.wetter tfoot td:after {
+		#wetter_stunden tfoot td:after {
 			content: "00";
 			font-size: 0.5rem;
 			vertical-align: top;
 		}
 	</style>
 </head>
-<body onclick="refesh();" onload="refesh();">
-<table cellspacing=0 border=1>
-	<tr>
-		<td class=zahl style="width:auto">-230</td>
-		<td class="label einheit" style="width:0.5rem">W</td>
-		<td class=zahl style="width:1.8em;font-size:3.5rem;">5.7</td>
-		<td class="label einheit" style="width:0.5rem">%</td>
-	</tr>
-</table>
-<span id="abc"></span>
+<body onclick="refresh();" onload="refresh();">
+
+<div id="elektrische_daten">
+	<div class="energie">
+		<span id="ueberschuss"></span>
+		<span class="einheit">W</span>
+	</div>
+	<div class="batterie">
+		<span id="batterie_ladestand"></span>
+		<span class="einheit">%</span>
+	</div>
+</div>
+
 <table class="wetter" id="wetter_stunden">
 	<thead>
 		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
