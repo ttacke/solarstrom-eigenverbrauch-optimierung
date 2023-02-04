@@ -4,6 +4,7 @@ namespace Local {
 	class Wetter {
 	public:
 		bool daten_vorhanden = false;
+		// index0 = die naechste Stunde. "Jetzt" ist nicht enthalten
 		int stundenvorhersage_solarstrahlung_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 		int stundenvorhersage_wolkendichte_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 

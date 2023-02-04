@@ -4,11 +4,11 @@
 	<script type="text/javascript">
 		function refresh() {
 			_lies_daten();
-			_setze_wetter_stunden_label();
 			
 			setTimeout(refresh, 1000 * 60);
 		}
 		function _setze_daten_ein(daten) {
+			_setze_wetter_stunden_label(daten);
 			_setze_wetter_stunden(daten);
 			_setze_elektrische_daten(daten);
 		}
@@ -25,14 +25,14 @@
 				document.getElementsByTagName('body')[0].className = "";
 			}
 		}
-		function _setze_wetter_stunden_label() {
+		function _setze_wetter_stunden_label(daten) {
 			var table = document.getElementById('wetter_stunden');
 			// "let" funktioniert im KindleBrowser nicht
-			var t = new Date();
+			var t = new Date(daten['solarstrahlung_stunden_startzeit'] * 1000);
 			var footer_cell = table.getElementsByTagName('tfoot')[0].getElementsByTagName('td');
 			for(var i = 0; i < footer_cell.length; i++) {
-				footer_cell[i].innerHTML = t.getHours();
 				t.setHours(t.getHours() + 1);
+				footer_cell[i].innerHTML = t.getHours();
 			}
 		}
 		function _setze_wetter_stunden(daten) {

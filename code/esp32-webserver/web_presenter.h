@@ -180,6 +180,10 @@ namespace Local {
 					}
 				_print_char_to_web((char*) "],");
 
+				_print_char_to_web((char*) "\"solarstrahlung_stunden_startzeit\":");
+					_print_int_to_web(last_weather_request_timestamp);
+					_print_char_to_web((char*) ",");
+
 				_print_char_to_web((char*) "\"solarstrahlung_stunden\":[");
 					for(int i = 0; i < 12; i++) {
 						_print_int_to_web(wetter.gib_stundenvorhersage_solarstrahlung(i));
