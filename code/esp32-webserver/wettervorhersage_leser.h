@@ -69,13 +69,13 @@ namespace Local {
 				persistenz.close_file();
 			}
 			if(zeitpunkt_liste[0] > 0) {
-				wetter.daten_vorhanden = true;
+				wetter.stundenvorhersage_vorhanden = true;
 				for(int i = 0; i < 12; i++) {
 					wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_liste[i]);
 					wetter.setze_stundenvorhersage_wolkendichte(i, wolkendichte_liste[i]);
 				}
 			} else {
-				wetter.daten_vorhanden = false;
+				wetter.stundenvorhersage_vorhanden = false;
 			}
 		}
 	};

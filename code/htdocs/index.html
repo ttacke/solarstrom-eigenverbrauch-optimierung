@@ -2,6 +2,7 @@
 <head>
 	<title>Solarstrom Eigenverbrauch Optimierung</title>
 	<script type="text/javascript">
+		const wochentage = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 		function refresh() {
 			_lies_daten();
 			
@@ -10,6 +11,8 @@
 		function _setze_daten_ein(daten) {
 			_setze_wetter_stunden_label(daten);
 			_setze_wetter_stunden(daten);
+			_setze_wetter_tage_label(daten);
+			_setze_wetter_tage(daten);
 			_setze_elektrische_daten(daten);
 		}
 		function _zaehle_fehler(fehler_vorhanden) {
@@ -35,6 +38,15 @@
 				footer_cell[i].innerHTML = t.getHours();
 			}
 		}
+		function _setze_wetter_tage_label(daten) {
+			var table = document.getElementById('wetter_tage');
+			var t = new Date(daten['solarstrahlung_tage_startzeit'] * 1000);
+			var footer_cell = table.getElementsByTagName('tfoot')[0].getElementsByTagName('td');
+			for(var i = 0; i < footer_cell.length; i++) {
+				t.setDate(t.getDate() + 1);
+				footer_cell[i].innerHTML = wochentage[t.getDay()];
+			}
+		}
 		function _setze_wetter_stunden(daten) {
 			var table = document.getElementById('wetter_stunden');
 			var body_tr = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
@@ -43,6 +55,22 @@
 				var td_list = body_tr[zeile_nr].getElementsByTagName('td');
 				for(var spalte_nr = 0; spalte_nr < td_list.length; spalte_nr++) {
 					var wert = daten['solarstrahlung_stunden'][spalte_nr] / 100;
+					if(wert >= schwelle) {
+						td_list[spalte_nr].className = "on";
+					} else {
+						td_list[spalte_nr].className = "";
+					}
+				}
+			}
+		}
+		function _setze_wetter_tage(daten) {
+			var table = document.getElementById('wetter_tage');
+			var body_tr = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+			for(var zeile_nr = 0; zeile_nr < body_tr.length; zeile_nr++) {
+				var schwelle = (10 - zeile_nr);// 10..1
+				var td_list = body_tr[zeile_nr].getElementsByTagName('td');
+				for(var spalte_nr = 0; spalte_nr < td_list.length; spalte_nr++) {
+					var wert = daten['solarstrahlung_tage'][spalte_nr] / 100;
 					if(wert >= schwelle) {
 						td_list[spalte_nr].className = "on";
 					} else {
@@ -167,34 +195,36 @@
 		}
 		
 		
-		#wetter_stunden {
+		.wetter {
 			width: 100%;
 			border-collapse: separate;
 			border-spacing: 0.1rem 0.1rem;
 			margin-top: 0.5rem;
 		}
-		#wetter_stunden thead td {
+		.wetter thead td {
 			border-bottom: solid 0.1rem black;
 		}
-		#wetter_stunden tfoot td {
+		.wetter tfoot td {
 			border-top: solid 0.1rem black;
 		}
-		#wetter_stunden tbody td {
+		.wetter tbody td {
 			height: 0.5rem;
-			width: 8%;
 			background-color: #CCC;
 		}
-		#wetter_stunden tbody td.on {
+			#wetter_stunden tbody td {
+				width: 8%;
+			}
+			#wetter_tage tbody td {
+				width: 20%;
+			}
+		.wetter tbody td.on {
 			background-color: black;
 		}
-		#wetter_stunden tfoot td {
+		.wetter tfoot td {
 			border-top: solid 0.1rem black;
 			font-size: 1rem;
 			font-weight: normal;
 			text-align: center;
-		}
-		#wetter_stunden tfoot td sup {
-			font-size: 0.5rem;
 		}
 		#wetter_stunden tfoot td:after {
 			content: "00";
@@ -242,6 +272,27 @@
 	</tbody>
 	<tfoot>
 		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+	</tfoot>
+</table>
+
+<table class="wetter" id="wetter_tage">
+	<thead>
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+	</thead>
+	<tbody>
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+	</tbody>
+	<tfoot>
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
 	</tfoot>
 </table>
 

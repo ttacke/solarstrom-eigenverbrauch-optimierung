@@ -191,6 +191,21 @@ namespace Local {
 							_print_char_to_web((char*) ",");
 						}
 					}
+				_print_char_to_web((char*) "],");
+
+				_print_char_to_web((char*) "\"solarstrahlung_tage_startzeit\":");
+					// TODO diesen Dummy ersetzen
+					_print_int_to_web(last_weather_request_timestamp);
+					_print_char_to_web((char*) ",");
+
+				_print_char_to_web((char*) "\"solarstrahlung_tage\":[");
+					for(int i = 0; i < 5; i++) {
+					// TODO leser dazu bauen!
+					_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung(i));
+						if(i != 4) {
+							_print_char_to_web((char*) ",");
+						}
+					}
 				_print_char_to_web((char*) "]");
 
 			_print_char_to_web((char*) "}");
