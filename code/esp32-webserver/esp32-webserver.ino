@@ -2,6 +2,15 @@
 #include "wlan.h"
 #include "web_client.h"
 #include "web_presenter.h"
+/* TODO
+- was steht in der Stundenvorschau als erstes (abruf 23:31)
+-- 1675551600 -> 23:00 GMT -> 0:00 Uhr -> also die nächste Stunde
+-- direkt beim neu schreiben wird nicht korekt gelesen. Wieso? Hat das mit dem ByteProblem bei UI-Ausgeben zu tun?
+-- Die Logdaten sind komisch. 0,25 bzw 0,34? -> CloudCover.
+--- D.h. es hat mal den ersten, mal den zweiten gefunden. Schlecht, weil nicht konsistent
+- tagesvorschau einfuegen
+- Daten via WebURI auslesbar machen
+*/
 
 Local::Config cfg;
 Local::Wlan wlan(cfg.wlan_ssid, cfg.wlan_pwd);
@@ -21,6 +30,10 @@ void setup(void) {
 	});
 	web_presenter.webserver.add_page("/", []() {
 		web_presenter.zeige_ui();
+		// Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
+	});
+	web_presenter.webserver.add_page("/zeige_log", []() {
+		web_presenter.zeige_log();
 		// Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
 	});
 	web_presenter.webserver.start();

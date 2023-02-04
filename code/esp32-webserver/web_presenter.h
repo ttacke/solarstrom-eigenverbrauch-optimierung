@@ -103,6 +103,19 @@ namespace Local {
 			}
 		}
 
+		void zeige_log() {
+			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+			webserver.server.send(200, "text/plain", "");
+			if(persistenz.open_file_to_read(anlagen_log_filename)) {
+				while(persistenz.read_next_block_to_buffer()) {
+					_print_char_to_web(persistenz.buffer);
+				}
+				persistenz.close_file();
+			} else {
+				_print_char_to_web((char*) "Keine Daten!");
+			}
+		}
+
 		void zeige_daten() {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
 			int now_timestamp = webserver.server.arg("time").toInt();
