@@ -63,7 +63,8 @@ namespace Local {
 
 			memcpy(old_buffer, buffer, strlen(buffer) + 1);
 			// TODO Ohne das schmuggeln sich Dinge in die Daten??? Wieso?
-			// Wird der abschließende \0 nicht korrekt gesetzt? Muss das explizit nochmal passieren?
+			// TODO Wird der abschließende \0 nicht korrekt gesetzt? Muss das explizit nochmal passieren?
+			// TODO und am Ende steht bei er UI trotzdem ein "d"
 			std::fill(bin_buffer, bin_buffer + sizeof(bin_buffer), 0);
 			fh.read(bin_buffer, read_size);
 			for (int i = 0; i < read_size; i++) {

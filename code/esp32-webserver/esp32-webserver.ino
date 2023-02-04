@@ -3,13 +3,9 @@
 #include "web_client.h"
 #include "web_presenter.h"
 /* TODO
-- was steht in der Stundenvorschau als erstes (abruf 23:31)
--- 1675551600 -> 23:00 GMT -> 0:00 Uhr -> also die nächste Stunde
+- Wetterdaten: lesen ist komisch!
 -- direkt beim neu schreiben wird nicht korekt gelesen. Wieso? Hat das mit dem ByteProblem bei UI-Ausgeben zu tun?
--- Die Logdaten sind komisch. 0,25 bzw 0,34? -> CloudCover.
---- D.h. es hat mal den ersten, mal den zweiten gefunden. Schlecht, weil nicht konsistent
-- tagesvorschau einfuegen
-- Daten via WebURI auslesbar machen
+-- Es hat mal den ersten, mal den zweiten gefunden in den Wetterdaten. Gleiches Problem.
 */
 
 Local::Config cfg;
