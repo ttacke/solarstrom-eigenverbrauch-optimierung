@@ -6,16 +6,25 @@
 			_lies_daten();
 			_setze_wetter_stunden_label();
 			
-			setTimeout(refresh, 60000);
-			
-			// setTimeout(function() {
-			// 	document.location.href = '/?t=' + new Date().getTime();
-			// }, 3000);
+			setTimeout(refresh, 1000 * 60);
 		}
 		function _setze_daten_ein(daten) {
-			// TODO fehler markieren! (ausgrauen?? Overlay?)
+			// TODO fehler markieren!
 			_setze_wetter_stunden(daten);
 			_setze_elektrische_daten(daten);
+		}
+		function _zaehle_fehler(fehler_vorhanden) {
+			if(fehler_vorhanden) {
+				if(!window.zeit_des_ersten_fehlers) {
+					window.zeit_des_ersten_fehlers = new Date().getTime();
+				}
+				document.getElementsByTagName('body')[0].className = "fehler";
+				var minuten_seit_fehler = Math.round((new Date().getTime() - window.zeit_des_ersten_fehlers) / 1000 / 60);
+				document.getElementById('fehler_seit').innerHTML = minuten_seit_fehler;
+			} else {
+				window.fehler_seit = null;
+				document.getElementsByTagName('body')[0].className = "";
+			}
 		}
 		function _setze_wetter_stunden_label() {
 			var table = document.getElementById('wetter_stunden');
@@ -62,9 +71,15 @@
 				if(this.readyState == this.DONE) {
 					if(this.status == 200) {
 						_setze_daten_ein(JSON.parse(this.responseText));
+						_zaehle_fehler(false);
+					} else {
+						_zaehle_fehler(true);
 					}
 				}
 			};
+			xhr.ontimeout = function(args) {
+				_zaehle_fehler(true);
+			}
 			xhr.open('GET', '/data.json?time=' + Math.floor(new Date().getTime() / 1000), true);
 			xhr.timeout = 30 * 1000;
 			xhr.send();
@@ -78,6 +93,31 @@
 		* {
 			font-family: sans-serif;
 			color: #000;
+		}
+		
+		#fehler_vorhang {
+			display: none;
+			position: absolute;
+			top: 0;
+			left: 0;
+			opacity: 0.2;
+			background-color: white;
+			width: 100%;
+			height: 100%;
+			z-index: 100;
+		}
+		#fehler {
+			display: none;
+			text-align: center;
+			position: absolute;
+			width: 100%;
+			z-index: 101;
+			font-size: 2rem;
+		}
+		
+		body.fehler #fehler,
+		body.fehler #fehler_vorhang {
+			display: block;
 		}
 
 		
@@ -165,6 +205,14 @@
 	</style>
 </head>
 <body onclick="refresh();" onload="refresh();">
+
+<div id="fehler_vorhang"></div>
+<div id="fehler">
+	<h1>FEHLER</h1>
+	<p>Seit <span id="fehler_seit"></span> Minuten gab es keine Daten mehr.</p>
+	
+	<p>Einfach warten, was wird schon...</p>
+</div>
 
 <div id="elektrische_daten">
 	<div class="energie">
