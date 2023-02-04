@@ -20,7 +20,6 @@ namespace Local {
 		const char* wechselrichter_smartmeter_data_request_uri = (char*) "/components/PowerMeter/readable";
 
 // ---- alt
-		// LocationID ermitteln via https://developer.accuweather.com/accuweather-locations-api/apis/get/locations/v1/search
 		// TODO in Leser verschieben, aber locationID und APIKey auslagern
 		const char* wetter_stundenvorhersage_url = "http://dataservice.accuweather.com/forecasts/v1/hourly/12hour/[LOCATION-ID]?apikey=[API-KEY]&language=de-de&details=true&metric=true";
 		// TODO nutzen! const char* wetter_tagesvorhersage_url   = "http://dataservice.accuweather.com/forecasts/v1/daily/5day/[LOCATION-ID]?apikey=[API-KEY]&language=de-de&details=true&metric=true";
