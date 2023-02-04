@@ -142,8 +142,8 @@ namespace Local {
 				)
 				|| webserver.server.arg("reset").toInt() == 1 // DEBUG
 			) {// Insgesamt also 1x die Stunde ca 3 nach um
-				Serial.println("Schreibe wetterdaten");
-				wetter_leser.daten_holen_und_persistieren(persistenz);
+				Serial.println("Schreibe Stunden-Wettervorhersage");
+				wetter_leser.stundendaten_holen_und_persistieren(persistenz);
 				_write_last_weather_request_timestamp(now_timestamp);
 			}
 
@@ -154,14 +154,6 @@ namespace Local {
 			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 			webserver.server.send(200, "application/json", "");
 			_print_char_to_web((char*) "{");
-
-				_print_char_to_web((char*)  "\"max_i_in_ma\":");
-					_print_int_to_web(elektroanlage.max_i_in_ma());
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"max_i_phase\":");
-					_print_int_to_web(elektroanlage.max_i_phase());
-					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"ueberschuss_in_wh\":");
 					_print_int_to_web(elektroanlage.gib_ueberschuss_in_wh());
@@ -200,8 +192,7 @@ namespace Local {
 
 				_print_char_to_web((char*) "\"solarstrahlung_tage\":[");
 					for(int i = 0; i < 5; i++) {
-					// TODO leser dazu bauen!
-					_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung(i));
+						_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung(i));
 						if(i != 4) {
 							_print_char_to_web((char*) ",");
 						}
