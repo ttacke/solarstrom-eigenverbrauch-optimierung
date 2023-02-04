@@ -28,7 +28,7 @@ namespace Local {
 		void _prepare_search_buffer() {
 			int old_buffer_strlen = strlen(old_buffer);
 			memcpy(search_buffer, old_buffer, old_buffer_strlen + 1);
-			//TODO memcpy(&localData, incomingPacket + 6, sizeof(localData));
+			// TODO memcpy(&localData, incomingPacket + 6, sizeof(localData));
 			// mit + kann man auch den ZielPointer verschieben. Das schreibt direkt in dem RAM
 			for(int i = 0; i < strlen(buffer) + 1; i++) {
 				search_buffer[old_buffer_strlen + i] = buffer[i];
@@ -63,6 +63,7 @@ namespace Local {
 
 			memcpy(old_buffer, buffer, strlen(buffer) + 1);
 			// TODO Ohne das schmuggeln sich Dinge in die Daten??? Wieso?
+			// Wird der abschließende \0 nicht korrekt gesetzt? Muss das explizit nochmal passieren?
 			std::fill(bin_buffer, bin_buffer + sizeof(bin_buffer), 0);
 			fh.read(bin_buffer, read_size);
 			for (int i = 0; i < read_size; i++) {

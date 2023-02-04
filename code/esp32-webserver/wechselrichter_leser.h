@@ -54,7 +54,7 @@ namespace Local {
 			web_client->send_http_get_request(
 				cfg->wechselrichter_host,
 				cfg->wechselrichter_port,
-				cfg->wechselrichter_data_request_uri
+				"/status/powerflow"
 			);
 			while(web_client->read_next_block_to_buffer()) {
 				_daten_extrahieren_und_einsetzen(elektroanlage);

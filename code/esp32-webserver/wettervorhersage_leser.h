@@ -10,15 +10,21 @@ namespace Local {
 
 	protected:
 		const char* filename = "wetter_stundenvorhersage.json";
+		const char* hourly_request_uri = "/forecasts/v1/hourly/12hour/%d?apikey=%s&language=de-de&details=true&metric=true";
+		char request_uri[128];
 
 	public:
+		// TODO Umsetzen! const char* wetter_tagesvorhersage_url   = "http://dataservice.accuweather.com/forecasts/v1/daily/5day/%d?apikey=%s&language=de-de&details=true&metric=true";
+
 		void daten_holen_und_persistieren(Local::Persistenz& persistenz) {
-			// TODO geht der Abruf schief, wird die vorherige Datei zerstoehrt. Das muss anders sein
+			// geht der Abruf schief, wird die vorherige Datei zerstoehrt.
+			// Der entstehende Schaden ist nicht relevant genug, um sich darum zu kuemmern
 			if(persistenz.open_file_to_overwrite(filename)) {
+				sprintf(request_uri, hourly_request_uri, cfg->accuweather_location_id, cfg->accuweather_api_key);
 				web_client->send_http_get_request(
 					"dataservice.accuweather.com",
 					80,
-					cfg->wetter_stundenvorhersage_request_url
+					request_uri
 				);
 				while(web_client->read_next_block_to_buffer()) {
 					memcpy(persistenz.buffer, web_client->buffer, strlen(web_client->buffer) + 1);
