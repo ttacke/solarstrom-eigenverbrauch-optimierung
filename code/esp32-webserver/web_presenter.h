@@ -94,6 +94,7 @@ namespace Local {
 			webserver.server.send(200, "text/html", "");
 			if(persistenz.open_file_to_read(ui_filename)) {
 				while(persistenz.read_next_block_to_buffer()) {
+					// TODO am Ende steht ein "d", wieso?
 					_print_char_to_web(persistenz.buffer);
 				}
 				persistenz.close_file();
@@ -120,7 +121,8 @@ namespace Local {
 
 			int last_weather_request_timestamp = _read_last_weather_request_timestamp();
 			if(
-				(
+				!last_weather_request_timestamp
+				|| (
 					last_weather_request_timestamp < now_timestamp - 60*45// max alle 45min
 					&& minute(now_timestamp) < 15
 					&& minute(now_timestamp) >= 3// immer kurz nach um, damit die ForecastAPI Zeit hat

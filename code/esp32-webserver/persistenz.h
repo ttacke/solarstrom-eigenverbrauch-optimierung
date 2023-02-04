@@ -62,6 +62,8 @@ namespace Local {
 			}
 
 			memcpy(old_buffer, buffer, strlen(buffer) + 1);
+			// TODO Ohne das schmuggeln sich Dinge in die Daten??? Wieso?
+			std::fill(bin_buffer, bin_buffer + sizeof(bin_buffer), 0);
 			fh.read(bin_buffer, read_size);
 			for (int i = 0; i < read_size; i++) {
 				buffer[i] = (char) bin_buffer[i];
