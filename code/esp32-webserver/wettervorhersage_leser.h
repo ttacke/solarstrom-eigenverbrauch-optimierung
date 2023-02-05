@@ -68,13 +68,13 @@ namespace Local {
 				persistenz.close_file();
 			}
 			if(zeitpunkt_liste[0] > 0) {
-				wetter.stundenvorhersage_vorhanden = true;
+				wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_liste[0];
 				for(int i = 0; i < 12; i++) {
 					wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_liste[i]);
 					wetter.setze_stundenvorhersage_wolkendichte(i, wolkendichte_liste[i]);
 				}
 			} else {
-				wetter.stundenvorhersage_vorhanden = false;
+				wetter.stundenvorhersage_startzeitpunkt = 0;
 			}
 		}
 
@@ -109,11 +109,14 @@ namespace Local {
 				persistenz.close_file();
 			}
 			if(zeitpunkt_liste[0] > 0) {
+				wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_liste[0];
 				for(int i = 0; i < 5; i++) {
 					// Tageslaenge bei Sommersonnenwende in Wiesbaden: 10:30h
 					int stuendliche_strahlung = round(solarstrahlung_liste[i] / 10.5);
 					wetter.setze_tagesvorhersage_solarstrahlung(i, stuendliche_strahlung);
 				}
+			} else {
+				wetter.tagesvorhersage_startzeitpunkt = 0;
 			}
 		}
 

@@ -150,11 +150,10 @@ namespace Local {
 				!stunden_wettervorhersage_letzter_abruf
 				|| (
 					stunden_wettervorhersage_letzter_abruf < now_timestamp - 60*45// max alle 45min
-					&& minute(now_timestamp) < 15
-					&& minute(now_timestamp) >= 3// immer kurz nach um, damit die ForecastAPI Zeit hat
+					&& minute(now_timestamp) < 20
+					&& minute(now_timestamp) >= 10
 				)
-				|| webserver.server.arg("reset").toInt() == 1 // DEBUG
-			) {// Insgesamt also 1x die Stunde ca 3 nach um
+			) {// Insgesamt also 1x die Stunde ca 10 nach um
 				Serial.println("Schreibe Stunden-Wettervorhersage");
 				wetter_leser.stundendaten_holen_und_persistieren(persistenz);
 				stunden_wettervorhersage_letzter_abruf = now_timestamp;
@@ -164,12 +163,11 @@ namespace Local {
 			if(
 				!tages_wettervorhersage_letzter_abruf
 				|| (
-					tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*5 + 60*45)// max alle 5:45h
+					tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*7 + 60*45)// max alle 5:45h
 					&& minute(now_timestamp) < 25
 					&& minute(now_timestamp) >= 15// immer kurz nach um, damit die ForecastAPI Zeit hat
 				)
-				|| webserver.server.arg("reset").toInt() == 1 // DEBUG
-			) {// Insgesamt also 1x alle 6 Stunden ca 15 nach um
+			) {// Insgesamt also 1x alle 8 Stunden ca 15 nach um
 				Serial.println("Schreibe Tages-Wettervorhersage");
 				wetter_leser.tagesdaten_holen_und_persistieren(persistenz);
 				tages_wettervorhersage_letzter_abruf = now_timestamp;
@@ -202,7 +200,7 @@ namespace Local {
 				_print_char_to_web((char*) "],");
 
 				_print_char_to_web((char*) "\"solarstrahlung_stunden_startzeit\":");
-					_print_int_to_web(stunden_wettervorhersage_letzter_abruf);
+					_print_int_to_web(wetter.stundenvorhersage_startzeitpunkt);
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"solarstrahlung_stunden\":[");
@@ -215,7 +213,7 @@ namespace Local {
 				_print_char_to_web((char*) "],");
 
 				_print_char_to_web((char*) "\"solarstrahlung_tage_startzeit\":");
-					_print_int_to_web(tages_wettervorhersage_letzter_abruf);
+					_print_int_to_web(wetter.tagesvorhersage_startzeitpunkt);
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"solarstrahlung_tage\":[");

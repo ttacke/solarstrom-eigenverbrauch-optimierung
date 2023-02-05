@@ -34,8 +34,8 @@
 			var t = new Date(daten['solarstrahlung_stunden_startzeit'] * 1000);
 			var footer_cell = table.getElementsByTagName('tfoot')[0].getElementsByTagName('td');
 			for(var i = 0; i < footer_cell.length; i++) {
-				t.setHours(t.getHours() + 1);
 				footer_cell[i].innerHTML = t.getHours();
+				t.setHours(t.getHours() + 1);
 			}
 		}
 		function _setze_wetter_tage_label(daten) {
@@ -43,8 +43,8 @@
 			var t = new Date(daten['solarstrahlung_tage_startzeit'] * 1000);
 			var footer_cell = table.getElementsByTagName('tfoot')[0].getElementsByTagName('td');
 			for(var i = 0; i < footer_cell.length; i++) {
-				t.setDate(t.getDate() + 1);
 				footer_cell[i].innerHTML = wochentage[t.getDay()];
+				t.setDate(t.getDate() + 1);
 			}
 		}
 		function _setze_wetter_stunden(daten) {
