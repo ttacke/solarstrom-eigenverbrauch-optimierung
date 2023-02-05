@@ -33,16 +33,8 @@ namespace Local {
 				Serial.println("Wetterdaten geschrieben");
 			}
 		}
-	public:
-		void stundendaten_holen_und_persistieren(Local::Persistenz& persistenz) {
-			_daten_holen_und_persistieren(persistenz, hourly_filename, hourly_request_uri);
-		}
 
-		void tagesdaten_holen_und_persistieren(Local::Persistenz& persistenz) {
-			_daten_holen_und_persistieren(persistenz, dayly_filename, dayly_request_uri);
-		}
-
-		void persistierte_daten_einsetzen(Local::Persistenz& persistenz, Local::Wetter& wetter) {
+		void _lese_stundendaten_und_setze_ein(Local::Persistenz& persistenz, Local::Wetter& wetter) {
 			int zeitpunkt_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 			int solarstrahlung_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 			int wolkendichte_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
@@ -84,6 +76,59 @@ namespace Local {
 			} else {
 				wetter.stundenvorhersage_vorhanden = false;
 			}
+		}
+
+		void _lese_tagesdaten_und_setze_ein(Local::Persistenz& persistenz, Local::Wetter& wetter) {
+			int zeitpunkt_liste[5] = {0,0,0,0,0};
+			int solarstrahlung_liste[5] = {0,0,0,0,0};
+			int i = 0;
+			if(persistenz.open_file_to_read(dayly_filename)) {
+				while(persistenz.read_next_block_to_buffer()) {
+					if(persistenz.find_in_content((char*) "\"EpochDate\":([0-9]+)[,}]")) {
+						int zeitpunkt = atoi(persistenz.finding_buffer);
+						if(zeitpunkt != 0 && zeitpunkt_liste[i] != zeitpunkt) {
+							if(zeitpunkt_liste[0] != 0) {
+								i++;
+							}
+							zeitpunkt_liste[i] = zeitpunkt;
+						}
+					}
+					// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
+					if(persistenz.find_in_content((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")) {
+						int solarstrahlung = round(atof(persistenz.finding_buffer));
+						if(
+							solarstrahlung != 0
+							&& solarstrahlung_liste[i] != solarstrahlung
+							// In den Daten gibts das 2x, je fuer Nacht und Tag. Wir wollen das hoehere
+							&& solarstrahlung_liste[i] < solarstrahlung
+						) {
+							solarstrahlung_liste[i] = solarstrahlung;
+						}
+					}
+				}
+				persistenz.close_file();
+			}
+			if(zeitpunkt_liste[0] > 0) {
+				for(int i = 0; i < 5; i++) {
+					// Tageslaenge bei Sommersonnenwende in Wiesbaden: 10:30h
+					int stuendliche_strahlung = round(solarstrahlung_liste[i] / 10.5);
+					wetter.setze_tagesvorhersage_solarstrahlung(i, stuendliche_strahlung);
+				}
+			}
+		}
+
+	public:
+		void stundendaten_holen_und_persistieren(Local::Persistenz& persistenz) {
+			_daten_holen_und_persistieren(persistenz, hourly_filename, hourly_request_uri);
+		}
+
+		void tagesdaten_holen_und_persistieren(Local::Persistenz& persistenz) {
+			_daten_holen_und_persistieren(persistenz, dayly_filename, dayly_request_uri);
+		}
+
+		void persistierte_daten_einsetzen(Local::Persistenz& persistenz, Local::Wetter& wetter) {
+			_lese_stundendaten_und_setze_ein(persistenz, wetter);
+			_lese_tagesdaten_und_setze_ein(persistenz, wetter);
 		}
 	};
 }

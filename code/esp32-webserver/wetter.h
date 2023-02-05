@@ -4,9 +4,11 @@ namespace Local {
 	class Wetter {
 	protected:
 		// index0 = die naechste Stunde. "Jetzt" ist nicht enthalten
+		// TODO nicht ganz! Die Daten kommen vermutlich irgendwann, der Zeitpunkt der Daten muss ausgewertet werden
 		int stundenvorhersage_solarstrahlung_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 		int stundenvorhersage_wolkendichte_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
-		// TODO index0 = ???
+		// TODO index0 = ???, das kann sogarGEstern sein (1:20 war der Stand: 7 Uhr am Vortag)
+		// TODO D.h. 1x am Tag reicht, gegen 8 Uhr
 		int tagesvorhersage_solarstrahlung_liste[5] = {0,0,0,0,0};
 
 	public:
