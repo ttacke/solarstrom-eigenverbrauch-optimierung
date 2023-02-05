@@ -38,7 +38,6 @@ namespace Local {
 			_daten_holen_und_persistieren(persistenz, hourly_filename, hourly_request_uri);
 		}
 
-		// TODO benutzen
 		void tagesdaten_holen_und_persistieren(Local::Persistenz& persistenz) {
 			_daten_holen_und_persistieren(persistenz, dayly_filename, dayly_request_uri);
 		}

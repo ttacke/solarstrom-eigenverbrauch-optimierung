@@ -25,7 +25,9 @@ namespace Local {
 		Local::Wetter wetter;
 
 		char int_as_char[16];
-		const char* last_weather_request_timestamp_filename = "last_weather_request.csv";
+		const char* system_status_filename = "system_status.csv";
+		int stunden_wettervorhersage_letzter_abruf;
+		int tages_wettervorhersage_letzter_abruf;
 		const char* anlagen_log_filename = "anlage_log.csv";
 		const char* ui_filename = "index.html";
 
@@ -39,23 +41,28 @@ namespace Local {
 			webserver.server.sendContent((char*) int_as_char);
 		}
 
-		int _read_last_weather_request_timestamp() {
-			int last_weather_request_timestamp = 0;
-			if(persistenz.open_file_to_read(last_weather_request_timestamp_filename)) {
+		void _lese_systemstatus_daten() {
+			if(persistenz.open_file_to_read(system_status_filename)) {
 				while(persistenz.read_next_block_to_buffer()) {
-					if(persistenz.find_in_content((char*) "\nlast_weather_request,([0-9]+),")) {
-						last_weather_request_timestamp = atoi(persistenz.finding_buffer);
+					if(persistenz.find_in_content((char*) "\nstunden_wettervorhersage_letzter_abruf,([0-9]+),")) {
+						stunden_wettervorhersage_letzter_abruf = atoi(persistenz.finding_buffer);
+					}
+					if(persistenz.find_in_content((char*) "\ntages_wettervorhersage_letzter_abruf,([0-9]+),")) {
+						tages_wettervorhersage_letzter_abruf = atoi(persistenz.finding_buffer);
 					}
 				}
 				persistenz.close_file();
 			}
-			return last_weather_request_timestamp;
 		}
 
-		void _write_last_weather_request_timestamp(int timestamp) {
-			if(persistenz.open_file_to_overwrite(last_weather_request_timestamp_filename)) {
-				sprintf(persistenz.buffer, "\nlast_weather_request,%d,", timestamp);
+		void _schreibe_systemstatus_daten() {
+			if(persistenz.open_file_to_overwrite(system_status_filename)) {
+				sprintf(persistenz.buffer, "\nstunden_wettervorhersage_letzter_abruf,%d,", stunden_wettervorhersage_letzter_abruf);
 				persistenz.print_buffer_to_file();
+
+				sprintf(persistenz.buffer, "\ntages_wettervorhersage_letzter_abruf,%d,", tages_wettervorhersage_letzter_abruf);
+				persistenz.print_buffer_to_file();
+
 				persistenz.close_file();
 			}
 		}
@@ -72,6 +79,12 @@ namespace Local {
 				persistenz.print_buffer_to_file();
 
 				wetter.set_log_data(persistenz.buffer);
+				persistenz.print_buffer_to_file();
+
+				sprintf(persistenz.buffer, "prv1,%d,%d",
+					stunden_wettervorhersage_letzter_abruf,
+					tages_wettervorhersage_letzter_abruf
+				);
 				persistenz.print_buffer_to_file();
 
 				memcpy(persistenz.buffer, "\n\0", 2);
@@ -132,11 +145,11 @@ namespace Local {
 
 			Local::WettervorhersageLeser wetter_leser(*cfg, web_client);
 
-			int last_weather_request_timestamp = _read_last_weather_request_timestamp();
+			_lese_systemstatus_daten();
 			if(
-				!last_weather_request_timestamp
+				!stunden_wettervorhersage_letzter_abruf
 				|| (
-					last_weather_request_timestamp < now_timestamp - 60*45// max alle 45min
+					stunden_wettervorhersage_letzter_abruf < now_timestamp - 60*45// max alle 45min
 					&& minute(now_timestamp) < 15
 					&& minute(now_timestamp) >= 3// immer kurz nach um, damit die ForecastAPI Zeit hat
 				)
@@ -144,7 +157,23 @@ namespace Local {
 			) {// Insgesamt also 1x die Stunde ca 3 nach um
 				Serial.println("Schreibe Stunden-Wettervorhersage");
 				wetter_leser.stundendaten_holen_und_persistieren(persistenz);
-				_write_last_weather_request_timestamp(now_timestamp);
+				stunden_wettervorhersage_letzter_abruf = now_timestamp;
+				_schreibe_systemstatus_daten();
+			}
+
+			if(
+				!tages_wettervorhersage_letzter_abruf
+				|| (
+					tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*5 + 60*45)// max alle 5:45h
+					&& minute(now_timestamp) < 25
+					&& minute(now_timestamp) >= 15// immer kurz nach um, damit die ForecastAPI Zeit hat
+				)
+				|| webserver.server.arg("reset").toInt() == 1 // DEBUG
+			) {// Insgesamt also 1x alle 6 Stunden ca 15 nach um
+				Serial.println("Schreibe Tages-Wettervorhersage");
+				wetter_leser.tagesdaten_holen_und_persistieren(persistenz);
+				tages_wettervorhersage_letzter_abruf = now_timestamp;
+				_schreibe_systemstatus_daten();
 			}
 
 			wetter_leser.persistierte_daten_einsetzen(persistenz, wetter);
@@ -173,7 +202,7 @@ namespace Local {
 				_print_char_to_web((char*) "],");
 
 				_print_char_to_web((char*) "\"solarstrahlung_stunden_startzeit\":");
-					_print_int_to_web(last_weather_request_timestamp);
+					_print_int_to_web(stunden_wettervorhersage_letzter_abruf);
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"solarstrahlung_stunden\":[");
@@ -186,8 +215,7 @@ namespace Local {
 				_print_char_to_web((char*) "],");
 
 				_print_char_to_web((char*) "\"solarstrahlung_tage_startzeit\":");
-					// TODO diesen Dummy ersetzen
-					_print_int_to_web(last_weather_request_timestamp);
+					_print_int_to_web(tages_wettervorhersage_letzter_abruf);
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"solarstrahlung_tage\":[");
