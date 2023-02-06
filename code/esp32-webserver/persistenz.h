@@ -10,7 +10,6 @@ namespace Local {
 		MatchState match_state;
 		int offset = 0;
 		char old_buffer[64];
-		uint8_t bin_buffer[64];
 		char search_buffer[128];
 
 		bool _init() {
@@ -56,18 +55,17 @@ namespace Local {
 		bool read_next_block_to_buffer() {
 			int size = fh.size();
 			fh.seek(offset);
-			int read_size = std::min(sizeof(bin_buffer) - 1, fh.size() - offset);
+			int read_size = std::min(sizeof(buffer) - 1, fh.size() - offset);
 			if(read_size == 0) {
 				std::fill(buffer, buffer + sizeof(buffer), 0);
 				return false;
 			}
 
 			memcpy(old_buffer, buffer, sizeof(buffer));
+			fh.read((uint8_t*) buffer, read_size);
 			if(read_size < sizeof(buffer)) {
 				std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
 			}
-			fh.read(bin_buffer, read_size);
-			memcpy(buffer, bin_buffer, read_size);
 
 			_prepare_search_buffer();
 
