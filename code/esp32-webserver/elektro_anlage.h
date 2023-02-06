@@ -9,6 +9,7 @@ namespace Local {
 		unsigned int stromverbrauch_in_wh = 0;
 		unsigned int solarakku_ladestand_in_promille = 0;
 		bool solarakku_ist_an = false;
+		bool smartmeterdaten_sind_valide = false;
 		int l1_strom_ma = 0;
 		int l2_strom_ma = 0;
 		int l3_strom_ma = 0;
