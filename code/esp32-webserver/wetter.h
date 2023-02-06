@@ -11,7 +11,9 @@ namespace Local {
 
 	public:
 		int stundenvorhersage_startzeitpunkt;
+		bool stundenvorhersage_ist_valide = false;
 		int tagesvorhersage_startzeitpunkt;
+		bool tagesvorhersage_ist_valide = false;
 
 		void setze_stundenvorhersage_solarstrahlung(int index, int solarstrahlung) {
 			stundenvorhersage_solarstrahlung_liste[index] = solarstrahlung;
@@ -40,10 +42,12 @@ namespace Local {
 		void set_log_data(char* buffer) {
 			sprintf(
 				buffer,
-				"whv1;%d,%d,%d,%d,%d",
+				"whv1,%d,%d,%d,%d,%d,%d,%d",
+				(stundenvorhersage_ist_valide ? 1 : 0),
 				stundenvorhersage_startzeitpunkt,
 				stundenvorhersage_solarstrahlung_liste[0],
 				stundenvorhersage_wolkendichte_liste[0],
+				(tagesvorhersage_ist_valide ? 1 : 0),
 				tagesvorhersage_startzeitpunkt,
 				tagesvorhersage_solarstrahlung_liste[0]
 			);

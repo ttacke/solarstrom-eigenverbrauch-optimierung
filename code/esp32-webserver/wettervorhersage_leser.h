@@ -38,47 +38,56 @@ namespace Local {
 			int zeitpunkt_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 			int solarstrahlung_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 			int wolkendichte_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
-			int i = 0;
+			std::uint8_t findings = 0b0000'0000;
 			if(persistenz.open_file_to_read(hourly_filename)) {
+				int i = 0;
+				int valide_tage = 0;
 				while(persistenz.read_next_block_to_buffer()) {
 					if(persistenz.find_in_content((char*) "\"EpochDateTime\":([0-9]+)[,}]")) {
 						int zeitpunkt = atoi(persistenz.finding_buffer);
 						if(zeitpunkt != 0 && zeitpunkt_liste[i] != zeitpunkt) {
 							if(zeitpunkt_liste[0] != 0) {
 								i++;
+								if(findings & 0b0000'0011) {
+									valide_tage++;
+								}
+								findings = 0b0000'0000;
 							}
 							zeitpunkt_liste[i] = zeitpunkt;
 						}
 					}
 					// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
 					if(persistenz.find_in_content((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")) {
-						int solarstrahlung = round(atof(persistenz.finding_buffer));
-						if(solarstrahlung != 0 && solarstrahlung_liste[i] != solarstrahlung) {
-							solarstrahlung_liste[i] = solarstrahlung;
-						}
+						solarstrahlung_liste[i] = round(atof(persistenz.finding_buffer));
+						findings |= 0b0000'0001;
 					}
 
 					if(persistenz.find_in_content((char*) "\"CloudCover\":([0-9]+)[,}]")) {
-						int wolkendichte = round(atof(persistenz.finding_buffer));
-						if(wolkendichte != 0 && wolkendichte_liste[i] != wolkendichte) {
-							wolkendichte_liste[i] = wolkendichte;
-						}
+						wolkendichte_liste[i] = round(atof(persistenz.finding_buffer));
+						findings |= 0b0000'0010;
 					}
 				}
 				persistenz.close_file();
-			}
-			if(zeitpunkt_liste[0] > 0) {
-				wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_liste[0];
-				for(int i = 0; i < 12; i++) {
-					wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_liste[i]);
-					wetter.setze_stundenvorhersage_wolkendichte(i, wolkendichte_liste[i]);
+				if(findings & 0b0000'0011) {
+					valide_tage++;
 				}
-			} else {
 				wetter.stundenvorhersage_startzeitpunkt = 0;
+				wetter.stundenvorhersage_ist_valide = false;
+				if(valide_tage == 12) {
+					if(zeitpunkt_liste[0] > 0) {
+						wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_liste[0];
+						for(int i = 0; i < 12; i++) {
+							wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_liste[i]);
+							wetter.setze_stundenvorhersage_wolkendichte(i, wolkendichte_liste[i]);
+						}
+						wetter.stundenvorhersage_ist_valide = true;
+					}
+				}
 			}
 		}
 
 		void _lese_tagesdaten_und_setze_ein(Local::Persistenz& persistenz, Local::Wetter& wetter) {
+			// TODO absichern!
 			int zeitpunkt_liste[5] = {0,0,0,0,0};
 			int solarstrahlung_liste[5] = {0,0,0,0,0};
 			int i = 0;
