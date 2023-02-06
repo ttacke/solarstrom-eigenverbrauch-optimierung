@@ -26,12 +26,14 @@ namespace Local {
 		void set_log_data(char* buffer) {
 			sprintf(
 				buffer,
-				"ev1,%d,%d,%d,%d,%d,%d,%d,%d",
+				"ev1,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+				(wechselrichterdaten_sind_valide ? 1 : 0),
 				netzbezug_in_wh,
 				solarakku_zuschuss_in_wh,
 				solarerzeugung_in_wh,
 				stromverbrauch_in_wh,
 				solarakku_ladestand_in_promille,
+				(smartmeterdaten_sind_valide ? 1 : 0),
 				l1_strom_ma,
 				l2_strom_ma,
 				l3_strom_ma
