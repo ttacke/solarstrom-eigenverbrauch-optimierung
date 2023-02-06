@@ -10,7 +10,7 @@ namespace Local {
 		MatchState match_state;
 		int offset = 0;
 		char old_buffer[64];
-		uint8_t bin_buffer[63];
+		uint8_t bin_buffer[64];
 		char search_buffer[128];
 
 		bool _init() {
@@ -58,19 +58,17 @@ namespace Local {
 			fh.seek(offset);
 			int read_size = std::min(sizeof(bin_buffer) - 1, fh.size() - offset);
 			if(read_size == 0) {
+				std::fill(buffer, buffer + sizeof(buffer), 0);
 				return false;
 			}
 
-			memcpy(old_buffer, buffer, strlen(buffer) + 1);
-			// TODO Ohne das schmuggeln sich Dinge in die Daten??? Wieso?
-			// TODO Wird der abschließende \0 nicht korrekt gesetzt? Muss das explizit nochmal passieren?
-			// TODO und am Ende steht bei er UI trotzdem ein "d"
-			std::fill(bin_buffer, bin_buffer + sizeof(bin_buffer), 0);
-			fh.read(bin_buffer, read_size);
-			for (int i = 0; i < read_size; i++) {
-				buffer[i] = (char) bin_buffer[i];
+			memcpy(old_buffer, buffer, sizeof(buffer));
+			if(read_size < sizeof(buffer)) {
+				std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
 			}
-			buffer[read_size + 1] = '\0';
+			fh.read(bin_buffer, read_size);
+			memcpy(buffer, bin_buffer, read_size);
+
 			_prepare_search_buffer();
 
 			offset += read_size;
