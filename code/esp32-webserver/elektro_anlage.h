@@ -3,6 +3,7 @@
 namespace Local {
 	class ElektroAnlage {
 	public:
+		bool wechselrichterdaten_sind_valide = false;
 		int netzbezug_in_wh = 0;// + = bezug, - = einspeisung
 		int solarakku_zuschuss_in_wh = 0;// + = entladung, - = ladung
 		unsigned int solarerzeugung_in_wh = 0;
