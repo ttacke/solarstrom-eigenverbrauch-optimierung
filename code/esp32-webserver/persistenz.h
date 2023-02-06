@@ -26,12 +26,8 @@ namespace Local {
 
 		void _prepare_search_buffer() {
 			int old_buffer_strlen = strlen(old_buffer);
-			memcpy(search_buffer, old_buffer, old_buffer_strlen + 1);
-			// TODO memcpy(&localData, incomingPacket + 6, sizeof(localData));
-			// mit + kann man auch den ZielPointer verschieben. Das schreibt direkt in dem RAM
-			for(int i = 0; i < strlen(buffer) + 1; i++) {
-				search_buffer[old_buffer_strlen + i] = buffer[i];
-			}
+			memcpy(search_buffer, old_buffer, old_buffer_strlen);
+			memcpy(search_buffer + old_buffer_strlen, buffer, strlen(buffer) + 1);
 		}
 
 	public:
@@ -63,9 +59,7 @@ namespace Local {
 
 			memcpy(old_buffer, buffer, sizeof(buffer));
 			fh.read((uint8_t*) buffer, read_size);
-			if(read_size < sizeof(buffer)) {
-				std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
-			}
+			std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
 
 			_prepare_search_buffer();
 

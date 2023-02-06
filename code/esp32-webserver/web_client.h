@@ -88,20 +88,16 @@ namespace Local {
 			old_buffer[0] = '\0';
 			while(wlan_client->available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
-				int read_length = wlan_client->readBytes(buffer, sizeof(buffer) - 1);
-				buffer[read_length] = '\0';
+				int read_size = wlan_client->readBytes(buffer, sizeof(buffer) - 1);
+				std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
 				_prepare_search_buffer();
 
-				if(read_length < sizeof(buffer) - 1) {
-					return;// Irgendwas lief schief
-				} else {
-					_read_content_length_header();
-					if(_content_start_reached()) {
-						old_buffer[0] = '\0';
-						_prepare_search_buffer();
-						remaining_content_after_header = true;
-						return;
-					}
+				_read_content_length_header();
+				if(_content_start_reached()) {
+					old_buffer[0] = '\0';
+					_prepare_search_buffer();
+					remaining_content_after_header = true;
+					return;
 				}
 			}
 		}
@@ -117,11 +113,11 @@ namespace Local {
 			}
 			if(wlan_client->available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
-				int read_length = wlan_client->readBytes(
+				int read_size = wlan_client->readBytes(
 					buffer,
 					std::min((size_t) content_length, (size_t) (sizeof(buffer) - 1))
 				);
-				buffer[read_length] = '\0';
+				std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
 				_prepare_search_buffer();
 				content_length -= strlen(buffer);
 				return true;
