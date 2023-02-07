@@ -185,6 +185,10 @@ namespace Local {
 					_print_int_to_web(elektroanlage.gib_ueberschuss_in_wh());
 					_print_char_to_web((char*) ",");
 
+				_print_char_to_web((char*) "\"solarakku_ist_an\":");
+					_print_char_to_web((char*) (elektroanlage.solarakku_ist_an ? "true" : "false"));
+					_print_char_to_web((char*) ",");
+
 				_print_char_to_web((char*) "\"solarakku_ladestand_in_promille\":");
 					_print_int_to_web(elektroanlage.solarakku_ladestand_in_promille);
 					_print_char_to_web((char*) ",");

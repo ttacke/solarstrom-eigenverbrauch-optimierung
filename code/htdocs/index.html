@@ -84,7 +84,11 @@
 			ueberschuss_in_wh = ueberschuss_in_wh.replace(/^([\-+]?\d+)(\d\d\d)$/, "$1.$2");
 			document.getElementById("ueberschuss").innerHTML = ueberschuss_in_wh;
 			if(daten.ueberschuss_in_wh < 0) {
-				document.getElementById("elektrische_daten").className = "verbrauch";
+				if(daten.solarakku_ist_an) {
+					document.getElementById("elektrische_daten").className = "aus_dem_akku";
+				} else {
+					document.getElementById("elektrische_daten").className = "aus_dem_netz";
+				}
 			} else {
 				document.getElementById("elektrische_daten").className = "";
 			}
@@ -160,7 +164,8 @@
 			width: 70%;
 			top: -30px;
 		}
-			#elektrische_daten.verbrauch .energie {
+			#elektrische_daten.aus_dem_akku .energie,
+			#elektrische_daten.aus_dem_netz .energie {
 				width: 45%;
 				top: 10px;
 			}
@@ -169,7 +174,8 @@
 			text-align: right;
 			vertical-align: center;
 		}
-			#elektrische_daten.verbrauch #ueberschuss {
+			#elektrische_daten.aus_dem_akku #ueberschuss,
+			#elektrische_daten.aus_dem_netz #ueberschuss {
 				font-size: 2.3rem;
 			}
 		#elektrische_daten .batterie {
@@ -177,8 +183,10 @@
 			right: 0;
 			top: 15px;
 		}
-			#elektrische_daten.verbrauch .batterie {
+			#elektrische_daten.aus_dem_akku .batterie {
 				top: -35px;
+			}
+			#elektrische_daten.aus_dem_netz .batterie {
 			}
 		#elektrische_daten #batterie_ladestand {
 			font-size: 2.3rem;
@@ -186,8 +194,10 @@
 			height: 3rem;
 			vertical-align: center;
 		}
-			#elektrische_daten.verbrauch #batterie_ladestand {
+			#elektrische_daten.aus_dem_akku #batterie_ladestand {
 				font-size: 5.0rem;
+			}
+			#elektrische_daten.aus_dem_netz #batterie_ladestand {
 			}
 		#elektrische_daten .einheit {
 			height: 3rem;
