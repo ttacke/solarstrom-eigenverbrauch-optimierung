@@ -107,7 +107,6 @@ namespace Local {
 			webserver.server.send(200, "text/html", "");
 			if(persistenz.open_file_to_read(ui_filename)) {
 				while(persistenz.read_next_block_to_buffer()) {
-					// TODO am Ende steht ein "d", wieso?
 					_print_char_to_web(persistenz.buffer);
 				}
 				persistenz.close_file();

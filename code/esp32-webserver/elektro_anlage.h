@@ -16,11 +16,7 @@ namespace Local {
 		int l3_strom_ma = 0;
 
 		int gib_ueberschuss_in_wh() {
-			int ueberschuss = (netzbezug_in_wh * -1);
-			if(solarakku_zuschuss_in_wh < 0) {// Wenn der laedt...
-				ueberschuss -= solarakku_zuschuss_in_wh;// die Ladeleistung zum Ueberschuss zaehlen
-			}
-			return ueberschuss;
+			return (netzbezug_in_wh * -1) - solarakku_zuschuss_in_wh;
 		}
 
 		void set_log_data(char* buffer) {
