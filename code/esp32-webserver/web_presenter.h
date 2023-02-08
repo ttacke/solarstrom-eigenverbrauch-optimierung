@@ -11,6 +11,14 @@
 #include "wettervorhersage_leser.h"
 #include <TimeLib.h>
 
+// TODO Anteil der beiden Strings zeigen
+/*
+	http://192.168.0.14/components/cache/readable
+	"PV_POWERACTIVE_MEAN_01_F32" : 219.82752990722656,
+	"PV_POWERACTIVE_MEAN_02_F32" : 652.2010498046875,
+
+*/
+
 namespace Local {
 	class WebPresenter {
 	protected:
@@ -81,12 +89,6 @@ namespace Local {
 				wetter.set_log_data(persistenz.buffer);
 				persistenz.print_buffer_to_file();
 
-				sprintf(persistenz.buffer, "prv1,%d,%d",
-					stunden_wettervorhersage_letzter_abruf,
-					tages_wettervorhersage_letzter_abruf
-				);
-				persistenz.print_buffer_to_file();
-
 				memcpy(persistenz.buffer, "\n\0", 2);
 				persistenz.print_buffer_to_file();
 
@@ -131,6 +133,7 @@ namespace Local {
 		void zeige_daten() {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
 			int now_timestamp = webserver.server.arg("time").toInt();
+			bool ist_prod = webserver.server.arg("ist_prod").toInt() == 1;
 			if(now_timestamp < 1674987010) {
 				webserver.server.send(400, "text/plain", "Bitte den aktuellen UnixTimestamp via Parameter 'time' angeben.");
 				return;
@@ -145,37 +148,40 @@ namespace Local {
 			Local::WettervorhersageLeser wetter_leser(*cfg, web_client);
 
 			_lese_systemstatus_daten();
-			if(
-				!stunden_wettervorhersage_letzter_abruf
-				|| (
-					stunden_wettervorhersage_letzter_abruf < now_timestamp - 60*45// max alle 45min
-					&& minute(now_timestamp) < 20
-					&& minute(now_timestamp) >= 10
-				)
-			) {// Insgesamt also 1x die Stunde ca 10 nach um
-				Serial.println("Schreibe Stunden-Wettervorhersage");
-				wetter_leser.stundendaten_holen_und_persistieren(persistenz);
-				stunden_wettervorhersage_letzter_abruf = now_timestamp;
-				_schreibe_systemstatus_daten();
-			}
+			if(ist_prod) {
+				if(
+					!stunden_wettervorhersage_letzter_abruf
+					|| (
+						stunden_wettervorhersage_letzter_abruf < now_timestamp - 60*45// max alle 45min
+						&& minute(now_timestamp) < 20
+						&& minute(now_timestamp) >= 10
+					)
+				) {// Insgesamt also 1x die Stunde ca 10 nach um
+					Serial.println("Schreibe Stunden-Wettervorhersage");
+					wetter_leser.stundendaten_holen_und_persistieren(persistenz);
+					stunden_wettervorhersage_letzter_abruf = now_timestamp;
+					_schreibe_systemstatus_daten();
+				}
 
-			if(
-				!tages_wettervorhersage_letzter_abruf
-				|| (
-					tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*7 + 60*45)// max alle 5:45h
-					&& minute(now_timestamp) < 25
-					&& minute(now_timestamp) >= 15// immer kurz nach um, damit die ForecastAPI Zeit hat
-				)
-			) {// Insgesamt also 1x alle 8 Stunden ca 15 nach um
-				Serial.println("Schreibe Tages-Wettervorhersage");
-				wetter_leser.tagesdaten_holen_und_persistieren(persistenz);
-				tages_wettervorhersage_letzter_abruf = now_timestamp;
-				_schreibe_systemstatus_daten();
+				if(
+					!tages_wettervorhersage_letzter_abruf
+					|| (
+						tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*7 + 60*45)// max alle 5:45h
+						&& minute(now_timestamp) < 25
+						&& minute(now_timestamp) >= 15// immer kurz nach um, damit die ForecastAPI Zeit hat
+					)
+				) {// Insgesamt also 1x alle 8 Stunden ca 15 nach um
+					Serial.println("Schreibe Tages-Wettervorhersage");
+					wetter_leser.tagesdaten_holen_und_persistieren(persistenz);
+					tages_wettervorhersage_letzter_abruf = now_timestamp;
+					_schreibe_systemstatus_daten();
+				}
 			}
-
 			wetter_leser.persistierte_daten_einsetzen(persistenz, wetter);
 
-			_write_log_data(now_timestamp);
+			if(ist_prod) {
+				_write_log_data(now_timestamp);
+			}
 
 			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 			webserver.server.send(200, "application/json", "");

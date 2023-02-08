@@ -22,15 +22,15 @@ void setup(void) {
 	wlan.connect();
 	web_presenter.webserver.add_page("/daten.json", []() {
 		web_presenter.zeige_daten();
-		// Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
 	});
 	web_presenter.webserver.add_page("/", []() {
 		web_presenter.zeige_ui();
-		// Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
+	});
+	web_presenter.webserver.add_page("/dev/", []() {
+		web_presenter.zeige_ui();
 	});
 	web_presenter.webserver.add_page("/zeige_log", []() {
 		web_presenter.zeige_log();
-		// Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
 	});
 	web_presenter.webserver.start();
 	Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
