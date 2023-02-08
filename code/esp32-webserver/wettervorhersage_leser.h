@@ -35,97 +35,131 @@ namespace Local {
 		}
 
 		void _lese_stundendaten_und_setze_ein(Local::Persistenz& persistenz, Local::Wetter& wetter) {
+			wetter.stundenvorhersage_startzeitpunkt = 0;
+			wetter.stundenvorhersage_ist_valide = false;
+			if(!persistenz.open_file_to_read(hourly_filename)) {
+				return;
+			}
 			int zeitpunkt_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 			int solarstrahlung_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 			int wolkendichte_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 			std::uint8_t findings = 0b0000'0000;
-			if(persistenz.open_file_to_read(hourly_filename)) {
-				int i = 0;
-				int valide_tage = 0;
-				while(persistenz.read_next_block_to_buffer()) {
-					if(persistenz.find_in_content((char*) "\"EpochDateTime\":([0-9]+)[,}]")) {
-						int zeitpunkt = atoi(persistenz.finding_buffer);
-						if(zeitpunkt != 0 && zeitpunkt_liste[i] != zeitpunkt) {
-							if(zeitpunkt_liste[0] != 0) {
-								i++;
-								if(findings & 0b0000'0011) {
-									valide_tage++;
-								}
-								findings = 0b0000'0000;
+			int i = 0;
+			int valide_stunden = 0;
+			while(persistenz.read_next_block_to_buffer()) {
+				if(persistenz.find_in_content((char*) "\"EpochDateTime\":([0-9]+)[,}]")) {
+					int zeitpunkt = atoi(persistenz.finding_buffer);
+					if(zeitpunkt_liste[i] != zeitpunkt) {
+						if(zeitpunkt_liste[0] != 0) {
+							i++;
+							if(findings & 0b0000'0011) {
+								valide_stunden++;
 							}
-							zeitpunkt_liste[i] = zeitpunkt;
+							findings = 0b0000'0000;
 						}
+						zeitpunkt_liste[i] = zeitpunkt;
 					}
-					// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
-					if(persistenz.find_in_content((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")) {
-						solarstrahlung_liste[i] = round(atof(persistenz.finding_buffer));
-						findings |= 0b0000'0001;
-					}
+				}
+				// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
+				if(persistenz.find_in_content((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")) {
+					solarstrahlung_liste[i] = round(atof(persistenz.finding_buffer));
+					findings |= 0b0000'0001;
+				}
 
-					if(persistenz.find_in_content((char*) "\"CloudCover\":([0-9]+)[,}]")) {
-						wolkendichte_liste[i] = round(atof(persistenz.finding_buffer));
-						findings |= 0b0000'0010;
-					}
+				if(persistenz.find_in_content((char*) "\"CloudCover\":([0-9]+)[,}]")) {
+					wolkendichte_liste[i] = round(atof(persistenz.finding_buffer));
+					findings |= 0b0000'0010;
 				}
-				persistenz.close_file();
-				if(findings & 0b0000'0011) {
-					valide_tage++;
-				}
-				wetter.stundenvorhersage_startzeitpunkt = 0;
-				wetter.stundenvorhersage_ist_valide = false;
-				if(valide_tage == 12) {
-					if(zeitpunkt_liste[0] > 0) {
-						wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_liste[0];
-						for(int i = 0; i < 12; i++) {
-							wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_liste[i]);
-							wetter.setze_stundenvorhersage_wolkendichte(i, wolkendichte_liste[i]);
-						}
-						wetter.stundenvorhersage_ist_valide = true;
+			}
+			persistenz.close_file();
+
+			if(findings & 0b0000'0011) {
+				valide_stunden++;
+			}
+			if(valide_stunden == 12) {
+				if(zeitpunkt_liste[0] > 0) {
+					wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_liste[0];
+					for(int i = 0; i < 12; i++) {
+						wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_liste[i]);
+						wetter.setze_stundenvorhersage_wolkendichte(i, wolkendichte_liste[i]);
 					}
+					wetter.stundenvorhersage_ist_valide = true;
 				}
 			}
 		}
 
 		void _lese_tagesdaten_und_setze_ein(Local::Persistenz& persistenz, Local::Wetter& wetter) {
-			// TODO absichern!
+			wetter.tagesvorhersage_startzeitpunkt = 0;
+			wetter.tagesvorhersage_ist_valide = false;
+			if(!persistenz.open_file_to_read(dayly_filename)) {
+				return;
+			}
 			int zeitpunkt_liste[5] = {0,0,0,0,0};
 			int solarstrahlung_liste[5] = {0,0,0,0,0};
+			int wolkendichte_liste[5] = {0,0,0,0,0};
+			int sonnenaufgang_liste[5] = {0,0,0,0,0};
+			int sonnenuntergang_liste[5] = {0,0,0,0,0};
+			std::uint8_t findings = 0b0000'0000;
 			int i = 0;
-			if(persistenz.open_file_to_read(dayly_filename)) {
-				while(persistenz.read_next_block_to_buffer()) {
-					if(persistenz.find_in_content((char*) "\"EpochDate\":([0-9]+)[,}]")) {
-						int zeitpunkt = atoi(persistenz.finding_buffer);
-						if(zeitpunkt != 0 && zeitpunkt_liste[i] != zeitpunkt) {
-							if(zeitpunkt_liste[0] != 0) {
-								i++;
+			int valide_tage = 0;
+			while(persistenz.read_next_block_to_buffer()) {
+				if(persistenz.find_in_content((char*) "\"EpochDate\":([0-9]+)[,}]")) {
+					int zeitpunkt = atoi(persistenz.finding_buffer);
+					if(zeitpunkt_liste[i] != zeitpunkt) {
+						if(zeitpunkt_liste[0] != 0) {
+							i++;
+							if(findings & 0b0001'1111) {
+								valide_tage++;
 							}
-							zeitpunkt_liste[i] = zeitpunkt;
+							findings = 0b0000'0000;
 						}
-					}
-					// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
-					if(persistenz.find_in_content((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")) {
-						int solarstrahlung = round(atof(persistenz.finding_buffer));
-						if(
-							solarstrahlung != 0
-							&& solarstrahlung_liste[i] != solarstrahlung
-							// In den Daten gibts das 2x, je fuer Nacht und Tag. Wir wollen das hoehere
-							&& solarstrahlung_liste[i] < solarstrahlung
-						) {
-							solarstrahlung_liste[i] = solarstrahlung;
-						}
+						zeitpunkt_liste[i] = zeitpunkt;
 					}
 				}
-				persistenz.close_file();
+				// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
+				if(persistenz.find_in_content((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")) {
+					int solarstrahlung = round(atof(persistenz.finding_buffer));
+					if(!(findings & 0b0000'0001)) { // Tag ...
+						solarstrahlung_liste[i] += solarstrahlung;
+						findings |= 0b0000'0001;
+					} else if(!(findings & 0b0000'0010)) { // ...und Nacht werden addiert
+						solarstrahlung_liste[i] += solarstrahlung;
+						findings |= 0b0000'0010;
+					}
+				}
+				if(persistenz.find_in_content((char*) "\"CloudCover\":([0-9]+)[,}]")) {
+					if(!(findings & 0b0000'0100)) { // nur Tag wird verwendet, Nacht ist irrelevant
+						wolkendichte_liste[i] = atoi(persistenz.finding_buffer);
+						findings |= 0b0000'0100;
+					}
+				}
+				if(persistenz.find_in_content((char*) "\"EpochRise\":([0-9]+)[,}]")) {
+					if(!(findings & 0b0000'1000)) {// Sun... (Moon kommt dannach)
+						sonnenaufgang_liste[i] = atoi(persistenz.finding_buffer);
+						findings |= 0b0000'1000;
+					}
+				}
+				if(persistenz.find_in_content((char*) "\"EpochSet\":([0-9]+)[,}]")) {
+					if(!(findings & 0b0001'0000)) {// Sun... (Moon kommt dannach)
+						sonnenuntergang_liste[i] = atoi(persistenz.finding_buffer);
+						findings |= 0b0001'0000;
+					}
+				}
 			}
-			if(zeitpunkt_liste[0] > 0) {
+			persistenz.close_file();
+
+			if(findings & 0b0001'1111) {
+				valide_tage++;
+			}
+			if(valide_tage == 5) {
 				wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_liste[0];
 				for(int i = 0; i < 5; i++) {
-					// Tageslaenge bei Sommersonnenwende in Wiesbaden: 10:30h
-					int stuendliche_strahlung = round(solarstrahlung_liste[i] / 10.5);
-					wetter.setze_tagesvorhersage_solarstrahlung(i, stuendliche_strahlung);
+					wetter.setze_tagesvorhersage_sonnenaufgang(i, sonnenaufgang_liste[i]);
+					wetter.setze_tagesvorhersage_sonnenuntergang(i, sonnenuntergang_liste[i]);
+					wetter.setze_tagesvorhersage_solarstrahlung(i, solarstrahlung_liste[i]);
+					wetter.setze_tagesvorhersage_wolkendichte(i, wolkendichte_liste[i]);
 				}
-			} else {
-				wetter.tagesvorhersage_startzeitpunkt = 0;
+				wetter.tagesvorhersage_ist_valide = true;
 			}
 		}
 

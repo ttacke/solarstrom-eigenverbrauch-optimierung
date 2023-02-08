@@ -3,11 +3,15 @@
 namespace Local {
 	class Wetter {
 	protected:
-		// index0 = je nach Startzeitpunkt, meist naechste Stunde
+		// Hinweis: index0 = je nach Startzeitpunkt. Das muss außerhalb noch behandelt werden
+		// In einem extra Objekt? Irgendwo, bevor es hier landet??
+		// TODO hier soll index0 immer der aktuelle Tage und die aktuelle Stunde sein. Nichts anderes!
 		int stundenvorhersage_solarstrahlung_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 		int stundenvorhersage_wolkendichte_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
-		// index0 = je nach Startzeitpunkt, kann auch ma "Gestern" sein
 		int tagesvorhersage_solarstrahlung_liste[5] = {0,0,0,0,0};
+		int tagesvorhersage_wolkendichte_liste[5] = {0,0,0,0,0};
+		int tagesvorhersage_sonnenaufgang_liste[5] = {0,0,0,0,0};
+		int tagesvorhersage_sonnenuntergang_liste[5] = {0,0,0,0,0};
 
 	public:
 		int stundenvorhersage_startzeitpunkt;
@@ -15,24 +19,48 @@ namespace Local {
 		int tagesvorhersage_startzeitpunkt;
 		bool tagesvorhersage_ist_valide = false;
 
-		void setze_stundenvorhersage_solarstrahlung(int index, int solarstrahlung) {
-			stundenvorhersage_solarstrahlung_liste[index] = solarstrahlung;
+		void setze_tagesvorhersage_sonnenaufgang(int index, int val) {
+			tagesvorhersage_sonnenaufgang_liste[index] = val;
+		}
+
+		int gib_tagesvorhersage_sonnenaufgang(int index) {
+			return tagesvorhersage_sonnenaufgang_liste[index];
+		}
+
+		void setze_tagesvorhersage_sonnenuntergang(int index, int val) {
+			tagesvorhersage_sonnenuntergang_liste[index] = val;
+		}
+
+		int gib_tagesvorhersage_sonnenuntergang(int index) {
+			return tagesvorhersage_sonnenuntergang_liste[index];
+		}
+
+		void setze_tagesvorhersage_wolkendichte(int index, int val) {
+			tagesvorhersage_wolkendichte_liste[index] = val;
+		}
+
+		int gib_tagesvorhersage_wolkendichte(int index) {
+			return tagesvorhersage_wolkendichte_liste[index];
+		}
+
+		void setze_stundenvorhersage_solarstrahlung(int index, int val) {
+			stundenvorhersage_solarstrahlung_liste[index] = val;
 		}
 
 		int gib_stundenvorhersage_solarstrahlung(int index) {
 			return stundenvorhersage_solarstrahlung_liste[index];
 		}
 
-		void setze_stundenvorhersage_wolkendichte(int index, int wolkendichte) {
-			stundenvorhersage_wolkendichte_liste[index] = wolkendichte;
+		void setze_stundenvorhersage_wolkendichte(int index, int val) {
+			stundenvorhersage_wolkendichte_liste[index] = val;
 		}
 
-		int gib_stundenvorhersage_wolkendichte(int stunden_in_der_zukunft) {
-			return stundenvorhersage_wolkendichte_liste[stunden_in_der_zukunft];
+		int gib_stundenvorhersage_wolkendichte(int index) {
+			return stundenvorhersage_wolkendichte_liste[index];
 		}
 
-		void setze_tagesvorhersage_solarstrahlung(int index, int solarstrahlung) {
-			tagesvorhersage_solarstrahlung_liste[index] = solarstrahlung;
+		void setze_tagesvorhersage_solarstrahlung(int index, int val) {
+			tagesvorhersage_solarstrahlung_liste[index] = val;
 		}
 
 		int gib_tagesvorhersage_solarstrahlung(int index) {
