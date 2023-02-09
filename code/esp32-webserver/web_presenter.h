@@ -231,7 +231,31 @@ namespace Local {
 							_print_char_to_web((char*) ",");
 						}
 					}
-				_print_char_to_web((char*) "]");
+				_print_char_to_web((char*) "],");
+
+				_print_char_to_web((char*) "\"hinweis_auto\":{\"start\":");
+					_print_int_to_web(1675349754);// TODO implementieren
+					_print_char_to_web((char*) ",\"stop\":");
+					_print_int_to_web(1675549754);// TODO implementieren
+					_print_char_to_web((char*) ",\"leistung_in_w\":");
+					_print_int_to_web(3700);// TODO implementieren
+					_print_char_to_web((char*) "},");
+
+				_print_char_to_web((char*) "\"hinweis_warmwasser\":{\"start\":");
+					_print_int_to_web(0);// TODO implementieren
+					_print_char_to_web((char*) ",\"stop\":");
+					_print_int_to_web(0);// TODO implementieren
+					_print_char_to_web((char*) ",\"leistung_in_w\":");
+					_print_int_to_web(0);// TODO implementieren
+					_print_char_to_web((char*) "},");
+
+				_print_char_to_web((char*) "\"hinweis_heizung\":{\"start\":");
+					_print_int_to_web(1675349754);// TODO implementieren
+					_print_char_to_web((char*) ",\"stop\":");
+					_print_int_to_web(1675549754);// TODO implementieren
+					_print_char_to_web((char*) ",\"leistung_in_w\":");
+					_print_int_to_web(900);// TODO implementieren
+					_print_char_to_web((char*) "}");
 
 			_print_char_to_web((char*) "}");
 		}

@@ -25,8 +25,39 @@
 			_setze_wetter_tage_label(daten);
 			_setze_wetter_tage(daten);
 			_setze_elektrische_daten(daten);
+			_setze_hinweis(daten, "hinweis_auto");
+			_setze_hinweis(daten, "hinweis_warmwasser");
+			_setze_hinweis(daten, "hinweis_heizung");
+			
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
+		}
+		function _setze_hinweis(daten, id) {
+			var container = document.getElementById(id);
+			if(daten[id]['start']) {
+				container.getElementsByClassName('start')[0].innerHTML = new Date(daten[id]['start'] * 1000).getHours();
+			} else {
+				container.getElementsByClassName('start')[0].innerHTML = "";
+			}
+			if(daten[id]['stop']) {
+				container.getElementsByClassName('stop')[0].innerHTML = new Date(daten[id]['stop'] * 1000).getHours();
+			} else {
+				container.getElementsByClassName('stop')[0].innerHTML = "";
+			}
+			if(daten[id]['leistung_in_w']) {
+				var leistung = Math.round(daten[id]['leistung_in_w'] / 100);
+				if(leistung < 10) {
+					leistung = "0" + leistung;
+				} else {
+					leistung += "";
+				}
+				leistung = leistung.replace(/^([\-+]?\d+)(\d)$/, "$1.$2");
+				container.getElementsByClassName('leistung')[0].innerHTML = leistung;
+				container.className = 'gefuellt';
+			} else {
+				container.getElementsByClassName('leistung')[0].innerHTML = "";
+				container.className = '';
+			}
 		}
 		function _zaehle_fehler(fehler_vorhanden) {
 			if(fehler_vorhanden) {
@@ -284,29 +315,32 @@
 			font-size: 0.5rem;
 			vertical-align: top;
 		}
-		.hinweis {
-			margin-top: 0.5rem;
+		.hinweise {
+			margin-top: 0.2rem;
 			text-align: center;
-			font-size: 3rem;
-			font-weight: bold;
+			font-size: 1.5rem;
 		}
-			.hinweis .titel {
-				font-size: 2rem;
+			.hinweise .titel {
 				vertical-align: text-bottom;
 			}
-			.hinweis .start.gefuellt:after {
+			.hinweise .start,
+			.hinweise .stop {
+				font-weight: bold;
+				font-size: 2.0rem;
+			}
+			.hinweise .start:after {
 				content: " - ";
 			}
-			.hinweis .stop.gefuellt:after {
+			.hinweise .gefuellt .stop:after {
 				content: "00";
 				font-size: 0.5em;
 				vertical-align: top;
 			}
-			.hinweis .zusatz {
-				font-size: 2rem;
+			.hinweise .gefuellt .leistung:after {
+				content: "kW";
+				font-size: 0.5em;
 			}
 		.verteilung_hinweis {
-			margin-top: 0.5rem;
 			font-size: 0.8rem;
 			text-align: center;
 		}
@@ -342,17 +376,25 @@
 
 <table class="wetter" id="wetter_tage"></table>
 
-<div class="hinweis" id="auto_hinweis">
-	<span class="titel">Auto:</span>
-	<span class="start gefuellt">13</span>
-	<span class="stop gefuellt">15</span>
-	<span class="zusatz">3,7kW</span>
-</div>
-<div class="hinweis" id="wp_hinweis">
-	<span class="titel">WP:</span>
-	<span class="start"></span>
-	<span class="stop"></span>
-	<span class="zusatz">nein</span>
+<div class="hinweise">
+	<div id="hinweis_auto">
+		<span class="titel">Auto:</span>
+		<span class="start"></span>
+		<span class="stop"></span>
+		<span class="leistung"></span>
+	</div>
+	<div id="hinweis_warmwasser">
+		<span class="titel">Warmwasser:</span>
+		<span class="start"></span>
+		<span class="stop"></span>
+		<span class="leistung"></span>
+	</div>
+	<div id="hinweis_heizung">
+		<span class="titel">Heizung:</span>
+		<span class="start"></span>
+		<span class="stop"></span>
+		<span class="leistung"></span>
+	</div>
 </div>
 
 </body>
