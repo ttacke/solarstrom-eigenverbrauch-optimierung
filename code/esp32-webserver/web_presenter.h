@@ -199,15 +199,6 @@ namespace Local {
 					_print_int_to_web(elektroanlage.solarakku_ladestand_in_promille);
 					_print_char_to_web((char*) ",");
 
-				_print_char_to_web((char*) "\"wolkendichte\":[");
-					for(int i = 0; i < 12; i++) {
-						_print_int_to_web(wetter.gib_stundenvorhersage_wolkendichte(i));
-						if(i != 11) {
-							_print_char_to_web((char*) ",");
-						}
-					}
-				_print_char_to_web((char*) "],");
-
 				_print_char_to_web((char*) "\"solarstrahlung_stunden_startzeit\":");
 					_print_int_to_web(wetter.stundenvorhersage_startzeitpunkt);
 					_print_char_to_web((char*) ",");
