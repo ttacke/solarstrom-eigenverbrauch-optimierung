@@ -2,11 +2,6 @@
 #include "wlan.h"
 #include "web_client.h"
 #include "web_presenter.h"
-/* TODO
-- Wetterdaten: lesen ist komisch!
--- direkt beim neu schreiben wird nicht korekt gelesen. Wieso? Hat das mit dem ByteProblem bei UI-Ausgeben zu tun?
--- Es hat mal den ersten, mal den zweiten gefunden in den Wetterdaten. Gleiches Problem.
-*/
 
 Local::Config cfg;
 Local::Wlan wlan(cfg.wlan_ssid, cfg.wlan_pwd);
