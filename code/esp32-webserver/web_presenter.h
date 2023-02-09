@@ -199,6 +199,14 @@ namespace Local {
 					_print_int_to_web(elektroanlage.solarakku_ladestand_in_promille);
 					_print_char_to_web((char*) ",");
 
+				_print_char_to_web((char*) "\"solaranteil_in_prozent_string1\":");
+					_print_int_to_web(66);// TODO implementieren
+					_print_char_to_web((char*) ",");
+
+				_print_char_to_web((char*) "\"solaranteil_in_prozent_string2\":");
+					_print_int_to_web(66);// TODO implementieren
+					_print_char_to_web((char*) ",");
+
 				_print_char_to_web((char*) "\"solarstrahlung_stunden_startzeit\":");
 					_print_int_to_web(wetter.stundenvorhersage_startzeitpunkt);
 					_print_char_to_web((char*) ",");

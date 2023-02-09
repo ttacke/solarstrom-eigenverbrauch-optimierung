@@ -25,6 +25,8 @@
 			_setze_wetter_tage_label(daten);
 			_setze_wetter_tage(daten);
 			_setze_elektrische_daten(daten);
+			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
+			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
 		}
 		function _zaehle_fehler(fehler_vorhanden) {
 			if(fehler_vorhanden) {
@@ -332,8 +334,8 @@
 </div>
 
 <div class="verteilung_hinweis">
-	S&uumld-West = <span id="solar_string1">40</span>%,
-	Nord-Ost = <span id="solar_string2">20</span>%
+	S&uumld-West = <span id="solaranteil_in_prozent_string1">40</span>%,
+	Nord-Ost = <span id="solaranteil_in_prozent_string2">20</span>%
 </div>
 
 <table class="wetter" id="wetter_stunden"></table>
