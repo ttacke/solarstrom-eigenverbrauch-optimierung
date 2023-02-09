@@ -7,10 +7,16 @@
 		if(document.location.pathname == '/') {
 			ist_prod = true;
 		}
-		
+		var init = false;
+
 		function refresh() {
 			_lies_daten();
-			
+			if(!init) {
+				_erstelle_wettertabelle('wetter_stunden', 12);
+				_erstelle_wettertabelle('wetter_tage', 5);
+				init = true;
+			}
+
 			setTimeout(refresh, 1000 * 60);
 		}
 		function _setze_daten_ein(daten) {
@@ -124,6 +130,24 @@
 			xhr.timeout = 30 * 1000;
 			xhr.send();
 		}
+		function _erstelle_wettertabelle(id, cols) {
+			var tabelle = document.getElementById(id);
+			var children = [
+				{el:document.createElement('thead'), rows:1},
+				{el:document.createElement('tbody'), rows:10},
+				{el:document.createElement('tfoot'), rows:1}
+			];
+			for(var i = 0; i < children.length; i++) {
+				for(var ii = 0; ii < children[i].rows; ii++) {
+					var tr = document.createElement("tr");
+					for(var iii = 0; iii < cols; iii++) {
+						tr.appendChild(document.createElement('td'));
+					}
+					children[i].el.appendChild(tr);
+				}
+				tabelle.appendChild(children[i].el);
+			}
+		}
 	</script>
 	<style>
 		body {
@@ -134,7 +158,7 @@
 			font-family: sans-serif;
 			color: #000;
 		}
-		
+
 		#fehler_vorhang {
 			display: none;
 			position: absolute;
@@ -154,13 +178,13 @@
 			z-index: 101;
 			font-size: 2rem;
 		}
-		
+
 		body.fehler #fehler,
 		body.fehler #fehler_vorhang {
 			display: block;
 		}
 
-		
+
 		#elektrische_daten {
 			position: relative;
 			font-weight: bold;
@@ -212,8 +236,8 @@
 			height: 3rem;
 			font-size: 1.5rem;
 		}
-		
-		
+
+
 		.wetter {
 			width: 100%;
 			border-collapse: separate;
@@ -241,7 +265,11 @@
 				width: 20%;
 			}
 		.wetter tbody td.on {
-			background-color: black;
+			background-color: #000 !important;
+		}
+		/* TODO so kann man markieren */
+		.wetter tbody td.ladung {
+			background-color: #777;
 		}
 		.wetter tfoot td {
 			border-top: solid 0.1rem black;
@@ -254,6 +282,32 @@
 			font-size: 0.5rem;
 			vertical-align: top;
 		}
+		.hinweis {
+			margin-top: 0.5rem;
+			text-align: center;
+			font-size: 3rem;
+			font-weight: bold;
+		}
+			.hinweis .titel {
+				font-size: 2rem;
+				vertical-align: text-bottom;
+			}
+			.hinweis .start.gefuellt:after {
+				content: " - ";
+			}
+			.hinweis .stop.gefuellt:after {
+				content: "00";
+				font-size: 0.5em;
+				vertical-align: top;
+			}
+			.hinweis .zusatz {
+				font-size: 2rem;
+			}
+		.verteilung_hinweis {
+			margin-top: 0.5rem;
+			font-size: 0.8rem;
+			text-align: center;
+		}
 	</style>
 </head>
 <body onclick="refresh();" onload="refresh();">
@@ -262,7 +316,7 @@
 <div id="fehler">
 	<h1>FEHLER</h1>
 	<p>Seit <span id="fehler_seit"></span> Minuten gab es keine Daten mehr.</p>
-	
+
 	<p>Einfach warten, was wird schon...</p>
 </div>
 
@@ -277,47 +331,27 @@
 	</div>
 </div>
 
-<table class="wetter" id="wetter_stunden">
-	<thead>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-	</thead>
-	<tbody>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-	</tbody>
-	<tfoot>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-	</tfoot>
-</table>
+<div class="verteilung_hinweis">
+	S&uumld-West = <span id="solar_string1">40</span>%,
+	Nord-Ost = <span id="solar_string2">20</span>%
+</div>
 
-<table class="wetter" id="wetter_tage">
-	<thead>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-	</thead>
-	<tbody>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-	</tbody>
-	<tfoot>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-	</tfoot>
-</table>
+<table class="wetter" id="wetter_stunden"></table>
+
+<table class="wetter" id="wetter_tage"></table>
+
+<div class="hinweis" id="auto_hinweis">
+	<span class="titel">Auto:</span>
+	<span class="start gefuellt">13</span>
+	<span class="stop gefuellt">15</span>
+	<span class="zusatz">3,7kW</span>
+</div>
+<div class="hinweis" id="wp_hinweis">
+	<span class="titel">WP:</span>
+	<span class="start"></span>
+	<span class="stop"></span>
+	<span class="zusatz">nein</span>
+</div>
 
 </body>
 </html>
