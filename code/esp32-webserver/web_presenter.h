@@ -200,7 +200,7 @@ namespace Local {
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"solaranteil_in_prozent_string1\":");
-					_print_int_to_web(66);// TODO implementieren
+					_print_int_to_web(33);// TODO implementieren
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"solaranteil_in_prozent_string2\":");
