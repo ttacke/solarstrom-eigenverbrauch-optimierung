@@ -233,29 +233,25 @@ namespace Local {
 					}
 				_print_char_to_web((char*) "],");
 
-				_print_char_to_web((char*) "\"hinweis_auto\":{\"start\":");
-					_print_int_to_web(1675349754);// TODO implementieren
-					_print_char_to_web((char*) ",\"stop\":");
-					_print_int_to_web(1675549754);// TODO implementieren
-					_print_char_to_web((char*) ",\"leistung_in_w\":");
-					_print_int_to_web(3700);// TODO implementieren
-					_print_char_to_web((char*) "},");
+				_print_char_to_web((char*) "\"verbrauchshinweise\":[");
+					for(int i = 0; i < 1; i++) {// TODO implementieren
+						_print_char_to_web((char*) "{\"leistung_in_w\":");
+						_print_int_to_web(3700);// TODO implementieren
+						_print_char_to_web((char*) ",\"start\":");
+						_print_int_to_web(1675349754);// TODO implementieren
+						_print_char_to_web((char*) ",\"stop\":");
+						_print_int_to_web(1675549754);// TODO implementieren
+						_print_char_to_web((char*) "},");
+						if(i < 0) {// TODO implementieren
+							_print_char_to_web((char*) ",");
+						}
+					}
+					_print_char_to_web((char*) "]");
 
-				_print_char_to_web((char*) "\"hinweis_warmwasser\":{\"start\":");
-					_print_int_to_web(0);// TODO implementieren
-					_print_char_to_web((char*) ",\"stop\":");
-					_print_int_to_web(0);// TODO implementieren
-					_print_char_to_web((char*) ",\"leistung_in_w\":");
-					_print_int_to_web(0);// TODO implementieren
-					_print_char_to_web((char*) "},");
-
-				_print_char_to_web((char*) "\"hinweis_heizung\":{\"start\":");
-					_print_int_to_web(1675349754);// TODO implementieren
-					_print_char_to_web((char*) ",\"stop\":");
-					_print_int_to_web(1675549754);// TODO implementieren
-					_print_char_to_web((char*) ",\"leistung_in_w\":");
-					_print_int_to_web(900);// TODO implementieren
-					_print_char_to_web((char*) "}");
+			// TODO Maximum der Tagesstrahlung via Config liefern. Gar nicht durch Stunden teilen
+			// Suchen+Verlinken, wo man dieses Maximum ermitteln kann
+			// Anhand dieses dann die Unterteilung machen
+			// TODO die gezeichneten Bloecke schon im Backend umrechnen (1-10) nicht mehr die Rohwerte
 
 			_print_char_to_web((char*) "}");
 		}

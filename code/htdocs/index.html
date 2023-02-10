@@ -25,38 +25,35 @@
 			_setze_wetter_tage_label(daten);
 			_setze_wetter_tage(daten);
 			_setze_elektrische_daten(daten);
-			_setze_hinweis(daten, "hinweis_auto");
-			_setze_hinweis(daten, "hinweis_warmwasser");
-			_setze_hinweis(daten, "hinweis_heizung");
+			_setze_verbrauchshinweise(daten);
 			
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
 		}
-		function _setze_hinweis(daten, id) {
-			var container = document.getElementById(id);
-			if(daten[id]['start']) {
-				container.getElementsByClassName('start')[0].innerHTML = new Date(daten[id]['start'] * 1000).getHours();
-			} else {
-				container.getElementsByClassName('start')[0].innerHTML = "";
-			}
-			if(daten[id]['stop']) {
-				container.getElementsByClassName('stop')[0].innerHTML = new Date(daten[id]['stop'] * 1000).getHours();
-			} else {
-				container.getElementsByClassName('stop')[0].innerHTML = "";
-			}
-			if(daten[id]['leistung_in_w']) {
-				var leistung = Math.round(daten[id]['leistung_in_w'] / 100);
+		function _setze_verbrauchshinweise(daten) {
+			var template = document.getElementById('verbrauchshinweise_template');
+			var container = document.getElementById('verbrauchshinweise');
+			container.innerHTML = '';
+			for(var i = 0; i < daten['verbrauchshinweise'].length; i++) {
+				var e = daten['verbrauchshinweise'][i];
+				var ui = document.createElement('div');
+				console.log(template.innerHTML);
+				ui.innerHTML = template.innerHTML;
+
+				var leistung = Math.round(e['leistung_in_w'] / 100);
 				if(leistung < 10) {
 					leistung = "0" + leistung;
 				} else {
 					leistung += "";
 				}
 				leistung = leistung.replace(/^([\-+]?\d+)(\d)$/, "$1.$2");
-				container.getElementsByClassName('leistung')[0].innerHTML = leistung;
-				container.className = 'gefuellt';
-			} else {
-				container.getElementsByClassName('leistung')[0].innerHTML = "";
-				container.className = '';
+				ui.getElementsByClassName('leistung')[0].innerHTML = leistung;
+				
+				ui.getElementsByClassName('start')[0].innerHTML = new Date(e['start'] * 1000).getHours();
+
+				ui.getElementsByClassName('stop')[0].innerHTML = new Date(e['stop'] * 1000).getHours();
+
+				container.appendChild(ui);
 			}
 		}
 		function _zaehle_fehler(fehler_vorhanden) {
@@ -275,7 +272,7 @@
 			width: 100%;
 			border-collapse: separate;
 			border-spacing: 0.1rem 0.1rem;
-			margin-top: 0.5rem;
+			margin-top: 0.3rem;
 		}
 		.wetter thead td {
 			border-bottom: solid 0.1rem black;
@@ -284,7 +281,7 @@
 			border-top: solid 0.1rem black;
 		}
 		.wetter tbody td {
-			height: 0.5rem;
+			height: 0.35rem;
 			background-color: #CCC;
 		}
 			#wetter_stunden tbody td {
@@ -307,28 +304,26 @@
 			font-size: 0.5rem;
 			vertical-align: top;
 		}
-		.hinweise {
+		#verbrauchshinweise_template {
+			display: none;
+		}
+		#verbrauchshinweise {
 			margin-top: 0.2rem;
 			text-align: center;
-			font-size: 1.5rem;
+			font-size: 1.2rem;
 		}
-			.hinweise .titel {
-				vertical-align: text-bottom;
-			}
-			.hinweise .start,
-			.hinweise .stop {
+			#verbrauchshinweise .start,
+			#verbrauchshinweise .stop,
+			#verbrauchshinweise .leistung {
 				font-weight: bold;
-				font-size: 2.0rem;
+				font-size: 1.5rem;
 			}
-			.hinweise .start:after {
-				content: " - ";
-			}
-			.hinweise .gefuellt .stop:after {
+			#verbrauchshinweise .stop:after {
 				content: "00";
 				font-size: 0.5em;
 				vertical-align: top;
 			}
-			.hinweise .gefuellt .leistung:after {
+			#verbrauchshinweise .leistung:after {
 				content: "kW";
 				font-size: 0.5em;
 			}
@@ -336,6 +331,18 @@
 			font-size: 0.8rem;
 			text-align: center;
 		}
+		#steuerung {
+			padding-top: 0.8rem;
+			text-align: center;
+		}
+			#steuerung button {
+				font-size: 1.5rem;
+				font-weight: bold;
+			}
+			#steuerung button.aktiv {
+				background-color: #000;
+				color: #FFF;
+			}
 	</style>
 </head>
 <body onclick="refresh();" onload="refresh();">
@@ -360,33 +367,25 @@
 </div>
 
 <div class="verteilung_hinweis">
-	S&uumld-West = <span id="solaranteil_in_prozent_string1">40</span>%,
-	Nord-Ost = <span id="solaranteil_in_prozent_string2">20</span>%
+	Nord-Ost = <span id="solaranteil_in_prozent_string1">40</span>%,
+	S&uumld-West = <span id="solaranteil_in_prozent_string2">20</span>%
 </div>
 
 <table class="wetter" id="wetter_stunden"></table>
 
 <table class="wetter" id="wetter_tage"></table>
 
-<div class="hinweise">
-	<div id="hinweis_auto">
-		<span class="titel">Auto:</span>
-		<span class="start"></span>
-		<span class="stop"></span>
-		<span class="leistung"></span>
-	</div>
-	<div id="hinweis_warmwasser">
-		<span class="titel">Warmwasser:</span>
-		<span class="start"></span>
-		<span class="stop"></span>
-		<span class="leistung"></span>
-	</div>
-	<div id="hinweis_heizung">
-		<span class="titel">Heizung:</span>
-		<span class="start"></span>
-		<span class="stop"></span>
-		<span class="leistung"></span>
-	</div>
+<div id="verbrauchshinweise_template">
+	&gt; <span class="leistung"></span>: von <span class="start"></span> - <span class="stop"></span>
+</div>
+
+<div id="verbrauchshinweise"></div>
+
+<div id="steuerung">
+	Automatik:
+	<button class="aktiv">Auto</button>
+	<button>Warmwasser</button>
+	<button>Heizung</button>
 </div>
 
 </body>
