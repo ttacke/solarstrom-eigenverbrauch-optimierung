@@ -211,7 +211,7 @@ namespace Local {
 					_print_int_to_web(wetter.stundenvorhersage_startzeitpunkt);
 					_print_char_to_web((char*) ",");
 
-				_print_char_to_web((char*) "\"solarstrahlung_stunden\":[");
+				_print_char_to_web((char*) "\"solarstrahlung_stunden_in_prozent\":[");
 					for(int i = 0; i < 12; i++) {
 						_print_int_to_web(wetter.gib_stundenvorhersage_solarstrahlung(i));
 						if(i != 11) {
@@ -224,7 +224,7 @@ namespace Local {
 					_print_int_to_web(wetter.tagesvorhersage_startzeitpunkt);
 					_print_char_to_web((char*) ",");
 
-				_print_char_to_web((char*) "\"solarstrahlung_tage\":[");
+				_print_char_to_web((char*) "\"solarstrahlung_tage_in_prozent\":[");
 					for(int i = 0; i < 5; i++) {
 						_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung(i));
 						if(i != 4) {
@@ -241,17 +241,12 @@ namespace Local {
 						_print_int_to_web(1675349754);// TODO implementieren
 						_print_char_to_web((char*) ",\"stop\":");
 						_print_int_to_web(1675549754);// TODO implementieren
-						_print_char_to_web((char*) "},");
+						_print_char_to_web((char*) "}");
 						if(i < 0) {// TODO implementieren
 							_print_char_to_web((char*) ",");
 						}
 					}
 					_print_char_to_web((char*) "]");
-
-			// TODO Maximum der Tagesstrahlung via Config liefern. Gar nicht durch Stunden teilen
-			// Suchen+Verlinken, wo man dieses Maximum ermitteln kann
-			// Anhand dieses dann die Unterteilung machen
-			// TODO die gezeichneten Bloecke schon im Backend umrechnen (1-10) nicht mehr die Rohwerte
 
 			_print_char_to_web((char*) "}");
 		}
