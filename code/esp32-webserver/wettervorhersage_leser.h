@@ -79,11 +79,10 @@ namespace Local {
 			if(valide_stunden == 12) {
 				if(zeitpunkt_liste[0] > 0) {
 					wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_liste[0];
-					int maximale_solarstrahlung_pro_stunde = 1000;// TODO in Config?
 					for(int i = 0; i < 12; i++) {
 						wetter.setze_stundenvorhersage_solarstrahlung(// TODO das sind Prozente!
 							i,
-							round(solarstrahlung_liste[i] * 100 / maximale_solarstrahlung_pro_stunde)
+							round(solarstrahlung_liste[i] * 100 / cfg->maximale_solarstrahlung_in_w_pro_m2)
 						);
 						wetter.setze_stundenvorhersage_wolkendichte(i, wolkendichte_liste[i]);
 					}
@@ -157,7 +156,6 @@ namespace Local {
 			}
 			if(valide_tage == 5) {
 				wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_liste[0];
-				int maximale_solarstrahlung_pro_tag = 7000;// TODO in Config?
 				for(int i = 0; i < 5; i++) {
 					// TODO brauchen wir das?
 					wetter.setze_tagesvorhersage_sonnenaufgang(i, sonnenaufgang_liste[i]);
@@ -165,7 +163,7 @@ namespace Local {
 					wetter.setze_tagesvorhersage_sonnenuntergang(i, sonnenuntergang_liste[i]);
 					wetter.setze_tagesvorhersage_solarstrahlung(// TODO das sind Prozente!
 						i,
-						round(solarstrahlung_liste[i] * 100 / maximale_solarstrahlung_pro_tag)
+						round(solarstrahlung_liste[i] * 100 / cfg->maximale_solarstrahlung_pro_tag_in_w_pro_m2)
 					);
 					// TODO schauen, ob wir das ueberhaupt brauchen. Bisher nicht
 					wetter.setze_tagesvorhersage_wolkendichte(i, wolkendichte_liste[i]);
