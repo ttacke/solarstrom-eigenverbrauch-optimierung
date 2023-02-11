@@ -213,7 +213,7 @@ namespace Local {
 
 				_print_char_to_web((char*) "\"solarstrahlung_stunden_in_prozent\":[");
 					for(int i = 0; i < 12; i++) {
-						_print_int_to_web(wetter.gib_stundenvorhersage_solarstrahlung(i));
+						_print_int_to_web(wetter.gib_stundenvorhersage_solarstrahlung_in_prozent(i, *cfg));
 						if(i != 11) {
 							_print_char_to_web((char*) ",");
 						}
@@ -226,7 +226,7 @@ namespace Local {
 
 				_print_char_to_web((char*) "\"solarstrahlung_tage_in_prozent\":[");
 					for(int i = 0; i < 5; i++) {
-						_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung(i));
+						_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung_in_prozent(i, *cfg));
 						if(i != 4) {
 							_print_char_to_web((char*) ",");
 						}

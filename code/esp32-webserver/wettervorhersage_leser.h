@@ -74,10 +74,7 @@ namespace Local {
 				if(zeitpunkt_liste[0] > 0) {
 					wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_liste[0];
 					for(int i = 0; i < 12; i++) {
-						wetter.setze_stundenvorhersage_solarstrahlung(// TODO rohdatens etzen, prozente lesen
-							i,
-							round(solarstrahlung_liste[i] * 100 / cfg->maximale_solarstrahlung_in_w_pro_m2)
-						);
+						wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_liste[i]);
 					}
 					wetter.stundenvorhersage_ist_valide = true;
 				}
@@ -129,10 +126,7 @@ namespace Local {
 			if(valide_tage == 5) {
 				wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_liste[0];
 				for(int i = 0; i < 5; i++) {
-					wetter.setze_tagesvorhersage_solarstrahlung(// TODO rohdten setzen, prozente nur beim lesen
-						i,
-						round(solarstrahlung_liste[i] * 100 / cfg->maximale_solarstrahlung_pro_tag_in_w_pro_m2)
-					);
+					wetter.setze_tagesvorhersage_solarstrahlung(i, solarstrahlung_liste[i]);
 				}
 				wetter.tagesvorhersage_ist_valide = true;
 			}
