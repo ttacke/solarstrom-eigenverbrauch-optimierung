@@ -12,18 +12,13 @@ namespace Local {
 
 	public:
 		int stundenvorhersage_startzeitpunkt;
-		bool stundenvorhersage_ist_valide = false;
 		int tagesvorhersage_startzeitpunkt;
-		bool tagesvorhersage_ist_valide = false;
 
 		void setze_stundenvorhersage_solarstrahlung(int index, int val) {
 			stundenvorhersage_solarstrahlung_liste[index] = val;
 		}
 
 		int gib_stundenvorhersage_solarstrahlung_in_prozent(int index, Local::Config& cfg) {
-			if(!stundenvorhersage_ist_valide) {
-				return 0;
-			}
 			return round(stundenvorhersage_solarstrahlung_liste[index] * 100 / cfg.maximale_solarstrahlung_in_w_pro_m2);
 		}
 
@@ -32,9 +27,6 @@ namespace Local {
 		}
 
 		int gib_tagesvorhersage_solarstrahlung_in_prozent(int index, Local::Config& cfg) {
-			if(!tagesvorhersage_ist_valide) {
-				return 0;
-			}
 			return round(tagesvorhersage_solarstrahlung_liste[index] * 100 / cfg.maximale_solarstrahlung_pro_tag_in_w_pro_m2);
 		}
 
@@ -42,8 +34,8 @@ namespace Local {
 			sprintf(
 				buffer,
 				"whv1,%d,%d",
-				(stundenvorhersage_ist_valide ? stundenvorhersage_solarstrahlung_liste[0] : -1),
-				(tagesvorhersage_ist_valide ? tagesvorhersage_solarstrahlung_liste[0] : -1)
+				stundenvorhersage_solarstrahlung_liste[0],
+				tagesvorhersage_solarstrahlung_liste[0]
 			);
 		}
 	};
