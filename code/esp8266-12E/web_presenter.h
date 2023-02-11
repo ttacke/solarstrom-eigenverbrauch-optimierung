@@ -225,7 +225,10 @@ namespace Local {
 						}
 					}
 				_print_char_to_web((char*) "],");
-
+/* TODO Erfahrungswerte: Tag=7000W, Stunde=1000W
+	Tag mit 3 Balken = grade so Haus autark
+	Grunverbrauch = 300W? In Config? Oder ermitteln. Ggf aus der Log mit einem lokalen Script
+*/
 				_print_char_to_web((char*) "\"verbrauchshinweise\":[");
 					for(int i = 0; i < 1; i++) {// TODO implementieren
 						_print_char_to_web((char*) "{\"leistung_in_w\":");
