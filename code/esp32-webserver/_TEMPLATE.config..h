@@ -18,7 +18,7 @@ namespace Local {
 		const int accuweather_location_id = 1008813;
 
 		const int maximale_solarstrahlung_in_w_pro_m2 = 1000;// Quelle https://www.weltderphysik.de/gebiet/technik/energie/solarenergie/sonnenenergie/
-		const int maximale_solarstrahlung_pro_tag_in_w_pro_m2 = 10000;// geraten; max Tageslaenge 10,5h bei 1000W/m2
+		const int maximale_solarstrahlung_pro_tag_in_w_pro_m2 = 7000;// geraten; max Tageslaenge 10,5h bei 1000W/m2 minus Glockenkurve
 		// Ggf hiermit sinniger? Oder selber messen. https://re.jrc.ec.europa.eu/pvg_tools/en/
 	};
 }
