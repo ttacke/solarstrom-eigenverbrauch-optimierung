@@ -11,14 +11,6 @@
 #include "wettervorhersage_leser.h"
 #include <TimeLib.h>
 
-// TODO Anteil der beiden Strings zeigen
-/*
-	http://192.168.0.14/components/cache/readable
-	"PV_POWERACTIVE_MEAN_01_F32" : 219.82752990722656,
-	"PV_POWERACTIVE_MEAN_02_F32" : 652.2010498046875,
-
-*/
-
 namespace Local {
 	class WebPresenter {
 	protected:
@@ -199,12 +191,13 @@ namespace Local {
 					_print_int_to_web(elektroanlage.solarakku_ladestand_in_promille);
 					_print_char_to_web((char*) ",");
 
+				int anteil_pv1_in_prozent = elektroanlage.gib_anteil_pv1_in_prozent();
 				_print_char_to_web((char*) "\"solaranteil_in_prozent_string1\":");
-					_print_int_to_web(33);// TODO implementieren
+					_print_int_to_web(anteil_pv1_in_prozent);
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"solaranteil_in_prozent_string2\":");
-					_print_int_to_web(66);// TODO implementieren
+					_print_int_to_web(100 - anteil_pv1_in_prozent);
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"solarstrahlung_stunden_startzeit\":");

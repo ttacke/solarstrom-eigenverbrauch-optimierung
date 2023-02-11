@@ -57,6 +57,17 @@ namespace Local {
 			}
 		}
 
+		void _verteilungsdaten_extrahieren_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
+			if(web_client->find_in_content((char*) "\"PV_POWERACTIVE_MEAN_01_F32\" *: *([0-9.]+)[^0-9]")) {
+				elektroanlage.leistungsanteil_pv1 = round(atof(web_client->finding_buffer) * 1000);
+				findings |= 0b0100'0000;
+			}
+			if(web_client->find_in_content((char*) "\"PV_POWERACTIVE_MEAN_02_F32\" *: *([0-9.]+)[^0-9]")) {
+				elektroanlage.leistungsanteil_pv2 = round(atof(web_client->finding_buffer) * 1000);
+				findings |= 0b1000'0000;
+			}
+		}
+
 	public:
 		void daten_holen_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
 			web_client->send_http_get_request(
@@ -68,10 +79,23 @@ namespace Local {
 			while(web_client->read_next_block_to_buffer()) {
 				_daten_extrahieren_und_einsetzen(elektroanlage);
 			}
-			if(findings & 0b0011'1111) {
-				elektroanlage.wechselrichterdaten_sind_valide = true;
-			} else {
-				elektroanlage.wechselrichterdaten_sind_valide = false;
+			web_client->send_http_get_request(
+				cfg->wechselrichter_host,
+				cfg->wechselrichter_port,
+				"/components/cache/readable"
+			);
+			while(web_client->read_next_block_to_buffer()) {
+				_verteilungsdaten_extrahieren_und_einsetzen(elektroanlage);
+			}
+			if(!(findings & 0b1111'1111)) {
+				elektroanlage.solarerzeugung_in_wh = 0;
+				elektroanlage.solarakku_zuschuss_in_wh = 0;
+				elektroanlage.solarakku_ladestand_in_promille = 0;
+				elektroanlage.netzbezug_in_wh = 0;
+				elektroanlage.stromverbrauch_in_wh = 0;
+				elektroanlage.solarakku_ist_an = false;
+				elektroanlage.leistungsanteil_pv1 = 0;
+				elektroanlage.leistungsanteil_pv2 = 0;
 			}
 		}
 	};
