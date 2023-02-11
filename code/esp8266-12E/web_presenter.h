@@ -105,7 +105,7 @@ namespace Local {
 				}
 				persistenz.close_file();
 			} else {
-				_print_char_to_web((char*) "<h1>Bitte die code/htdocs/index.html auf die SD-Karte im root-Ordner ablegen</h1>");
+				_print_char_to_web((char*) "<h1>Bitte die code/sd-karteninhalt/index.html auf die SD-Karte im root-Ordner ablegen</h1>");
 			}
 		}
 
