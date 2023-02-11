@@ -35,10 +35,10 @@ namespace Local {
 			while(web_client->read_next_block_to_buffer()) {
 				_daten_extrahieren_und_einsetzen(elektroanlage);
 			}
-			if(findings & 0b0000'0111) {
-				elektroanlage.smartmeterdaten_sind_valide = true;
-			} else {
-				elektroanlage.smartmeterdaten_sind_valide = false;
+			if(!(findings & 0b0000'0111)) {
+				elektroanlage.l1_strom_ma = 0;
+				elektroanlage.l2_strom_ma = 0;
+				elektroanlage.l3_strom_ma = 0;
 			}
 		}
 	};

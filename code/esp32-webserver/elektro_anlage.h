@@ -9,7 +9,6 @@ namespace Local {
 		unsigned int stromverbrauch_in_wh = 0;
 		unsigned int solarakku_ladestand_in_promille = 0;
 		bool solarakku_ist_an = false;
-		bool smartmeterdaten_sind_valide = false;
 		int l1_strom_ma = 0;
 		int l2_strom_ma = 0;
 		int l3_strom_ma = 0;
@@ -30,13 +29,12 @@ namespace Local {
 		void set_log_data(char* buffer) {
 			sprintf(
 				buffer,
-				"ev1,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+				"ev1,%d,%d,%d,%d,%d,%d,%d,%d",
 				netzbezug_in_wh,
 				solarakku_zuschuss_in_wh,
 				solarerzeugung_in_wh,
 				stromverbrauch_in_wh,
 				solarakku_ladestand_in_promille,
-				(smartmeterdaten_sind_valide ? 1 : 0),
 				l1_strom_ma,
 				l2_strom_ma,
 				l3_strom_ma

@@ -37,7 +37,6 @@
 			for(var i = 0; i < daten['verbrauchshinweise'].length; i++) {
 				var e = daten['verbrauchshinweise'][i];
 				var ui = document.createElement('div');
-				console.log(template.innerHTML);
 				ui.innerHTML = template.innerHTML;
 
 				var leistung = Math.round(e['leistung_in_w'] / 100);
