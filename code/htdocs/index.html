@@ -67,6 +67,7 @@
 			} else {
 				window.fehler_seit = null;
 				document.getElementsByTagName('body')[0].className = "";
+				window.zeit_des_ersten_fehlers = null;
 			}
 		}
 		function _setze_wetter_stunden_label(daten) {
@@ -264,7 +265,7 @@
 			border-top: solid 0.1rem black;
 		}
 		.wetter tbody td {
-			height: 0.35rem;
+			height: 0.5rem;
 			background-color: #CCC;
 		}
 			#wetter_stunden tbody td {
@@ -314,18 +315,18 @@
 			font-size: 0.8rem;
 			text-align: center;
 		}
-		#steuerung {
-			padding-top: 0.8rem;
-			text-align: center;
-		}
-			#steuerung button {
-				font-size: 2.5rem;
-				font-weight: bold;
-			}
-			#steuerung button.aktiv {
-				background-color: #000;
-				color: #FFF;
-			}
+		/*#steuerung {*/
+		/*	padding-top: 0.8rem;*/
+		/*	text-align: center;*/
+		/*}*/
+		/*	#steuerung button {*/
+		/*		font-size: 2.5rem;*/
+		/*		font-weight: bold;*/
+		/*	}*/
+		/*	#steuerung button.aktiv {*/
+		/*		background-color: #000;*/
+		/*		color: #FFF;*/
+		/*	}*/
 	</style>
 </head>
 <body onclick="refresh();" onload="refresh();">
@@ -364,11 +365,11 @@
 
 <div id="verbrauchshinweise"></div>
 
-<div id="steuerung">
+<!--div id="steuerung">
 	<button>Auto&nbsp;<span id="auto_ladestand">64%</span></button>
 	<button class="aktiv">Wass</button>
 	<button>Heiz</button>
-</div>
+</div-->
 
 </body>
 </html>
