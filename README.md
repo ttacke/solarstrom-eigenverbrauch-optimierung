@@ -32,14 +32,3 @@ Wechselrichter und Batterie sollten nie im Netz mit anderen Endgeräten sein. Di
 sind fest codiert und "zertifizierten Handwerkern" bekannt. Also jedem. Ein Virus auf einem
 anderen Endgerät im gleichen Netz könnte also problemlos Schaden anrichten. Und: SSL kennen
 die Geräte gar nicht.
-
-## TODO
-- Wallboxnutzung optimieren.
-  - Simpel: wenn SolarBatterie voll dann erst laden (verringert sicher überschuss, belastet Solarbatterie)
-  - Besser: aktivierbare Steuerung des Ladevorganges: wenn Auto angeschlossen und nicht voll, dann...
-    - SolarBatterie > 95% + Sonnenuntergang noch weiter weg + Überschuss = starte laden
-    - Überschuss > Ladeleistung = starte laden
-- WP einschalten, wenn Überschuss
-  - Das gleiche, wie mit der Wallbox
-  - hängt das Auto dran und ist nicht voll, dann die WP nachrangig nutzen (weil ineffizient in dem Modus)
-
