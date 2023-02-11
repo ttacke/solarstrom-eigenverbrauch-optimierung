@@ -45,15 +45,11 @@ namespace Local {
 			}
 		}
 
-		void _lese_stundendaten_und_setze_ein(Local::Persistenz& persistenz, Local::Wetter& wetter) {
+		bool _lese_stundendaten_und_setze_ein(Local::Persistenz& persistenz) {
 			_reset(zeitpunkt_stunden_liste);
 			_reset(solarstrahlung_stunden_liste);
-			wetter.stundenvorhersage_startzeitpunkt = 0;
-			for(int i = 0; i < 12; i++) {
-				wetter.setze_stundenvorhersage_solarstrahlung(i, 0);
-			}
 			if(!persistenz.open_file_to_read(hourly_filename)) {
-				return;
+				return false;
 			}
 
 			std::uint8_t findings = 0b0000'0000;
@@ -85,27 +81,18 @@ namespace Local {
 				valide_stunden++;
 			}
 			if(valide_stunden == 12 && zeitpunkt_stunden_liste[0] > 0) {
-				wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_stunden_liste[0];
-				for(int i = 0; i < 12; i++) {
-					wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_stunden_liste[i]);
-				}
-			} else {
-				wetter.stundenvorhersage_startzeitpunkt = 0;
-				for(int i = 0; i < 12; i++) {
-					wetter.setze_stundenvorhersage_solarstrahlung(i, 0);
-				}
+				return true;
 			}
+			_reset(zeitpunkt_stunden_liste);
+			_reset(solarstrahlung_stunden_liste);
+			return false;
 		}
 
-		void _lese_tagesdaten_und_setze_ein(Local::Persistenz& persistenz, Local::Wetter& wetter) {
+		bool _lese_tagesdaten_und_setze_ein(Local::Persistenz& persistenz) {
 			_reset(zeitpunkt_tage_liste);
 			_reset(solarstrahlung_tage_liste);
-			wetter.tagesvorhersage_startzeitpunkt = 0;
-			for(int i = 0; i < 5; i++) {
-				wetter.setze_tagesvorhersage_solarstrahlung(i, 0);
-			}
 			if(!persistenz.open_file_to_read(dayly_filename)) {
-				return;
+				return false;
 			}
 
 			std::uint8_t findings = 0b0000'0000;
@@ -143,16 +130,11 @@ namespace Local {
 				valide_tage++;
 			}
 			if(valide_tage == 5) {
-				wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_tage_liste[0];
-				for(int i = 0; i < 5; i++) {
-					wetter.setze_tagesvorhersage_solarstrahlung(i, solarstrahlung_tage_liste[i]);
-				}
-			} else {
-				wetter.tagesvorhersage_startzeitpunkt = 0;
-				for(int i = 0; i < 5; i++) {
-					wetter.setze_tagesvorhersage_solarstrahlung(i, 0);
-				}
+				return true;
 			}
+			_reset(zeitpunkt_tage_liste);
+			_reset(solarstrahlung_tage_liste);
+			return false;
 		}
 
 	public:
@@ -165,8 +147,28 @@ namespace Local {
 		}
 
 		void persistierte_daten_einsetzen(Local::Persistenz& persistenz, Local::Wetter& wetter) {
-			_lese_stundendaten_und_setze_ein(persistenz, wetter);
-			_lese_tagesdaten_und_setze_ein(persistenz, wetter);
+			if(_lese_stundendaten_und_setze_ein(persistenz)) {
+				wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_stunden_liste[0];
+				for(int i = 0; i < 12; i++) {
+					wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_stunden_liste[i]);
+				}
+			} else {
+				wetter.stundenvorhersage_startzeitpunkt = 0;
+				for(int i = 0; i < 12; i++) {
+					wetter.setze_stundenvorhersage_solarstrahlung(i, 0);
+				}
+			}
+			if(_lese_tagesdaten_und_setze_ein(persistenz)) {
+				wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_tage_liste[0];
+				for(int i = 0; i < 5; i++) {
+					wetter.setze_tagesvorhersage_solarstrahlung(i, solarstrahlung_tage_liste[i]);
+				}
+			} else {
+				wetter.tagesvorhersage_startzeitpunkt = 0;
+				for(int i = 0; i < 5; i++) {
+					wetter.setze_tagesvorhersage_solarstrahlung(i, 0);
+				}
+			}
 		}
 	};
 }
