@@ -169,7 +169,7 @@ namespace Local {
 					_schreibe_systemstatus_daten();
 				}
 			}
-			wetter_leser.persistierte_daten_einsetzen(persistenz, wetter);
+			wetter_leser.persistierte_daten_einsetzen(persistenz, wetter, now_timestamp);
 
 			if(ist_prod) {
 				_write_log_data(now_timestamp);
