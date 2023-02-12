@@ -32,7 +32,7 @@ namespace Local {
 		void set_log_data(char* buffer) {
 			sprintf(
 				buffer,
-				"whv1,%d,%d",
+				"w1,%d,%d",
 				stundenvorhersage_solarstrahlung_liste[0],
 				tagesvorhersage_solarstrahlung_liste[0]
 			);

@@ -29,7 +29,7 @@ namespace Local {
 		void set_log_data(char* buffer) {
 			sprintf(
 				buffer,
-				"ev1,%d,%d,%d,%d,%d,%d,%d,%d",
+				"e1,%d,%d,%d,%d,%d,%d,%d,%d",
 				netzbezug_in_wh,
 				solarakku_zuschuss_in_wh,
 				solarerzeugung_in_wh,
