@@ -119,6 +119,7 @@ namespace Local {
 							zeitpunkt_tage_liste[i] == zeitpunkt
 						) {
 							zeitpunkt_tage_liste[i] = zeitpunkt;
+							solarstrahlung_tage_liste[i] = 0;
 							findings = 0b0000'0000;
 						}
 					}
