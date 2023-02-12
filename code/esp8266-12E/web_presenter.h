@@ -14,7 +14,7 @@
 namespace Local {
 	class WebPresenter {
 	protected:
-	// TODO Pointer zeigen nur auf den Speicher, koennen auch ins Nichts zeigen und unterwegs verändert werden (neue instanz und so)
+	// Pointer zeigen nur auf den Speicher, koennen auch ins Nichts zeigen und unterwegs verändert werden (neue instanz und so)
 	// Referenzen sind mit RefCount verbunden und unveränderlich
 	// Wieso knallts dann bei referenzen? Wird eins der Objekte zerstört? Muss man Referenzen überall mit & notieren?
 		Local::Config* cfg;
