@@ -1,6 +1,7 @@
 #pragma once
 #include <SPI.h>
 #include <SD.h>
+#include <Regexp.h>
 
 namespace Local {
 	class Persistenz {
@@ -11,6 +12,7 @@ namespace Local {
 		int offset = 0;
 		char old_buffer[64];
 		char search_buffer[128];
+		int next_capture_group;
 
 		bool _init() {
 			if(!init) {
@@ -48,7 +50,7 @@ namespace Local {
 			return true;
 		}
 
-		bool read_next_block_to_buffer() {
+		bool _read_next_block_to_buffer() {
 			int size = fh.size();
 			fh.seek(offset);
 			int read_size = std::min(sizeof(buffer) - 1, fh.size() - offset);
@@ -60,18 +62,46 @@ namespace Local {
 			memcpy(old_buffer, buffer, sizeof(buffer));
 			fh.read((uint8_t*) buffer, read_size);
 			std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
-
-			_prepare_search_buffer();
-
 			offset += read_size;
 			return true;
 		}
 
+		bool read_next_line_to_buffer() {
+			if(!_read_next_block_to_buffer()) {
+				return false;
+			}
+			for(int i = 0; i < strlen(buffer) + 1; i++) {
+				if(buffer[i] == '\n') {
+					offset = offset - strlen(buffer) + i + 1;// Zurueckspuhlen zum ersten Zeilenumbruch
+					std::fill(buffer + i, buffer + sizeof(buffer), 0);// Rest immer leeren
+					break;
+				}
+			}
+			std::fill(old_buffer, old_buffer + sizeof(old_buffer), 0);// Leeren; nur buffer wird genutzt
+			_prepare_search_buffer();
+			return true;
+		}
+
+		bool read_next_block_to_buffer() {
+			if(!_read_next_block_to_buffer()) {
+				return false;
+			}
+			_prepare_search_buffer();
+			return true;
+		}
+
 		bool find_in_content(char* regex) {
+			next_capture_group = 0;
+			std::fill(finding_buffer, finding_buffer + sizeof(finding_buffer), 0);// zur Sicherheit
 			match_state.Target(search_buffer);
-			char result = match_state.Match(regex);
-			if(result > 0) {
-				match_state.GetCapture(finding_buffer, 0);
+			match_state.Match(regex);
+			return fetch_next_finding();
+		}
+
+		bool fetch_next_finding() {
+			if(next_capture_group < match_state.level) {
+				match_state.GetCapture(finding_buffer, next_capture_group);
+				next_capture_group++;
 				return true;
 			}
 			return false;

@@ -10,6 +10,7 @@ namespace Local {
 
 	protected:
 		const char* hourly_filename = "wetter_stundenvorhersage.json";
+		const char* hourly_cache_filename = "wetter_stundenvorhersage.csv";
 		const char* dayly_filename = "wetter_tagesvorhersage.json";
 		const char* hourly_request_uri = "/forecasts/v1/hourly/12hour/%d?apikey=%s&language=de-de&details=true&metric=true";
 		const char* dayly_request_uri = "/forecasts/v1/daily/5day/%d?apikey=%s&language=de-de&details=true&metric=true";
@@ -137,6 +138,8 @@ namespace Local {
 			return false;
 		}
 
+	// TODO in indx.html setTieout absichern. Das übreholt sich selber
+	// TODO configwerte als SD_File ablegen - und auch wie CURL schreibbar machen -> dan können komlpexere Dinge außerhalb laufen
 	public:
 		void stundendaten_holen_und_persistieren(Local::Persistenz& persistenz) {
 			_daten_holen_und_persistieren(persistenz, hourly_filename, hourly_request_uri);
@@ -147,10 +150,31 @@ namespace Local {
 		}
 
 		void persistierte_daten_einsetzen(Local::Persistenz& persistenz, Local::Wetter& wetter) {
+			// TODO Die Liste als Datei ablegen (am ende)
+			// DateiListe lesen (wenn vorhanden)
+			// DateiZeit mit Ausgelesener ZEit vergleichen
+			//
 			if(_lese_stundendaten_und_setze_ein(persistenz)) {
 				wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_stunden_liste[0];
-				for(int i = 0; i < 12; i++) {
-					wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_stunden_liste[i]);
+				if(persistenz.open_file_to_read(hourly_cache_filename)) {
+					while(persistenz.read_next_line_to_buffer()) {
+						// TODO das beim Status-File Lesen auch nutzen
+						if(persistenz.find_in_content((char*) "^([0-9]+),([0-9]+)$")) {
+							// TODO nutzen, um die aktuelle ZEit zu finden
+							int zeit = atoi(persistenz.finding_buffer);
+							persistenz.fetch_next_finding();
+							int strahlung = atoi(persistenz.finding_buffer);
+						}
+					}
+				}
+				// TODO noch anpassen, und die korrigieerten Werte schreiben
+				if(persistenz.open_file_to_overwrite(hourly_cache_filename)) {
+					for(int i = 0; i < 12; i++) {
+						wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_stunden_liste[i]);
+						sprintf(persistenz.buffer, "%d,%d\n", zeitpunkt_stunden_liste[0], solarstrahlung_stunden_liste[i]);
+						persistenz.print_buffer_to_file();
+					}
+					persistenz.close_file();
 				}
 			} else {
 				wetter.stundenvorhersage_startzeitpunkt = 0;
@@ -158,6 +182,7 @@ namespace Local {
 					wetter.setze_stundenvorhersage_solarstrahlung(i, 0);
 				}
 			}
+
 			if(_lese_tagesdaten_und_setze_ein(persistenz)) {
 				wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_tage_liste[0];
 				for(int i = 0; i < 5; i++) {
