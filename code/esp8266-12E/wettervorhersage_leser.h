@@ -2,6 +2,7 @@
 #include "base_leser.h"
 #include "persistenz.h"
 #include "wetter.h"
+#include <TimeLib.h>
 
 namespace Local {
 	class WettervorhersageLeser: public BaseLeser {
@@ -57,7 +58,7 @@ namespace Local {
 			int i = -1;
 			std::uint8_t findings = 0b0000'0001;
 			int letzte_gefundene_zeit = 0;
-			while(persistenz.read_next_block_to_buffer()) {
+			while(persistenz.read_next_block_to_buffer() && i < stunden_anzahl) {
 				if(persistenz.find_in_content((char*) "\"EpochDateTime\":([0-9]+)[,}]")) {
 					int zeitpunkt = atoi(persistenz.finding_buffer);
 					if(
@@ -89,53 +90,54 @@ namespace Local {
 			persistenz.close_file();
 		}
 
-		bool _lese_tagesdaten_und_setze_ein(Local::Persistenz& persistenz) {
-			_reset(zeitpunkt_tage_liste, tage_anzahl);
-			_reset(solarstrahlung_tage_liste, tage_anzahl);
+		int _timestamp_to_date(int timestamp) {
+			return day(timestamp) + (month(timestamp) * 100) + (year(timestamp) * 10000);
+		}
+
+		void _lese_tagesdaten_und_setze_ein(Local::Persistenz& persistenz, int now_timestamp) {
 			if(!persistenz.open_file_to_read(dayly_filename)) {
-				return false;
+				return;
 			}
 
-			std::uint8_t findings = 0b0000'0000;
-			int i = 0;
-			int valide_tage = 0;
-			while(persistenz.read_next_block_to_buffer()) {
+			int i = -1;
+			std::uint8_t findings = 0b0000'0011;
+			int letzte_gefundene_zeit = 0;
+			int now_date = _timestamp_to_date(now_timestamp);
+			while(persistenz.read_next_block_to_buffer() && i < tage_anzahl) {
 				if(persistenz.find_in_content((char*) "\"EpochDate\":([0-9]+)[,}]")) {
 					int zeitpunkt = atoi(persistenz.finding_buffer);
-					if(zeitpunkt_tage_liste[i] != zeitpunkt) {
-						if(zeitpunkt_tage_liste[0] != 0) {
-							i++;
-							if(findings & 0b000'0011) {
-								valide_tage++;
-							}
+					if(
+						letzte_gefundene_zeit != zeitpunkt // nur 1x behandeln
+						&& _timestamp_to_date(zeitpunkt) >= now_date // Zu altes ueberspringen
+					) {
+						letzte_gefundene_zeit = zeitpunkt;
+						i++;
+						if(// das bezieht sich immer auf den Cache
+							zeitpunkt_tage_liste[i] == 0
+							||
+							zeitpunkt_tage_liste[i] == zeitpunkt
+						) {
+							zeitpunkt_tage_liste[i] = zeitpunkt;
 							findings = 0b0000'0000;
 						}
-						zeitpunkt_tage_liste[i] = zeitpunkt;
 					}
 				}
 				// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
-				if(persistenz.find_in_content((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")) {
-					int solarstrahlung = round(atof(persistenz.finding_buffer));
-					if(!(findings & 0b0000'0001)) { // Tag ...
-						solarstrahlung_tage_liste[i] += solarstrahlung;
-						findings |= 0b0000'0001;
-					} else if(!(findings & 0b0000'0010)) { // ...und Nacht werden addiert
-						solarstrahlung_tage_liste[i] += solarstrahlung;
-						findings |= 0b0000'0010;
-					}
+				if(
+					!(findings & 0b0000'0001)
+					&&
+					persistenz.find_in_content((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")
+				) {
+					// Tag & Nacht (das sind 2 gleich lautende Keys)
+					solarstrahlung_tage_liste[i] += round(atof(persistenz.finding_buffer));
+					findings |= 0b0000'0001;
+				}
+				if(persistenz.find_in_content((char*) "\"Night\":")) {
+					// Erst wenn der Nacht-Uebergang gefunden wurde, nochmal auslesen erlauben
+					findings = 0b0000'0000;
 				}
 			}
 			persistenz.close_file();
-
-			if(findings & 0b0000'0011) {
-				valide_tage++;
-			}
-			if(valide_tage == 5) {
-				return true;
-			}
-			_reset(zeitpunkt_tage_liste, tage_anzahl);
-			_reset(solarstrahlung_tage_liste, tage_anzahl);
-			return false;
 		}
 
 		void _lese_stundencache_und_setze_ein(Local::Persistenz& persistenz, int now_timestamp) {
@@ -200,18 +202,20 @@ namespace Local {
 			}
 			_schreibe_stundencache(persistenz);
 
-			// TODO auch cache incl korrektur einfuegen
-			if(_lese_tagesdaten_und_setze_ein(persistenz)) {
-				wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_tage_liste[0];
-				for(int i = 0; i < 5; i++) {
-					wetter.setze_tagesvorhersage_solarstrahlung(i, solarstrahlung_tage_liste[i]);
-				}
-			} else {
-				wetter.tagesvorhersage_startzeitpunkt = 0;
-				for(int i = 0; i < 5; i++) {
-					wetter.setze_tagesvorhersage_solarstrahlung(i, 0);
-				}
+			_reset(zeitpunkt_tage_liste, tage_anzahl);
+			_reset(solarstrahlung_tage_liste, tage_anzahl);
+			wetter.tagesvorhersage_startzeitpunkt = 0;
+			for(int i = 0; i < tage_anzahl; i++) {
+				wetter.setze_tagesvorhersage_solarstrahlung(i, 0);
 			}
+
+			// TODO lese cache
+			_lese_tagesdaten_und_setze_ein(persistenz, now_timestamp);
+			wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_tage_liste[0];
+			for(int i = 0; i < tage_anzahl; i++) {
+				wetter.setze_tagesvorhersage_solarstrahlung(i, solarstrahlung_tage_liste[i]);
+			}
+			// TODO schreibe cache
 		}
 	};
 }
