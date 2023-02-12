@@ -4,9 +4,8 @@
 namespace Local {
 	class Wetter {
 	protected:
-		// Hinweis: index0 = je nach Startzeitpunkt. Das muss außerhalb noch behandelt werden
-		// In einem extra Objekt? Irgendwo, bevor es hier landet??
-		// TODO hier soll index0 immer der aktuelle Tage und die aktuelle Stunde sein. Nichts anderes!
+		// Hinweis: index0 = ist immer "jetzt" bei Stunde und Tag
+		// Stunde: gilt von 30min vor bis 30min nach
 		int stundenvorhersage_solarstrahlung_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 		int tagesvorhersage_solarstrahlung_liste[5] = {0,0,0,0,0};
 
