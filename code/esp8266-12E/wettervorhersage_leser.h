@@ -13,6 +13,7 @@ namespace Local {
 		const char* hourly_filename = "wetter_stundenvorhersage.json";
 		const char* hourly_cache_filename = "wetter_stundenvorhersage.csv";
 		const char* dayly_filename = "wetter_tagesvorhersage.json";
+		const char* dayly_cache_filename = "wetter_tagesvorhersage.csv";
 		const char* hourly_request_uri = "/forecasts/v1/hourly/12hour/%d?apikey=%s&language=de-de&details=true&metric=true";
 		const char* dayly_request_uri = "/forecasts/v1/daily/5day/%d?apikey=%s&language=de-de&details=true&metric=true";
 		char request_uri[128];
@@ -160,12 +161,44 @@ namespace Local {
 			persistenz.close_file();
 		}
 
+		void _lese_tagescache_und_setze_ein(Local::Persistenz& persistenz, int now_timestamp) {
+			if(!persistenz.open_file_to_read(dayly_cache_filename)) {
+				return;
+			}
+			int i = 0;
+			int now_date = _timestamp_to_date(now_timestamp);
+			while(persistenz.read_next_line_to_buffer() && i < tage_anzahl) {
+				if(persistenz.find_in_content((char*) "^([0-9]+),([0-9]+)$")) {
+					int cache_zeit = atoi(persistenz.finding_buffer);
+					if(_timestamp_to_date(cache_zeit) < now_date) {
+						continue;// Zu alt, ueberspringen
+					}
+					zeitpunkt_tage_liste[i] = cache_zeit;
+					persistenz.fetch_next_finding();
+					solarstrahlung_tage_liste[i] = atoi(persistenz.finding_buffer);
+					i++;
+				}
+			}
+			persistenz.close_file();
+		}
+
 		void _schreibe_stundencache(Local::Persistenz& persistenz) {
 			if(!persistenz.open_file_to_overwrite(hourly_cache_filename)) {
 				return;
 			}
 			for(int i = 0; i < stunden_anzahl; i++) {
 				sprintf(persistenz.buffer, "%d,%d\n", zeitpunkt_stunden_liste[0], solarstrahlung_stunden_liste[i]);
+				persistenz.print_buffer_to_file();
+			}
+			persistenz.close_file();
+		}
+
+		void _schreibe_tagescache(Local::Persistenz& persistenz) {
+			if(!persistenz.open_file_to_overwrite(dayly_cache_filename)) {
+				return;
+			}
+			for(int i = 0; i < tage_anzahl; i++) {
+				sprintf(persistenz.buffer, "%d,%d\n", zeitpunkt_tage_liste[0], solarstrahlung_tage_liste[i]);
 				persistenz.print_buffer_to_file();
 			}
 			persistenz.close_file();
@@ -209,13 +242,13 @@ namespace Local {
 				wetter.setze_tagesvorhersage_solarstrahlung(i, 0);
 			}
 
-			// TODO lese cache
+			_lese_tagescache_und_setze_ein(persistenz, now_timestamp);
 			_lese_tagesdaten_und_setze_ein(persistenz, now_timestamp);
 			wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_tage_liste[0];
 			for(int i = 0; i < tage_anzahl; i++) {
 				wetter.setze_tagesvorhersage_solarstrahlung(i, solarstrahlung_tage_liste[i]);
 			}
-			// TODO schreibe cache
+			_schreibe_tagescache(persistenz);
 		}
 	};
 }
