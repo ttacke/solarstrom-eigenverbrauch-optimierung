@@ -7,17 +7,21 @@
 		if(document.location.pathname == '/') {
 			ist_prod = true;
 		}
-		var init = false;
+		var ist_initialisiert = false;
 
 		function refresh() {
-			_lies_daten();
-			if(!init) {
+			if(!ist_initialisiert) {
+				window.warte_auf_daten = false;
 				_erstelle_wettertabelle('wetter_stunden', 12);
 				_erstelle_wettertabelle('wetter_tage', 5);
-				init = true;
+				setInterval(refresh, 1000 * 60);
+				ist_initialisiert = true;
 			}
-
-			setTimeout(refresh, 1000 * 60);
+			if(!window.warte_auf_daten) {// Verhindern, dass sich Requests stauen, ueberholen etc
+				_lies_daten(function() {
+					window.warte_auf_daten = false;
+				});
+			}
 		}
 		function _setze_daten_ein(daten) {
 			_setze_wetter_stunden_label(daten);
@@ -75,8 +79,12 @@
 			var t = new Date(daten['solarstrahlung_stunden_startzeit'] * 1000);
 			var footer_cell = table.getElementsByTagName('tfoot')[0].getElementsByTagName('td');
 			for(var i = 0; i < footer_cell.length; i++) {
-				footer_cell[i].innerHTML = t.getHours();
-				t.setHours(t.getHours() + 1);
+				if(daten['solarstrahlung_stunden_startzeit'] > 0) {
+					footer_cell[i].innerHTML = t.getHours();
+					t.setHours(t.getHours() + 1);
+				} else {
+					footer_cell[i].innerHTML = "-";
+				}
 			}
 		}
 		function _setze_wetter_tage_label(daten) {
@@ -84,8 +92,12 @@
 			var t = new Date(daten['solarstrahlung_tage_startzeit'] * 1000);
 			var footer_cell = table.getElementsByTagName('tfoot')[0].getElementsByTagName('td');
 			for(var i = 0; i < footer_cell.length; i++) {
-				footer_cell[i].innerHTML = wochentage[t.getDay()];
-				t.setDate(t.getDate() + 1);
+				if(daten['solarstrahlung_tage_startzeit'] > 0) {
+					footer_cell[i].innerHTML = wochentage[t.getDay()];
+					t.setDate(t.getDate() + 1);
+				} else {
+					footer_cell[i].innerHTML = "-";
+				}
 			}
 		}
 		function _setze_wetter_daten(vorhersagedaten, id) {
@@ -120,10 +132,11 @@
 			ladestand = ladestand.replace(/^(.+)(\d)$/, "$1.$2");
 			document.getElementById("batterie_ladestand").innerHTML = ladestand;
 		}
-		function _lies_daten() {
+		function _lies_daten(done_func) {
 			var xhr = new XMLHttpRequest();
 			xhr.onreadystatechange = function(args) {
 				if(this.readyState == this.DONE) {
+					done_func();
 					if(this.status == 200) {
 						_setze_daten_ein(JSON.parse(this.responseText));
 						_zaehle_fehler(false);
@@ -134,6 +147,7 @@
 			};
 			xhr.ontimeout = function(args) {
 				_zaehle_fehler(true);
+				done_func();
 			}
 			xhr.open(
 				'GET',
@@ -350,8 +364,8 @@
 </div>
 
 <div class="verteilung_hinweis">
-	Nord-Ost = <span id="solaranteil_in_prozent_string1"></span>%,
-	S&uumld-West = <span id="solaranteil_in_prozent_string2"></span>%
+	S&uumld-West = <span id="solaranteil_in_prozent_string1"></span>%,
+	Nord-Ost = <span id="solaranteil_in_prozent_string2"></span>%
 </div>
 
 <table class="wetter" id="wetter_stunden"></table>
