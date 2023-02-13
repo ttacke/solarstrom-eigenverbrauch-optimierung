@@ -29,7 +29,7 @@ namespace Local {
 		void set_log_data(char* buffer) {
 			sprintf(
 				buffer,
-				"e1,%d,%d,%d,%d,%d,%d,%d,%d",
+				"e1,%d,%d,%d,%d,%d,%d,%d,%d,%d",
 				netzbezug_in_wh,
 				solarakku_zuschuss_in_wh,
 				solarerzeugung_in_wh,
@@ -37,7 +37,8 @@ namespace Local {
 				solarakku_ladestand_in_promille,
 				l1_strom_ma,
 				l2_strom_ma,
-				l3_strom_ma
+				l3_strom_ma,
+				gib_anteil_pv1_in_prozent()
 			);
 		}
 	};
