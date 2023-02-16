@@ -28,12 +28,33 @@ while(my $line = <$fh>) {
 }
 close($fh);
 
-print "\nDatensaetze: " . scalar(@$daten) . "\n";
+print "\nAnzahl der Log-Datensaetze: " . scalar(@$daten) . "\n";
 
 my $verbrauch = [];
 foreach my $e (@$daten) {
     push(@$verbrauch, $e->{stromverbrauch_in_wh});
 }
-print "Grundverbrauch: " . (sort(@$verbrauch))[int(scalar(@$verbrauch) / 2)] . " W\n";
+print "Grundverbrauch(via Median): " . (sort(@$verbrauch))[int(scalar(@$verbrauch) / 2)] . " W\n";
+
+my $min_i_in_ma = 0;
+my $min_i_phase = 1;
+my $max_i_in_ma = 0;
+my $max_i_phase = 1;
+foreach my $e (@$daten) {
+    foreach my $i (1..3) {
+        if($e->{"l${i}_strom_ma"} > $max_i_in_ma) {
+            $max_i_in_ma = $e->{"l${i}_strom_ma"};
+            $max_i_phase = $i;
+        }
+        if($e->{"l${i}_strom_ma"} < $min_i_in_ma) {
+            $min_i_in_ma = $e->{"l${i}_strom_ma"};
+            $min_i_phase = $i;
+        }
+    }
+}
+print "Min. Strom: " . sprintf("%.2f", $min_i_in_ma / 1000) . " A (Phase $min_i_phase)\n";
+print "Max Strom: " . sprintf("%.2f", $max_i_in_ma / 1000) . " A (Phase $max_i_phase)\n";
+
+
 
 print "\n";
