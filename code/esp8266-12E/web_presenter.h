@@ -115,6 +115,8 @@ namespace Local {
 			if(persistenz.open_file_to_read(anlagen_log_filename)) {
 				while(persistenz.read_next_block_to_buffer()) {
 					_print_char_to_web(persistenz.buffer);
+
+					yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				}
 				persistenz.close_file();
 			} else {

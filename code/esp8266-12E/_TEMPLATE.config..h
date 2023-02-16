@@ -15,7 +15,7 @@ namespace Local {
 		const int wechselrichter_port = 80;
 
 		const char* accuweather_api_key = "[API-KEY VON developer.accuweather.com]";
-		const int accuweather_location_id = 1008813;
+		const int accuweather_location_id = 1008813;// Ermittelt via https://developer.accuweather.com/accuweather-locations-api/apis/get/locations/v1/search
 
 		const int maximale_solarstrahlung_in_w_pro_m2 = 1000;// Quelle https://www.weltderphysik.de/gebiet/technik/energie/solarenergie/sonnenenergie/
 		const int maximale_solarstrahlung_pro_tag_in_w_pro_m2 = 7000;

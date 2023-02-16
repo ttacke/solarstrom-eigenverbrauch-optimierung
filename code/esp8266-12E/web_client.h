@@ -81,6 +81,8 @@ namespace Local {
 				return;
 			}
 
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+
 			old_buffer[0] = '\0';
 			while(wlan_client->available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
@@ -102,6 +104,9 @@ namespace Local {
 			if(content_length <=0) {
 				return false;
 			}
+
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+
 			if(remaining_content_after_header) {
 				remaining_content_after_header = false;
 				content_length -= strlen(buffer);
