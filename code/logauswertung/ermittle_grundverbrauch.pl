@@ -29,6 +29,8 @@ while(my $line = <$fh>) {
 close($fh);
 
 print "\nAnzahl der Log-Datensaetze: " . scalar(@$daten) . "\n";
+my $logdaten_in_tagen = ($daten->[$#$daten]->{'zeitpunkt'} - $daten->[0]->{'zeitpunkt'}) / 86400;
+print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n";
 
 my $verbrauch = [];
 foreach my $e (@$daten) {
@@ -55,6 +57,18 @@ foreach my $e (@$daten) {
 print "Min. Strom: " . sprintf("%.2f", $min_i_in_ma / 1000) . " A (Phase $min_i_phase)\n";
 print "Max Strom: " . sprintf("%.2f", $max_i_in_ma / 1000) . " A (Phase $max_i_phase)\n";
 
-
+my $akku_ladezyklen_in_promille = 0;
+my $prognostizierte_vollzyklen = 6000;
+my $alt = {solarakku_ladestand_in_promille => 0};
+foreach my $e (@$daten) {
+    my $ladeveraenderung_in_promille = $alt->{solarakku_ladestand_in_promille} - $e->{solarakku_ladestand_in_promille};
+    if($ladeveraenderung_in_promille > 0) {
+        $akku_ladezyklen_in_promille += $ladeveraenderung_in_promille;
+    }
+    $alt = $e;
+}
+print "Vollzyklen des Akkus: " . sprintf("%.2f", $akku_ladezyklen_in_promille / 1000) . "\n";
+my $prognose_akku_haltbar_in_tagen = $prognostizierte_vollzyklen / ($akku_ladezyklen_in_promille / 1000) * $logdaten_in_tagen;
+print "Haltbarkeit des Akkus(gesamt; bei max. $prognostizierte_vollzyklen Vollzyklen): " . sprintf("%.1f", $prognose_akku_haltbar_in_tagen / 365) . " Jahre\n";
 
 print "\n";
