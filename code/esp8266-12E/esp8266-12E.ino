@@ -15,15 +15,21 @@ void setup(void) {
 	Serial.println();
 	Serial.println("Setup ESP");
 	wlan.connect();
-	web_presenter.webserver.add_page("/daten.json", []() {
-		web_presenter.zeige_daten();
+
+	web_presenter.webserver.add_page("/master/", []() {
+		web_presenter.zeige_ui();
 	});
+	web_presenter.webserver.add_page("/master/daten.json", []() {
+		web_presenter.zeige_daten(true);
+	});
+
 	web_presenter.webserver.add_page("/", []() {
 		web_presenter.zeige_ui();
 	});
-	web_presenter.webserver.add_page("/dev/", []() {
-		web_presenter.zeige_ui();
+	web_presenter.webserver.add_page("/daten.json", []() {
+		web_presenter.zeige_daten(false);
 	});
+
 	web_presenter.webserver.add_page("/zeige_log", []() {
 		web_presenter.zeige_log();
 	});

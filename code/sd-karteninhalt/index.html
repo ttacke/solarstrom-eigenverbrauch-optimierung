@@ -3,10 +3,6 @@
 	<title>Solarstrom Eigenverbrauch Optimierung</title>
 	<script type="text/javascript">
 		const wochentage = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-		var ist_prod = false;
-		if(document.location.pathname == '/') {
-			ist_prod = true;
-		}
 		var ist_initialisiert = false;
 
 		function refresh() {
@@ -151,7 +147,7 @@
 			}
 			xhr.open(
 				'GET',
-				'/daten.json?time=' + Math.floor(new Date().getTime() / 1000) + (ist_prod ? '&ist_prod=1' : ''),
+				'daten.json?time=' + Math.floor(new Date().getTime() / 1000),
 				true
 			);
 			xhr.timeout = 30 * 1000;

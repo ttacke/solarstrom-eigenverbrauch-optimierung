@@ -122,10 +122,9 @@ namespace Local {
 			}
 		}
 
-		void zeige_daten() {
+		void zeige_daten(bool erneuere_daten_automatisch) {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
 			int now_timestamp = webserver.server.arg("time").toInt();
-			bool ist_prod = webserver.server.arg("ist_prod").toInt() == 1;
 			if(now_timestamp < 1674987010) {
 				webserver.server.send(400, "text/plain", "Bitte den aktuellen UnixTimestamp via Parameter 'time' angeben.");
 				return;
@@ -140,7 +139,7 @@ namespace Local {
 			Local::WettervorhersageLeser wetter_leser(*cfg, web_client);
 
 			_lese_systemstatus_daten();
-			if(ist_prod) {
+			if(erneuere_daten_automatisch) {
 				if(
 					!stunden_wettervorhersage_letzter_abruf
 					|| (
@@ -171,7 +170,7 @@ namespace Local {
 			}
 			wetter_leser.persistierte_daten_einsetzen(persistenz, wetter, now_timestamp);
 
-			if(ist_prod) {
+			if(erneuere_daten_automatisch) {
 				_write_log_data(now_timestamp);
 			}
 
