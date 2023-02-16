@@ -11,8 +11,11 @@ while(my $line = <$fh>) {
     my @e = $line =~ m/^(\d+),e1,([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),w1,(\d+),(\d+)$/;
     next if(!scalar(@e));
 
+    my @d = gmtime($e[0]);
     push(@$daten, {
         zeitpunkt => $e[0],
+        stunde_utc => $d[2],
+        monat => $d[4] + 1,
         netzbezug_in_wh => $e[1],
         solarakku_zuschuss_in_wh => $e[2],
         solarerzeugung_in_wh => $e[3],
@@ -55,7 +58,7 @@ foreach my $e (@$daten) {
     }
 }
 print "Min. Strom: " . sprintf("%.2f", $min_i_in_ma / 1000) . " A (Phase $min_i_phase)\n";
-print "Max Strom: " . sprintf("%.2f", $max_i_in_ma / 1000) . " A (Phase $max_i_phase)\n";
+print "Max. Strom: " . sprintf("%.2f", $max_i_in_ma / 1000) . " A (Phase $max_i_phase)\n";
 
 my $akku_ladezyklen_in_promille = 0;
 my $prognostizierte_vollzyklen = 6000;
@@ -70,5 +73,18 @@ foreach my $e (@$daten) {
 print "Vollzyklen des Akkus: " . sprintf("%.2f", $akku_ladezyklen_in_promille / 1000) . "\n";
 my $prognose_akku_haltbar_in_tagen = $prognostizierte_vollzyklen / ($akku_ladezyklen_in_promille / 1000) * $logdaten_in_tagen;
 print "Haltbarkeit des Akkus(gesamt; bei max. $prognostizierte_vollzyklen Vollzyklen): " . sprintf("%.1f", $prognose_akku_haltbar_in_tagen / 365) . " Jahre\n";
+
+# my $stundenstrahlung_verhaeltnisse = [];
+# foreach my $e (@$daten) {
+#     # solarerzeugung_in_wh
+#     #stunden_solarstrahlung
+#     #tages_solarstrahlung
+#     push(
+#         @$stundenstrahlung_verhaeltnisse,
+#         ($e->{solarerzeugung_in_wh} > 0 ? $e->{stunden_solarstrahlung} * 1000 / $e->{solarerzeugung_in_wh} : 0)
+#     );
+#     warn "$e->{stunden_solarstrahlung} / $e->{solarerzeugung_in_wh} = " . ($e->{stunden_solarstrahlung} * 1000 / $e->{solarerzeugung_in_wh});
+# }
+# print "Stundenvorhersage 1 W Strahlung ergibt (via Median): " . (sort(@$stundenstrahlung_verhaeltnisse))[int(scalar(@$stundenstrahlung_verhaeltnisse) / 2)] . " W Strom\n";
 
 print "\n";
