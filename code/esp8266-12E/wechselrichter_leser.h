@@ -12,11 +12,11 @@ namespace Local {
 
 		void _daten_extrahieren_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
 			if(web_client->find_in_content((char*) "\"P_PV\":([-0-9.]+)[^0-9]")) {
-				elektroanlage.solarerzeugung_in_wh = round(atof(web_client->finding_buffer));
+				elektroanlage.solarerzeugung_in_w = round(atof(web_client->finding_buffer));
 				findings |= 0b0000'0001;
 			}
 			if(web_client->find_in_content((char*) "\"P_Akku\":([-0-9.]+)[^0-9]")) {
-				elektroanlage.solarakku_zuschuss_in_wh = round(atof(web_client->finding_buffer));
+				elektroanlage.solarakku_zuschuss_in_w = round(atof(web_client->finding_buffer));
 				findings |= 0b0000'0010;
 			}
 			if(web_client->find_in_content((char*) "\"SOC\":([-0-9.]+)[^0-9]")) {
@@ -24,11 +24,11 @@ namespace Local {
 				findings |= 0b0000'0100;
 			}
 			if(web_client->find_in_content((char*) "\"P_Grid\":([-0-9.]+)[^0-9]")) {
-				elektroanlage.netzbezug_in_wh = round(atof(web_client->finding_buffer));
+				elektroanlage.netzbezug_in_w = round(atof(web_client->finding_buffer));
 				findings |= 0b0000'1000;
 			}
 			if(web_client->find_in_content((char*) "\"P_Load\":([-0-9.]+)[^0-9]")) {
-				elektroanlage.stromverbrauch_in_wh = round(atof(web_client->finding_buffer) * -1);
+				elektroanlage.stromverbrauch_in_w = round(atof(web_client->finding_buffer) * -1);
 				findings |= 0b0001'0000;
 			}
 			/*
@@ -88,11 +88,11 @@ namespace Local {
 				_verteilungsdaten_extrahieren_und_einsetzen(elektroanlage);
 			}
 			if(!(findings & 0b1111'1111)) {
-				elektroanlage.solarerzeugung_in_wh = 0;
-				elektroanlage.solarakku_zuschuss_in_wh = 0;
+				elektroanlage.solarerzeugung_in_w = 0;
+				elektroanlage.solarakku_zuschuss_in_w = 0;
 				elektroanlage.solarakku_ladestand_in_promille = 0;
-				elektroanlage.netzbezug_in_wh = 0;
-				elektroanlage.stromverbrauch_in_wh = 0;
+				elektroanlage.netzbezug_in_w = 0;
+				elektroanlage.stromverbrauch_in_w = 0;
 				elektroanlage.solarakku_ist_an = false;
 				elektroanlage.leistungsanteil_pv1 = 0;
 				elektroanlage.leistungsanteil_pv2 = 0;

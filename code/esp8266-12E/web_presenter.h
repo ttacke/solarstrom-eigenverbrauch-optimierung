@@ -181,7 +181,7 @@ namespace Local {
 			_print_char_to_web((char*) "{");
 
 				_print_char_to_web((char*) "\"ueberschuss_in_wh\":");
-					_print_int_to_web(elektroanlage.gib_ueberschuss_in_wh());
+					_print_int_to_web(elektroanlage.gib_ueberschuss_in_w());
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"solarakku_ist_an\":");

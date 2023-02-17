@@ -2,34 +2,47 @@
 use strict;
 use warnings;
 
-my $daten = [];
-open(my $fh, '<', './anlagen.log') or die "Bitte erst 'lade_aktuelle_logdatei.pl [ESP-IP]' ausfuehren\n";
-$/ = "\n";
-while(my $line = <$fh>) {
-    chomp($line);
+sub _hole_daten {
+    my $daten = [];
+    open(my $fh, '<', './anlagen.log') or die "Bitte erst 'lade_aktuelle_logdatei.pl [ESP-IP]' ausfuehren\n";
+    $/ = "\n";
+    my $alt = {};
+    while(my $line = <$fh>) {
+        chomp($line);
 
-    my @e = $line =~ m/^(\d+),e1,([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),w1,(\d+),(\d+)$/;
-    next if(!scalar(@e));
+        my @e = $line =~ m/^(\d+),e1,([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),w1,(\d+),(\d+)$/;
+        next if(!scalar(@e));
 
-    my @d = gmtime($e[0]);
-    push(@$daten, {
-        zeitpunkt => $e[0],
-        stunde_utc => $d[2],
-        monat => $d[4] + 1,
-        netzbezug_in_wh => $e[1],
-        solarakku_zuschuss_in_wh => $e[2],
-        solarerzeugung_in_wh => $e[3],
-        stromverbrauch_in_wh => $e[4],
-        solarakku_ladestand_in_promille => $e[5],
-        l1_strom_ma => $e[6],
-        l2_strom_ma => $e[7],
-        l3_strom_ma => $e[8],
-        gib_anteil_pv1_in_prozent => $e[9],
-        stunden_solarstrahlung => $e[10],
-        tages_solarstrahlung => $e[11],
-    });
+        my @d = gmtime($e[0]);
+        my $neu = {
+            zeitpunkt => $e[0],
+            stunde_utc => $d[2],
+            monat => $d[4] + 1,
+            netzbezug_in_w => $e[1],
+            solarakku_zuschuss_in_w => $e[2],
+            solarerzeugung_in_w => $e[3],
+            stromverbrauch_in_w => $e[4],
+            solarakku_ladestand_in_promille => $e[5],
+            l1_strom_ma => $e[6],
+            l2_strom_ma => $e[7],
+            l3_strom_ma => $e[8],
+            gib_anteil_pv1_in_prozent => $e[9],
+            stunden_solarstrahlung => $e[10],
+            tages_solarstrahlung => $e[11],
+        };
+        if(exists($alt->{zeitpunkt})) {
+            my $zeit_in_h = ($neu->{zeitpunkt} - $alt->{zeitpunkt}) / 3600;
+            $neu->{solarenergie_in_wh} = $neu->{solarerzeugung_in_w} * $zeit_in_h;
+        } else {
+            $neu->{solarenergie_in_wh} = 0;
+        }
+        push(@$daten, $neu);
+        $alt = $neu;
+    }
+    close($fh);
+    return $daten;
 }
-close($fh);
+my $daten = _hole_daten();
 
 print "\nAnzahl der Log-Datensaetze: " . scalar(@$daten) . "\n";
 my $logdaten_in_tagen = ($daten->[$#$daten]->{'zeitpunkt'} - $daten->[0]->{'zeitpunkt'}) / 86400;
@@ -37,7 +50,7 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
 
 my $verbrauch = [];
 foreach my $e (@$daten) {
-    push(@$verbrauch, $e->{stromverbrauch_in_wh});
+    push(@$verbrauch, $e->{stromverbrauch_in_w});
 }
 print "Grundverbrauch(via Median): " . (sort(@$verbrauch))[int(scalar(@$verbrauch) / 2)] . " W\n";
 
@@ -75,15 +88,29 @@ my $prognose_akku_haltbar_in_tagen = $prognostizierte_vollzyklen / ($akku_ladezy
 print "Haltbarkeit des Akkus(gesamt; bei max. $prognostizierte_vollzyklen Vollzyklen): " . sprintf("%.1f", $prognose_akku_haltbar_in_tagen / 365) . " Jahre\n";
 
 # my $stundenstrahlung_verhaeltnisse = [];
-# foreach my $e (@$daten) {
-#     # solarerzeugung_in_wh
+my $daten_nach_stunden = {};
+foreach my $e (@$daten) {
+    $daten_nach_stunden->{$e->{stunde_utc}} ||= {
+        solarenergie_in_wh     => 0,
+        stahlungs_vorhersage => 0,
+    };
+    $daten_nach_stunden->{$e->{stunde_utc}}->{stahlungs_vorhersage} = $e->{stunden_solarstrahlung};
+    $daten_nach_stunden->{$e->{stunde_utc}}->{solarenergie_in_wh} += $e->{solarenergie_in_wh};
+    # TODO jeden Tag grupieren, dann median bilden, bei beiden werten.
+}
+use Data::Dumper;
+die Dumper($daten_nach_stunden);
+foreach my $e (@{$daten_nach_stunden->{12}}) {
+    print $e->{solarenergie_in_wh}."\n";
+}
+#     # solarerzeugung_in_w
 #     #stunden_solarstrahlung
 #     #tages_solarstrahlung
 #     push(
 #         @$stundenstrahlung_verhaeltnisse,
-#         ($e->{solarerzeugung_in_wh} > 0 ? $e->{stunden_solarstrahlung} * 1000 / $e->{solarerzeugung_in_wh} : 0)
+#         ($e->{solarerzeugung_in_w} > 0 ? $e->{stunden_solarstrahlung} * 1000 / $e->{solarerzeugung_in_w} : 0)
 #     );
-#     warn "$e->{stunden_solarstrahlung} / $e->{solarerzeugung_in_wh} = " . ($e->{stunden_solarstrahlung} * 1000 / $e->{solarerzeugung_in_wh});
+#     warn "$e->{stunden_solarstrahlung} / $e->{solarerzeugung_in_w} = " . ($e->{stunden_solarstrahlung} * 1000 / $e->{solarerzeugung_in_w});
 # }
 # print "Stundenvorhersage 1 W Strahlung ergibt (via Median): " . (sort(@$stundenstrahlung_verhaeltnisse))[int(scalar(@$stundenstrahlung_verhaeltnisse) / 2)] . " W Strom\n";
 

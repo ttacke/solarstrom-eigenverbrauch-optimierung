@@ -3,10 +3,10 @@
 namespace Local {
 	class ElektroAnlage {
 	public:
-		int netzbezug_in_wh = 0;// + = bezug, - = einspeisung
-		int solarakku_zuschuss_in_wh = 0;// + = entladung, - = ladung
-		unsigned int solarerzeugung_in_wh = 0;
-		unsigned int stromverbrauch_in_wh = 0;
+		int netzbezug_in_w = 0;// + = bezug, - = einspeisung
+		int solarakku_zuschuss_in_w = 0;// + = entladung, - = ladung
+		unsigned int solarerzeugung_in_w = 0;
+		unsigned int stromverbrauch_in_w = 0;
 		unsigned int solarakku_ladestand_in_promille = 0;
 		bool solarakku_ist_an = false;
 		int l1_strom_ma = 0;
@@ -15,8 +15,8 @@ namespace Local {
 		int leistungsanteil_pv1 = 0;
 		int leistungsanteil_pv2 = 0;
 
-		int gib_ueberschuss_in_wh() {
-			return (netzbezug_in_wh * -1) - solarakku_zuschuss_in_wh;
+		int gib_ueberschuss_in_w() {
+			return (netzbezug_in_w * -1) - solarakku_zuschuss_in_w;
 		}
 
 		int gib_anteil_pv1_in_prozent() {
@@ -30,10 +30,10 @@ namespace Local {
 			sprintf(
 				buffer,
 				"e1,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-				netzbezug_in_wh,
-				solarakku_zuschuss_in_wh,
-				solarerzeugung_in_wh,
-				stromverbrauch_in_wh,
+				netzbezug_in_w,
+				solarakku_zuschuss_in_w,
+				solarerzeugung_in_w,
+				stromverbrauch_in_w,
 				solarakku_ladestand_in_promille,
 				l1_strom_ma,
 				l2_strom_ma,
