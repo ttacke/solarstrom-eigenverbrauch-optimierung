@@ -105,7 +105,7 @@ namespace Local {
 				}
 				persistenz.close_file();
 			} else {
-				_print_char_to_web((char*) "<h1>Bitte die code/sd-karteninhalt/index.html auf die SD-Karte im root-Ordner ablegen</h1>");
+				_print_char_to_web((char*) "<h1>Bitte im Projekt 'cd code/scripte;perl schreibe_indexdatei.pl [IP]' ausf&uuml;hren</h1>");
 			}
 		}
 
@@ -124,8 +124,6 @@ namespace Local {
 			}
 		}
 
-		// https://www.taillieu.info/index.php/internet-of-things/esp8266/335-esp8266-uploading-files-to-the-server
-		// curl -i -XPOST -F file=@anlagen.log "http://192.168.0.25/upload_file?name=anlagen_log.csv"
 		void upload_file() {
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
