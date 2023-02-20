@@ -109,10 +109,10 @@ namespace Local {
 			}
 		}
 
-		void zeige_log() {
-			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-			webserver.server.send(200, "text/plain", "");
-			if(persistenz.open_file_to_read(anlagen_log_filename)) {
+		void download_file() {
+			if(persistenz.open_file_to_read((const char*) webserver.server.arg("name").c_str())) {
+				webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+				webserver.server.send(200, "text/plain", "");
 				while(persistenz.read_next_block_to_buffer()) {
 					_print_char_to_web(persistenz.buffer);
 
@@ -120,7 +120,7 @@ namespace Local {
 				}
 				persistenz.close_file();
 			} else {
-				_print_char_to_web((char*) "Keine Daten!");
+				webserver.server.send(404, "text/plain", "Not found");
 			}
 		}
 

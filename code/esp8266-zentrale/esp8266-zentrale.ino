@@ -30,8 +30,8 @@ void setup(void) {
 		web_presenter.zeige_daten(false);
 	});
 
-	web_presenter.webserver.add_page("/zeige_log", []() {
-		web_presenter.zeige_log();
+	web_presenter.webserver.add_page("/download_file", []() {
+		web_presenter.download_file();
 	});
 	web_presenter.webserver.start();
 	Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());

@@ -1,4 +1,4 @@
 /.idea/
 /code/test/
 /code/esp8266-zentrale/config.h
-/code/logauswertung/anlagen.log
+/code/logauswertung/anlagen_log.csv

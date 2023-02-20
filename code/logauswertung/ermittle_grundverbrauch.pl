@@ -4,7 +4,7 @@ use warnings;
 
 sub _hole_daten {
     my $daten = [];
-    open(my $fh, '<', './anlagen.log') or die "Bitte erst 'lade_aktuelle_logdatei.pl [ESP-IP]' ausfuehren\n";
+    open(my $fh, '<', './anlagen_log.csv') or die "Bitte erst 'lade_aktuelle_logdatei.pl [ESP-IP]' ausfuehren\n";
     $/ = "\n";
     my $alt = {};
     while(my $line = <$fh>) {

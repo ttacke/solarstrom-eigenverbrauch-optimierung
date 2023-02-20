@@ -36,8 +36,8 @@ die Geräte gar nicht.
 # TODO
 - Status-Objekt einführen, was z.B. den Zeitstempel hält
 - Referenzen entfernen. Nur noch Pointer (beides zusammen macht keinen Sinn)
-- Dateien auslesbar machen (lies_log generalisieren)
 - index.html schreibbar machen mit kommando (curl POST?)
+- WLAN-Verbindung im Loop prüfen und ggf neu verbinden
 - Steckdose auslesen
   - AN/AUS, power
   - unixtime -> damit den time-parameter überschreiben (damit ist der optional)
