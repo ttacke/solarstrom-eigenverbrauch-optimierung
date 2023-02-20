@@ -16,7 +16,8 @@ sub _hole_daten {
         my @d = gmtime($e[0]);
         my $neu = {
             zeitpunkt => $e[0],
-            stunde_utc => $d[2],
+            datum => ($d[5] + 1900) . '-' . ($d[4] + 1) . '-' . $d[3],
+            stunde => $d[2],
             monat => $d[4] + 1,
             netzbezug_in_w => $e[1],
             solarakku_zuschuss_in_w => $e[2],
@@ -90,19 +91,21 @@ print "Haltbarkeit des Akkus(gesamt; bei max. $prognostizierte_vollzyklen Vollzy
 # my $stundenstrahlung_verhaeltnisse = [];
 my $daten_nach_stunden = {};
 foreach my $e (@$daten) {
-    $daten_nach_stunden->{$e->{stunde_utc}} ||= {
+    # TODO Die TAge so auftrennen, dass pro Stunde eineListe entsteht, aus der die MEridiane gebildet werden koennens
+    my $key = $e->{datum} . ':' . $e->{stunde};
+    $daten_nach_stunden->{$key} ||= {
         solarenergie_in_wh     => 0,
         stahlungs_vorhersage => 0,
     };
-    $daten_nach_stunden->{$e->{stunde_utc}}->{stahlungs_vorhersage} = $e->{stunden_solarstrahlung};
-    $daten_nach_stunden->{$e->{stunde_utc}}->{solarenergie_in_wh} += $e->{solarenergie_in_wh};
+    $daten_nach_stunden->{$key}->{stahlungs_vorhersage} = $e->{stunden_solarstrahlung};
+    $daten_nach_stunden->{$key}->{solarenergie_in_wh} += $e->{solarenergie_in_wh};
     # TODO jeden Tag grupieren, dann median bilden, bei beiden werten.
 }
 use Data::Dumper;
 die Dumper($daten_nach_stunden);
-foreach my $e (@{$daten_nach_stunden->{12}}) {
-    print $e->{solarenergie_in_wh}."\n";
-}
+# foreach my $e (@{$daten_nach_stunden->{12}}) {
+#     print $e->{solarenergie_in_wh}."\n";
+# }
 #     # solarerzeugung_in_w
 #     #stunden_solarstrahlung
 #     #tages_solarstrahlung

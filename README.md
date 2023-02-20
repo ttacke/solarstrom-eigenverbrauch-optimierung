@@ -32,3 +32,33 @@ Wechselrichter und Batterie sollten nie im Netz mit anderen Endgeräten sein. Di
 sind fest codiert und "zertifizierten Handwerkern" bekannt. Also jedem. Ein Virus auf einem
 anderen Endgerät im gleichen Netz könnte also problemlos Schaden anrichten. Und: SSL kennen
 die Geräte gar nicht.
+
+# TODO
+- Status-Objekt einführen, was z.B. den Zeitstempel hält
+- Referenzen entfernen. Nur noch Pointer (beides zusammen macht keinen Sinn)
+- Dateien auslesbar machen (lies_log generalisieren)
+- index.html schreibbar machen mit kommando (curl POST?)
+- Steckdose auslesen
+  - AN/AUS, power
+  - unixtime -> damit den time-parameter überschreiben (damit ist der optional)
+- Daten holen als Cron nebendran (x Sekunden warten zwischen den ausführungen)
+  - HTTP dann nur noch ausgeben (das Objekt liegt ja im Speicher, das sollte reichen - kein SD-lesen und so)
+- Relay-Endpunkte schon einbinden und mit Leistung versehen (2 x 400W, 1x 2200)
+  - Ansteuerung schon einbauen
+  - Überbrücken des Auto-Ladens in UI ermöglichen (Dauerladen/von 10-17 Uhr/nur Überschuss)
+- Grundverbrauch ermitteln
+  - via HTTP auch setzen!
+- Bedeutung der Strahlungswerte ermitteln (je Monat und UTC-Tageszeit)
+  - via HTTP auch setzen
+- Grundverbrauch und Strahlunswert ergeben, wann überlauf passiert und wie stark.
+  - daran zuschaltungen ermitteln 
+
+Steckdose:
+http://192.168.2.30/status
+-> ist an: "ison":true/false[,}]
+-> "temperature":23.62[,}]
+-> "power":0.00[,}]
+-> "unixtime":1676841789[,}]
+"time":"22:23"
+http://192.168.2.30/relay/0?turn=on
+http://192.168.2.30/relay/0?turn=off
