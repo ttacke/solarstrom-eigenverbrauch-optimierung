@@ -11,8 +11,13 @@ namespace Local {
 		}
 
 		template<typename F>
-		void add_page(const char* path, F && func) {
-			server.on(path, func);
+		void add_http_get_handler(const char* path, F && func) {
+			server.on(path, HTTP_GET, func);
+		}
+
+		template<typename F>
+		void add_http_post_fileupload_handler(const char* path, F && func) {
+			server.on(path, HTTP_POST, [&](){ server.send(200); }, func);
 		}
 
 		void start() {

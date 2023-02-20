@@ -16,22 +16,25 @@ void setup(void) {
 	Serial.println("Setup ESP");
 	wlan.connect();
 
-	web_presenter.webserver.add_page("/master/", []() {
+	web_presenter.webserver.add_http_get_handler("/master/", []() {
 		web_presenter.zeige_ui();
 	});
-	web_presenter.webserver.add_page("/master/daten.json", []() {
+	web_presenter.webserver.add_http_get_handler("/master/daten.json", []() {
 		web_presenter.zeige_daten(true);
 	});
 
-	web_presenter.webserver.add_page("/", []() {
+	web_presenter.webserver.add_http_get_handler("/", []() {
 		web_presenter.zeige_ui();
 	});
-	web_presenter.webserver.add_page("/daten.json", []() {
+	web_presenter.webserver.add_http_get_handler("/daten.json", []() {
 		web_presenter.zeige_daten(false);
 	});
 
-	web_presenter.webserver.add_page("/download_file", []() {
+	web_presenter.webserver.add_http_get_handler("/download_file", []() {
 		web_presenter.download_file();
+	});
+	web_presenter.webserver.add_http_post_fileupload_handler("/upload_file", []() {
+		web_presenter.upload_file();
 	});
 	web_presenter.webserver.start();
 	Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());

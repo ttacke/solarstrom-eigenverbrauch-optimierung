@@ -124,6 +124,41 @@ namespace Local {
 			}
 		}
 
+		// https://www.taillieu.info/index.php/internet-of-things/esp8266/335-esp8266-uploading-files-to-the-server
+		// curl -i -XPOST -F file=@anlagen.log "http://192.168.0.25/upload_file?name=anlagen_log.csv"
+		void upload_file() {
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+
+			HTTPUpload& upload = webserver.server.upload();
+			const char* filename = webserver.server.arg("name").c_str();
+			if(upload.status == UPLOAD_FILE_START) {
+				Serial.print("handleFileUpload Name: ");
+				Serial.println(upload.filename);
+				Serial.println(filename);
+				if(persistenz.open_file_to_overwrite(filename)) {
+					persistenz.close_file();
+				} else {
+					webserver.server.send(500, "text/plain", "Kann Datei nicht schreiben");
+				}
+			  } else if(upload.status == UPLOAD_FILE_WRITE){
+				Serial.println("Upload");
+				if(persistenz.open_file_to_append(filename)) {
+					// TODO mit einer WhileSchleife in Happen zerlegen und schreiben
+					Serial.println(upload.currentSize);
+
+					//memcpy(persistenz.buffer, web_client->buffer, strlen(web_client->buffer) + 1);
+					//persistenz.print_buffer_to_file();
+					persistenz.close_file();
+				}
+
+				// Serial.println(upload.buf);
+			  } else if(upload.status == UPLOAD_FILE_END){
+				  Serial.print("handleFileUpload Size: ");
+				  Serial.println(upload.totalSize);
+				  webserver.server.send(201);
+			  }
+		}
+
 		void zeige_daten(bool erneuere_daten_automatisch) {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
 			int now_timestamp = webserver.server.arg("time").toInt();
