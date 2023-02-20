@@ -132,29 +132,30 @@ namespace Local {
 			HTTPUpload& upload = webserver.server.upload();
 			const char* filename = webserver.server.arg("name").c_str();
 			if(upload.status == UPLOAD_FILE_START) {
-				Serial.print("handleFileUpload Name: ");
-				Serial.println(upload.filename);
-				Serial.println(filename);
 				if(persistenz.open_file_to_overwrite(filename)) {
 					persistenz.close_file();
 				} else {
 					webserver.server.send(500, "text/plain", "Kann Datei nicht schreiben");
 				}
-			  } else if(upload.status == UPLOAD_FILE_WRITE){
-				Serial.println("Upload");
+			} else if(upload.status == UPLOAD_FILE_WRITE) {
 				if(persistenz.open_file_to_append(filename)) {
-					// TODO mit einer WhileSchleife in Happen zerlegen und schreiben
-					Serial.println(upload.currentSize);
-
-					//memcpy(persistenz.buffer, web_client->buffer, strlen(web_client->buffer) + 1);
-					//persistenz.print_buffer_to_file();
+					int offset = 0;
+					while(true) {
+						int read_size = std::min(sizeof(persistenz.buffer), upload.currentSize - offset);
+						if(read_size <= 0) {
+							break;
+						} else {
+							memcpy(persistenz.buffer, upload.buf + offset, read_size);
+							if(read_size < sizeof(persistenz.buffer)) {
+								std::fill(persistenz.buffer + read_size, persistenz.buffer + sizeof(persistenz.buffer), 0);
+							}
+							persistenz.print_buffer_to_file();
+							offset += read_size;
+						}
+					}
 					persistenz.close_file();
 				}
-
-				// Serial.println(upload.buf);
 			  } else if(upload.status == UPLOAD_FILE_END){
-				  Serial.print("handleFileUpload Size: ");
-				  Serial.println(upload.totalSize);
 				  webserver.server.send(201);
 			  }
 		}
