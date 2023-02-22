@@ -188,7 +188,7 @@ namespace Local {
 				return;
 			}
 			for(int i = 0; i < stunden_anzahl; i++) {
-				sprintf(persistenz.buffer, "%d,%d\n", zeitpunkt_stunden_liste[0], solarstrahlung_stunden_liste[i]);
+				sprintf(persistenz.buffer, "%d,%d\n", zeitpunkt_stunden_liste[i], solarstrahlung_stunden_liste[i]);
 				persistenz.print_buffer_to_file();
 			}
 			persistenz.close_file();
@@ -199,7 +199,7 @@ namespace Local {
 				return;
 			}
 			for(int i = 0; i < tage_anzahl; i++) {
-				sprintf(persistenz.buffer, "%d,%d\n", zeitpunkt_tage_liste[0], solarstrahlung_tage_liste[i]);
+				sprintf(persistenz.buffer, "%d,%d\n", zeitpunkt_tage_liste[i], solarstrahlung_tage_liste[i]);
 				persistenz.print_buffer_to_file();
 			}
 			persistenz.close_file();
