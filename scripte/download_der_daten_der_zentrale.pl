@@ -20,9 +20,15 @@ foreach my $filename (qw/
     wetter_tagesvorhersage.csv
 /) {
     print "$filename...";
-    if(system("wget 'http://$ARGV[0]/download_file?name=$filename' -O ../zentrale/sd-karteninhalt/$filename") == 0) {
+    if(system("wget -q 'http://$ARGV[0]/download_file?name=$filename' -O ../zentrale/sd-karteninhalt/$filename") == 0) {
         print "ok\n";
     } else {
         print "FEHLER\n";
     }
+}
+print "daten.json...";
+if(system("wget 'http://$ARGV[0]/daten.json?time=" . time() . "' -O ../zentrale/sd-karteninhalt/daten.json") == 0) {
+    print "ok\n";
+} else {
+    print "FEHLER\n";
 }
