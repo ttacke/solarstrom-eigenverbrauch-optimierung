@@ -193,11 +193,9 @@ namespace Local {
 				if(
 					!tages_wettervorhersage_letzter_abruf
 					|| (
-						tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*7 + 60*45)// max alle 5:45h
-						&& minute(now_timestamp) < 25
-						&& minute(now_timestamp) >= 15// immer kurz nach um, damit die ForecastAPI Zeit hat
+						tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*4)
 					)
-				) {// Insgesamt also 1x alle 8 Stunden ca 15 nach um
+				) {// Insgesamt also 1x alle 4 Stunden
 					Serial.println("Schreibe Tages-Wettervorhersage");
 					wetter_leser.tagesdaten_holen_und_persistieren(persistenz);
 					tages_wettervorhersage_letzter_abruf = now_timestamp;
