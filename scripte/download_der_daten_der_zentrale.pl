@@ -27,7 +27,7 @@ foreach my $filename (qw/
     }
 }
 print "daten.json...";
-if(system("wget 'http://$ARGV[0]/daten.json?time=" . time() . "' -O ../zentrale/sd-karteninhalt/daten.json") == 0) {
+if(system("wget -q 'http://$ARGV[0]/daten.json?time=" . time() . "' -O ../zentrale/sd-karteninhalt/daten.json") == 0) {
     print "ok\n";
 } else {
     print "FEHLER\n";
