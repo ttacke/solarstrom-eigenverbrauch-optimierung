@@ -1,3 +1,4 @@
 /.idea/
-/zentrale/esp8266-zentrale/config.h
-/zentrale/sd-karteninhalt/*
+/zentrale/config.h
+/netz-relay/config.h
+/sd-karteninhalt/*

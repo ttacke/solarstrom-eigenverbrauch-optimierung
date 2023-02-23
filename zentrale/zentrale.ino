@@ -10,10 +10,11 @@ Local::WebPresenter web_presenter(cfg, wlan);
 
 void setup(void) {
 	Serial.begin(cfg.log_baud);
-	delay(10);
-	Serial.println();
-	Serial.println();
-	Serial.println("Setup ESP");
+	for(int i = 0; i < 5; i++) {
+		Serial.print('o');
+		delay(500);
+	}
+	Serial.println("Start strom-eigenverbrauch-optimierung Zentrale");
 	wlan.connect();
 
 	web_presenter.webserver.add_http_get_handler("/master/", []() {
