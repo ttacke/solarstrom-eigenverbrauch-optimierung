@@ -8,8 +8,9 @@
 		function refresh() {
 			if(!ist_initialisiert) {
 				window.warte_auf_daten = false;
-				_erstelle_wettertabelle('wetter_stunden', 12);
-				_erstelle_wettertabelle('wetter_tage', 5);
+				_erstelle_wettertabelle('solarstrahlung', 18);
+				_erstelle_wettertabelle('wetter_stunden', 12);//DEPRECATED
+				_erstelle_wettertabelle('wetter_tage', 5);//DEPRECATED
 				setInterval(refresh, 1000 * 60);
 				ist_initialisiert = true;
 			}
@@ -20,9 +21,11 @@
 			}
 		}
 		function _setze_daten_ein(daten) {
-			_setze_wetter_stunden_label(daten);
+			_setze_wetter_stunden_label('solarstrahlung', 0, 12, daten);
+			_setze_wetter_stunden_label('wetter_stunden', 0, 12, daten);// DEPRECATED
 			_setze_wetter_daten(daten['solarstrahlung_stunden_in_prozent'], 'wetter_stunden');
-			_setze_wetter_tage_label(daten);
+			_setze_wetter_tage_label('solarstrahlung', 13, 5, daten);
+			_setze_wetter_tage_label('wetter_tage', 0, 5, daten);//DEPRECATED
 			_setze_wetter_daten(daten['solarstrahlung_tage_in_prozent'], 'wetter_tage');
 			_setze_elektrische_daten(daten);
 			_setze_verbrauchshinweise(daten);
@@ -69,12 +72,12 @@
 				window.zeit_des_ersten_fehlers = null;
 			}
 		}
-		function _setze_wetter_stunden_label(daten) {
-			var table = document.getElementById('wetter_stunden');
+		function _setze_wetter_stunden_label(id, offset, length, daten) {
+			var table = document.getElementById(id);
 			// "let" funktioniert im KindleBrowser nicht
 			var t = new Date(daten['solarstrahlung_stunden_startzeit'] * 1000);
 			var footer_cell = table.getElementsByTagName('tfoot')[0].getElementsByTagName('td');
-			for(var i = 0; i < footer_cell.length; i++) {
+			for(var i = offset; i < offset + length; i++) {
 				if(daten['solarstrahlung_stunden_startzeit'] > 0) {
 					footer_cell[i].innerHTML = t.getHours();
 					t.setHours(t.getHours() + 1);
@@ -83,11 +86,11 @@
 				}
 			}
 		}
-		function _setze_wetter_tage_label(daten) {
-			var table = document.getElementById('wetter_tage');
+		function _setze_wetter_tage_label(id, offset, length, daten) {
+			var table = document.getElementById(id);
 			var t = new Date(daten['solarstrahlung_tage_startzeit'] * 1000);
 			var footer_cell = table.getElementsByTagName('tfoot')[0].getElementsByTagName('td');
-			for(var i = 0; i < footer_cell.length; i++) {
+			for(var i = offset; i < offset + length; i++) {
 				if(daten['solarstrahlung_tage_startzeit'] > 0) {
 					footer_cell[i].innerHTML = wochentage[t.getDay()];
 					t.setDate(t.getDate() + 1);
@@ -156,9 +159,9 @@
 		function _erstelle_wettertabelle(id, cols) {
 			var tabelle = document.getElementById(id);
 			var children = [
-				{el:document.createElement('thead'), rows:1},
-				{el:document.createElement('tbody'), rows:10},
-				{el:document.createElement('tfoot'), rows:1}
+				{el:document.createElement('thead'), rows:1, width:true},
+				{el:document.createElement('tbody'), rows:10, width:false},
+				{el:document.createElement('tfoot'), rows:1, width:false}
 			];
 			for(var i = 0; i < children.length; i++) {
 				for(var ii = 0; ii < children[i].rows; ii++) {
@@ -277,6 +280,15 @@
 			height: 0.5rem;
 			background-color: #CCC;
 		}
+			.wetter#solarstrahlung thead td {
+				width: 5.88%;
+			}
+			.wetter#solarstrahlung tr td:nth-child(13) {
+				width: 1%;
+				background-color: inherit;
+				border: none;
+			}
+			
 			#wetter_stunden tbody td {
 				width: 8%;
 			}
@@ -291,11 +303,6 @@
 			font-size: 1rem;
 			font-weight: normal;
 			text-align: center;
-		}
-		#wetter_stunden tfoot td:after {
-			content: "00";
-			font-size: 0.5rem;
-			vertical-align: top;
 		}
 		#verbrauchshinweise_template {
 			display: none;
@@ -363,6 +370,8 @@
 	Nord-Ost = <span id="solaranteil_in_prozent_string1"></span>%,
 	S&uumld-West = <span id="solaranteil_in_prozent_string2"></span>%
 </div>
+
+<table class="wetter" id="solarstrahlung"></table>
 
 <table class="wetter" id="wetter_stunden"></table>
 
