@@ -24,9 +24,27 @@
 			_setze_wetter_tage_label('solarstrahlung', 13, 5, daten);
 			_setze_wetter_daten(daten['solarstrahlung_tage_in_prozent'], 'solarstrahlung', 13, 5);
 			_setze_elektrische_daten(daten);
-
+			
+			_setze_ladestatus('auto_laden', daten['auto_laden']);
+			_setze_ladestatus('moped_laden', daten['moped_laden']);
+			document.getElementById('wasser_ueberladen').innerHTML = daten['wasser_ueberladen'] ? 'AN' : 'AUS';
+			document.getElementById('heizung_ueberladen').innerHTML = daten['heizung_ueberladen'] ? 'AN' : 'AUS';
+		
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
+		}
+		function _setze_ladestatus(id, status) {
+			var el = document.getElementById(id);
+			if(status == 'force') {
+				el.getElementsByTagName("button")[0].className = 'on';
+				el.getElementsByTagName("button")[1].className = '';
+			} else if(status == 'solar') {
+				el.getElementsByTagName("button")[0].className = '';
+				el.getElementsByTagName("button")[1].className = 'on';
+			} else {
+				el.getElementsByTagName("button")[0].className = '';
+				el.getElementsByTagName("button")[1].className = '';
+			}
 		}
 		function _zaehle_fehler(fehler_vorhanden) {
 			if(fehler_vorhanden) {
@@ -272,7 +290,7 @@
 			text-align: center;
 		}
 			.zusatzinfo>span {
-				padding-right: 1rem;
+				padding-right: 0.8rem;
 			}
 		
 		.schalter {
@@ -283,15 +301,15 @@
 		}
 			.schalter span {
 				position: absolute;
-				top: 1.7rem;
+				top: 2.8rem;
 				left: 0rem;
-				width: 6rem;
+				width: 5.5rem;
 				text-align: right;
 				font-size: 1.8rem;
 			}
 			.schalter button {
 				border-radius: 1rem;
-				font-size: 4rem;
+				font-size: 5.5rem;
 				min-width: 10rem;
 				border: solid 0.2rem black;
 				margin-left: 1rem;
@@ -324,18 +342,19 @@
 </div>
 
 <div class="zusatzinfo">
-	<span>NO = <span id="solaranteil_in_prozent_string1"></span>%</span>
-	<span>SW = <span id="solaranteil_in_prozent_string2"></span>%</span>
-	<span>H2O++ = <span id="status_wasser">AUS</span></span>
+	<span>NO <span id="solaranteil_in_prozent_string1"></span>%</span>
+	<span>SW <span id="solaranteil_in_prozent_string2"></span>%</span>
+	<span>H2O++ <span id="wasser_ueberladen"></span></span>
+	<span>HZG++ <span id="heizung_ueberladen"></span></span>
 </div>
 
 <table class="wetter" id="solarstrahlung"></table>
 
-<div class="schalter">
-	<span>Auto</span><button class="on">!</button><button>&#9728;</button>
+<div class="schalter" id="auto_laden">
+	<span>Auto</span><button>&#9889;</button><button>&#9728;</button>
 </div>
-<div class="schalter">
-	<span>Moped</span><button>!</button><button class="on">&#9728;</button>
+<div class="schalter" id="moped_laden">
+	<span>Roller</span><button>&#9889;</button><button>&#9728;</button>
 </div>
 
 </body>

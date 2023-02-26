@@ -258,24 +258,22 @@ namespace Local {
 						}
 					}
 				_print_char_to_web((char*) "],");
-/* TODO Erfahrungswerte: Tag=7000W, Stunde=1000W
-	Tag mit 3 Balken = grade so Haus autark
-	Grunverbrauch = 300W? In Config? Oder ermitteln. Ggf aus der Log mit einem lokalen Script
-*/
-				_print_char_to_web((char*) "\"verbrauchshinweise\":[");
-//					for(int i = 0; i < 1; i++) {// TODO implementieren
-//						_print_char_to_web((char*) "{\"leistung_in_w\":");
-//						_print_int_to_web(3700);// TODO implementieren
-//						_print_char_to_web((char*) ",\"start\":");
-//						_print_int_to_web(1675349754);// TODO implementieren
-//						_print_char_to_web((char*) ",\"stop\":");
-//						_print_int_to_web(1675549754);// TODO implementieren
-//						_print_char_to_web((char*) "}");
-//						if(i < 0) {// TODO implementieren
-//							_print_char_to_web((char*) ",");
-//						}
-//					}
-					_print_char_to_web((char*) "]");
+
+				_print_char_to_web((char*) "\"wasser_ueberladen\":");
+					_print_char_to_web((char*) (false ? "true" : "false"));
+					_print_char_to_web((char*) ",");
+
+				_print_char_to_web((char*) "\"heizung_ueberladen\":");
+					_print_char_to_web((char*) (false ? "true" : "false"));
+					_print_char_to_web((char*) ",");
+
+				_print_char_to_web((char*) "\"auto_laden\":");
+					_print_char_to_web((char*) "force"));// off force solar
+					_print_char_to_web((char*) ",");
+
+				_print_char_to_web((char*) "\"moped_laden\":");
+					_print_char_to_web((char*) "off"));// off force solar
+					_print_char_to_web((char*) ",");
 
 			_print_char_to_web((char*) "}");
 		}
