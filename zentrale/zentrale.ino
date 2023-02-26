@@ -23,12 +23,19 @@ void setup(void) {
 	web_presenter.webserver.add_http_get_handler("/master/daten.json", []() {
 		web_presenter.zeige_daten(true);
 	});
+	web_presenter.webserver.add_http_get_handler("/master/change", []() {
+		// TODO! auto change_power, auto solar, auto force, roller...
+		// param -> key, val
+	});
 
 	web_presenter.webserver.add_http_get_handler("/", []() {
 		web_presenter.zeige_ui();
 	});
 	web_presenter.webserver.add_http_get_handler("/daten.json", []() {
 		web_presenter.zeige_daten(false);
+	});
+	web_presenter.webserver.add_http_get_handler("/change", []() {
+		// TODO! -> nur 404??
 	});
 
 	web_presenter.webserver.add_http_get_handler("/download_file", []() {
