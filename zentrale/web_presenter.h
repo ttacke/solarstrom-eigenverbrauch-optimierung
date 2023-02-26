@@ -268,11 +268,11 @@ namespace Local {
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"auto_laden\":");
-					_print_char_to_web((char*) "force"));// off force solar
+					_print_char_to_web((char*) "force");// off force solar
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"moped_laden\":");
-					_print_char_to_web((char*) "off"));// off force solar
+					_print_char_to_web((char*) "off");// off force solar
 					_print_char_to_web((char*) ",");
 
 			_print_char_to_web((char*) "}");
