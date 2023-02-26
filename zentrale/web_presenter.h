@@ -9,6 +9,9 @@
 #include "smartmeter_leser.h"
 #include "wechselrichter_leser.h"
 #include "wettervorhersage_leser.h"
+#include "wasser_netz_relay_api.h"
+#include "heizungs_netz_relay_api.h"
+#include "auto_netz_relay_api.h"
 #include <TimeLib.h>
 
 namespace Local {
@@ -158,6 +161,24 @@ namespace Local {
 			  }
 		}
 
+		void aendere() {
+			int now_timestamp = webserver.server.arg("time").toInt();
+			if(now_timestamp < 1674987010) {
+				webserver.server.send(400, "text/plain", "Bitte den aktuellen UnixTimestamp via Parameter 'time' angeben.");
+				return;
+			}
+			const char* key = webserver.server.arg("key").c_str();
+			const char* val = webserver.server.arg("val").c_str();
+
+			if(strcmp(key, "auto") == 0) {
+				Local::AutoNetzRelayAPI auto_netz_relay_api(*cfg, web_client);
+				auto_netz_relay_api.fuehre_aus(val, now_timestamp);
+			} else if(strcmp(key, "roller") == 0) {
+				// TODO
+			}
+			webserver.server.send(204, "text/plain", "");
+		}
+
 		void zeige_daten(bool erneuere_daten_automatisch) {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
 			int now_timestamp = webserver.server.arg("time").toInt();
@@ -165,6 +186,16 @@ namespace Local {
 				webserver.server.send(400, "text/plain", "Bitte den aktuellen UnixTimestamp via Parameter 'time' angeben.");
 				return;
 			}
+
+			Local::WasserNetzRelayAPI wasser_netz_relay_api(*cfg, web_client);
+			wasser_netz_relay_api.heartbeat(now_timestamp);
+			Local::HeizungsNetzRelayAPI heizungs_netz_relay_api(*cfg, web_client);
+			heizungs_netz_relay_api.heartbeat(now_timestamp);
+			Local::AutoNetzRelayAPI auto_netz_relay_api(*cfg, web_client);
+			auto_netz_relay_api.heartbeat(now_timestamp);
+			// TODO ShellyPlug Roller
+			// Relays prüfen: sollte dort das delay() raus?
+			// ShellyPlug: zeit von dort holen? Neee...
 
 			Local::WechselrichterLeser wechselrichter_leser(*cfg, web_client);
 			wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
@@ -260,23 +291,29 @@ namespace Local {
 				_print_char_to_web((char*) "],");
 
 				_print_char_to_web((char*) "\"wasser_ueberladen\":");
-					_print_char_to_web((char*) (false ? "true" : "false"));
+					_print_char_to_web((char*) (wasser_netz_relay_api.ist_aktiv() ? "true" : "false"));
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"heizung_ueberladen\":");
-					_print_char_to_web((char*) (false ? "true" : "false"));
+					_print_char_to_web((char*) (heizungs_netz_relay_api.ist_aktiv() ? "true" : "false"));
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"auto_laden\":");
-					_print_char_to_web((char*) "force");// off force solar
+					_print_char_to_web((char*) (
+						auto_netz_relay_api.ist_force_aktiv()
+						? "\"force\""
+						: auto_netz_relay_api.ist_solar_aktiv()
+							? "\"solar\""
+							: "\"off\""
+					));
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"auto_ladeleistung_in_w\":");
-					_print_int_to_web(3700);
+					_print_int_to_web(auto_netz_relay_api.gib_aktuelle_ladeleistung_in_w());
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"roller_laden\":");
-					_print_char_to_web((char*) "off");// off force solar
+					_print_char_to_web((char*) "\"off\"");// off force solar
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"roller_ladeleistung_in_w\":");
