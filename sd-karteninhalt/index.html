@@ -24,35 +24,9 @@
 			_setze_wetter_tage_label('solarstrahlung', 13, 5, daten);
 			_setze_wetter_daten(daten['solarstrahlung_tage_in_prozent'], 'solarstrahlung', 13, 5);
 			_setze_elektrische_daten(daten);
-			_setze_verbrauchshinweise(daten);
 
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
-		}
-		function _setze_verbrauchshinweise(daten) {
-			var template = document.getElementById('verbrauchshinweise_template');
-			var container = document.getElementById('verbrauchshinweise');
-			container.innerHTML = '';
-			for(var i = 0; i < daten['verbrauchshinweise'].length; i++) {
-				var e = daten['verbrauchshinweise'][i];
-				var ui = document.createElement('div');
-				ui.innerHTML = template.innerHTML;
-
-				var leistung = Math.round(e['leistung_in_w'] / 100);
-				if(leistung < 10) {
-					leistung = "0" + leistung;
-				} else {
-					leistung += "";
-				}
-				leistung = leistung.replace(/^([\-+]?\d+)(\d)$/, "$1.$2");
-				ui.getElementsByClassName('leistung')[0].innerHTML = leistung;
-
-				ui.getElementsByClassName('start')[0].innerHTML = new Date(e['start'] * 1000).getHours();
-
-				ui.getElementsByClassName('stop')[0].innerHTML = new Date(e['stop'] * 1000).getHours();
-
-				container.appendChild(ui);
-			}
 		}
 		function _zaehle_fehler(fehler_vorhanden) {
 			if(fehler_vorhanden) {
@@ -292,45 +266,40 @@
 			font-weight: normal;
 			text-align: center;
 		}
-		#verbrauchshinweise_template {
-			display: none;
-		}
-		#verbrauchshinweise {
-			margin-top: 0.2rem;
-			text-align: center;
-			font-size: 2.0rem;
-		}
-			#verbrauchshinweise .start,
-			#verbrauchshinweise .stop,
-			#verbrauchshinweise .leistung {
-				font-weight: bold;
-				font-size: 3.0rem;
-			}
-			#verbrauchshinweise .stop:after {
-				content: "00";
-				font-size: 0.5em;
-				vertical-align: top;
-			}
-			#verbrauchshinweise .leistung:after {
-				content: "kW";
-				font-size: 0.5em;
-			}
-		.verteilung_hinweis {
-			font-size: 0.8rem;
+		
+		.zusatzinfo {
+			font-size: 1.2rem;
 			text-align: center;
 		}
-		/*#steuerung {*/
-		/*	padding-top: 0.8rem;*/
-		/*	text-align: center;*/
-		/*}*/
-		/*	#steuerung button {*/
-		/*		font-size: 2.5rem;*/
-		/*		font-weight: bold;*/
-		/*	}*/
-		/*	#steuerung button.aktiv {*/
-		/*		background-color: #000;*/
-		/*		color: #FFF;*/
-		/*	}*/
+			.zusatzinfo>span {
+				padding-right: 1rem;
+			}
+		
+		.schalter {
+			vertical-align: bottom;
+			text-align: right;
+			margin-top: 1.5rem;
+			position: relative;
+		}
+			.schalter span {
+				position: absolute;
+				top: 1.7rem;
+				left: 0rem;
+				width: 6rem;
+				text-align: right;
+				font-size: 1.8rem;
+			}
+			.schalter button {
+				border-radius: 1rem;
+				font-size: 4rem;
+				min-width: 10rem;
+				border: solid 0.2rem black;
+				margin-left: 1rem;
+			}
+			.schalter button.on {
+				background-color: black;
+				color: white;
+			}
 	</style>
 </head>
 <body onload="refresh();">
@@ -354,24 +323,20 @@
 	</div>
 </div>
 
-<div class="verteilung_hinweis">
-	Nord-Ost = <span id="solaranteil_in_prozent_string1"></span>%,
-	S&uumld-West = <span id="solaranteil_in_prozent_string2"></span>%
+<div class="zusatzinfo">
+	<span>NO = <span id="solaranteil_in_prozent_string1"></span>%</span>
+	<span>SW = <span id="solaranteil_in_prozent_string2"></span>%</span>
+	<span>H2O++ = <span id="status_wasser">AUS</span></span>
 </div>
 
 <table class="wetter" id="solarstrahlung"></table>
 
-<div id="verbrauchshinweise_template">
-	&gt; <span class="leistung"></span>: von <span class="start"></span> - <span class="stop"></span>
+<div class="schalter">
+	<span>Auto</span><button class="on">!</button><button>&#9728;</button>
 </div>
-
-<div id="verbrauchshinweise"></div>
-
-<!--div id="steuerung">
-	<button>Auto&nbsp;<span id="auto_ladestand">64%</span></button>
-	<button class="aktiv">Wass</button>
-	<button>Heiz</button>
-</div-->
+<div class="schalter">
+	<span>Moped</span><button>!</button><button class="on">&#9728;</button>
+</div>
 
 </body>
 </html>
