@@ -9,8 +9,6 @@
 			if(!ist_initialisiert) {
 				window.warte_auf_daten = false;
 				_erstelle_wettertabelle('solarstrahlung', 18);
-				_erstelle_wettertabelle('wetter_stunden', 12);//DEPRECATED
-				_erstelle_wettertabelle('wetter_tage', 5);//DEPRECATED
 				setInterval(refresh, 1000 * 60);
 				ist_initialisiert = true;
 			}
@@ -22,11 +20,9 @@
 		}
 		function _setze_daten_ein(daten) {
 			_setze_wetter_stunden_label('solarstrahlung', 0, 12, daten);
-			_setze_wetter_stunden_label('wetter_stunden', 0, 12, daten);// DEPRECATED
-			_setze_wetter_daten(daten['solarstrahlung_stunden_in_prozent'], 'wetter_stunden');
+			_setze_wetter_daten(daten['solarstrahlung_stunden_in_prozent'], 'solarstrahlung', 0, 12);
 			_setze_wetter_tage_label('solarstrahlung', 13, 5, daten);
-			_setze_wetter_tage_label('wetter_tage', 0, 5, daten);//DEPRECATED
-			_setze_wetter_daten(daten['solarstrahlung_tage_in_prozent'], 'wetter_tage');
+			_setze_wetter_daten(daten['solarstrahlung_tage_in_prozent'], 'solarstrahlung', 13, 5);
 			_setze_elektrische_daten(daten);
 			_setze_verbrauchshinweise(daten);
 
@@ -99,17 +95,17 @@
 				}
 			}
 		}
-		function _setze_wetter_daten(vorhersagedaten, id) {
+		function _setze_wetter_daten(vorhersagedaten, id, offset, length) {
 			var table = document.getElementById(id);
 			var body_tr = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
 			for(var zeile_nr = 0; zeile_nr < body_tr.length; zeile_nr++) {
 				var schwelle = (10 - zeile_nr);// 10..1
 				var td_list = body_tr[zeile_nr].getElementsByTagName('td');
-				for(var spalte_nr = 0; spalte_nr < td_list.length; spalte_nr++) {
+				for(var spalte_nr = 0; spalte_nr < length; spalte_nr++) {
 					if(vorhersagedaten[spalte_nr] / 10 >= schwelle) {
-						td_list[spalte_nr].className = "on";
+						td_list[spalte_nr + offset].className = "on";
 					} else {
-						td_list[spalte_nr].className = "";
+						td_list[spalte_nr + offset].className = "";
 					}
 				}
 			}
@@ -281,19 +277,11 @@
 			background-color: #CCC;
 		}
 			.wetter#solarstrahlung thead td {
-				width: 5.88%;
+				width: 5.55%;
 			}
 			.wetter#solarstrahlung tr td:nth-child(13) {
-				width: 1%;
 				background-color: inherit;
 				border: none;
-			}
-			
-			#wetter_stunden tbody td {
-				width: 8%;
-			}
-			#wetter_tage tbody td {
-				width: 20%;
 			}
 		.wetter tbody td.on {
 			background-color: #000 !important;
@@ -372,10 +360,6 @@
 </div>
 
 <table class="wetter" id="solarstrahlung"></table>
-
-<table class="wetter" id="wetter_stunden"></table>
-
-<table class="wetter" id="wetter_tage"></table>
 
 <div id="verbrauchshinweise_template">
 	&gt; <span class="leistung"></span>: von <span class="start"></span> - <span class="stop"></span>
