@@ -388,14 +388,14 @@
 <div class="schalter" id="auto_laden">
 	<span onclick="refresh('change', 'auto', 'change_power')">Auto<br>
 	<span class="ladeleistung" id="auto_ladeleistung"></span></span>
-	<button onclick="refresh('change', 'auto', 'force')">&#9889;</button>
-	<button onclick="refresh('change', 'auto', 'solar')">&#9728;</button>
+	<button onclick="refresh('change', 'auto', this.className == 'on' ? 'off' : 'force')">&#9889;</button>
+	<button onclick="refresh('change', 'auto', this.className == 'on' ? 'off' : 'solar')">&#9728;</button>
 </div>
 <div class="schalter" id="roller_laden">
 	<span onclick="refresh('change', 'roller', 'change_power')">Roller<br>
 	<span class="ladeleistung" id="roller_ladeleistung"></span></span>
-	<button onclick="refresh('change', 'roller', 'force')">&#9889;</button>
-	<button onclick="refresh('change', 'roller', 'solar')">&#9728;</button>
+	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'off' : 'force')">&#9889;</button>
+	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'off' : 'solar')">&#9728;</button>
 </div>
 
 </body>
