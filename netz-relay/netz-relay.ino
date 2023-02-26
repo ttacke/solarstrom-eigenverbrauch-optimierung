@@ -6,8 +6,6 @@ Local::Config cfg;
 Local::Wlan wlan(cfg.wlan_ssid, cfg.wlan_pwd);
 Local::Webserver webserver(cfg.webserver_port);
 bool relay_is_set = false;
-char answer_template[] = "{\"relay_is_set\":\"%s\"}";
-char answer[64];
 
 void setup(void) {
 	Serial.begin(cfg.log_baud);
@@ -31,9 +29,7 @@ void setup(void) {
 
 		digitalWrite(D2, relay_is_set ? HIGH : LOW);
 
-		strcpy(answer, answer_template);
-		sprintf(answer, relay_is_set ? "true" : "false");
-		webserver.server.send(200, "application/json", answer);
+		webserver.server.send(200, "text/plain", relay_is_set ? "true" : "false");
 	});
 	webserver.start();
 	Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
