@@ -5,7 +5,7 @@
 		const wochentage = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 		var ist_initialisiert = false;
 
-		function refresh() {
+		function refresh(action = null, key = null, val = null) {
 			if(!ist_initialisiert) {
 				window.warte_auf_daten = false;
 				_erstelle_wettertabelle('solarstrahlung', 18);
@@ -13,10 +13,37 @@
 				ist_initialisiert = true;
 			}
 			if(!window.warte_auf_daten) {// Verhindern, dass sich Requests stauen, ueberholen etc
-				_lies_daten(function() {
-					window.warte_auf_daten = false;
-				});
+				window.warte_auf_daten = true;
+				if(action == 'change') {
+					_fuehre_aktion_aus(key, val, function() {
+						_lies_daten(function() {
+							window.warte_auf_daten = false;
+						});
+					});
+				} else {
+					_lies_daten(function() {
+						window.warte_auf_daten = false;
+					});
+				}
 			}
+		}
+		function _fuehre_aktion_aus(key, val, done_func) {
+			var xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function(args) {
+				if(this.readyState == this.DONE) {
+					done_func();
+				}
+			};
+			xhr.ontimeout = function(args) {
+				done_func();
+			}
+			xhr.open(
+				'POST',
+				'change?key=' + key + '&val=' + val + '&time=' + Math.floor(new Date().getTime() / 1000),
+				true
+			);
+			xhr.timeout = 30 * 1000;
+			xhr.send();
 		}
 		function _setze_daten_ein(daten) {
 			_setze_wetter_stunden_label('solarstrahlung', 0, 12, daten);
@@ -26,7 +53,11 @@
 			_setze_elektrische_daten(daten);
 			
 			_setze_ladestatus('auto_laden', daten['auto_laden']);
-			_setze_ladestatus('moped_laden', daten['moped_laden']);
+			document.getElementById('auto_ladeleistung').innerHTML = daten['auto_ladeleistung_in_w'] + " W";
+
+			_setze_ladestatus('roller_laden', daten['roller_laden']);
+			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_ladeleistung_in_w'] + " W";
+			
 			document.getElementById('wasser_ueberladen').innerHTML = daten['wasser_ueberladen'] ? 'AN' : 'AUS';
 			document.getElementById('heizung_ueberladen').innerHTML = daten['heizung_ueberladen'] ? 'AN' : 'AUS';
 		
@@ -301,18 +332,22 @@
 		}
 			.schalter span {
 				position: absolute;
-				top: 2.8rem;
+				top: 1.4rem;
 				left: 0rem;
 				width: 5.5rem;
 				text-align: right;
 				font-size: 1.8rem;
+			}
+			.schalter .ladeleistung {
+				font-size: 1rem;
+				line-height: 2rem;
 			}
 			.schalter button {
 				border-radius: 1rem;
 				font-size: 5.5rem;
 				min-width: 10rem;
 				border: solid 0.2rem black;
-				margin-left: 1rem;
+				margin-left: 0.8rem;
 			}
 			.schalter button.on {
 				background-color: black;
@@ -351,10 +386,16 @@
 <table class="wetter" id="solarstrahlung"></table>
 
 <div class="schalter" id="auto_laden">
-	<span>Auto</span><button>&#9889;</button><button>&#9728;</button>
+	<span onclick="refresh('change', 'auto', 'change_power')">Auto<br>
+	<span class="ladeleistung" id="auto_ladeleistung"></span></span>
+	<button onclick="refresh('change', 'auto', 'force')">&#9889;</button>
+	<button onclick="refresh('change', 'auto', 'solar')">&#9728;</button>
 </div>
-<div class="schalter" id="moped_laden">
-	<span>Roller</span><button>&#9889;</button><button>&#9728;</button>
+<div class="schalter" id="roller_laden">
+	<span onclick="refresh('change', 'roller', 'change_power')">Roller<br>
+	<span class="ladeleistung" id="roller_ladeleistung"></span></span>
+	<button onclick="refresh('change', 'roller', 'force')">&#9889;</button>
+	<button onclick="refresh('change', 'roller', 'solar')">&#9728;</button>
 </div>
 
 </body>

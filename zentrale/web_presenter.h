@@ -271,9 +271,16 @@ namespace Local {
 					_print_char_to_web((char*) "force");// off force solar
 					_print_char_to_web((char*) ",");
 
-				_print_char_to_web((char*) "\"moped_laden\":");
+				_print_char_to_web((char*) "\"auto_ladeleistung_in_w\":");
+					_print_int_to_web(3700);
+					_print_char_to_web((char*) ",");
+
+				_print_char_to_web((char*) "\"roller_laden\":");
 					_print_char_to_web((char*) "off");// off force solar
 					_print_char_to_web((char*) ",");
+
+				_print_char_to_web((char*) "\"roller_ladeleistung_in_w\":");
+					_print_int_to_web(800);
 
 			_print_char_to_web((char*) "}");
 		}
