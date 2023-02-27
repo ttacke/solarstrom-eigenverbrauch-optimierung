@@ -10,9 +10,9 @@ if(system("curl --version 1>/dev/null 2>&1") != 0) {
     print "Bitte das Tool 'curl' installieren\n";
     exit(1);
 }
-if(system("curl -XPOST -F file=\@../sd-karteninhalt/index.html 'http://$ARGV[0]/upload_file?name=index.html' 1>/dev/null 2>&1") == 0) {
+my $content = `curl -i -XPOST -F file=\@../sd-karteninhalt/index.html 'http://$ARGV[0]/upload_file?name=index.html' 2>&1`;
+if($content =~ m#HTTP/1.1 201 Created#) {
     print "Erfolg\n";
-    # TODO auf 201 Created im Inhalt hören, sonst nix.
     exit(0);
 }
 print "Fehler beim Upload\n";

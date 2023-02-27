@@ -41,8 +41,6 @@ namespace Local {
 			return false;
 		}
 
-		// TODO: "temperature":23.62[,}]  --> loggen? Aber das ist im Sommer draussen :/
-
 	public:
 		bool ist_force_aktiv() {
 			return relay_ist_an;

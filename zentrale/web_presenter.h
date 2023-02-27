@@ -201,8 +201,6 @@ namespace Local {
 			Local::RollerNetzRelayAPI roller_netz_relay_api(*cfg, web_client);
 			roller_netz_relay_api.heartbeat(now_timestamp);
 			yield();
-			// TODO
-			// Relays prüfen: sollte dort das delay() raus?
 
 			Local::WechselrichterLeser wechselrichter_leser(*cfg, web_client);
 			wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
