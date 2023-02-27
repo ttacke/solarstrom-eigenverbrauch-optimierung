@@ -29,7 +29,7 @@ void setup(void) {
 
 		digitalWrite(D2, relay_is_set ? HIGH : LOW);
 
-		webserver.server.send(200, "text/plain", relay_is_set ? "true" : "false");
+		webserver.server.send(200, "application/json", relay_is_set ? "{\"ison\":true}" : "{\"ison\":false}");
 	});
 	webserver.start();
 	Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
@@ -37,5 +37,4 @@ void setup(void) {
 
 void loop(void) {
 	webserver.watch_for_client();
-	delay(1000);// Ein bisschen ausgebremst ist er immer noch schnell genug
 }

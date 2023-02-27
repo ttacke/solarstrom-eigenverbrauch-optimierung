@@ -17,7 +17,7 @@ namespace Local {
 				"/relay"
 			);
 			while(web_client->read_next_block_to_buffer()) {
-				if(web_client->find_in_content((char*) "true")) {
+				if(web_client->find_in_content((char*) "\"ison\":true")) {
 					return true;
 				}
 			}

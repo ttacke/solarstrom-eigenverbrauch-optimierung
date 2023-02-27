@@ -12,6 +12,7 @@ if(system("curl --version 1>/dev/null 2>&1") != 0) {
 }
 if(system("curl -XPOST -F file=\@../sd-karteninhalt/index.html 'http://$ARGV[0]/upload_file?name=index.html' 1>/dev/null 2>&1") == 0) {
     print "Erfolg\n";
+    # TODO auf 201 Created im Inhalt hören, sonst nix.
     exit(0);
 }
 print "Fehler beim Upload\n";
