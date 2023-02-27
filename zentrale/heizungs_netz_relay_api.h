@@ -19,7 +19,7 @@ namespace Local {
 //		}
 
 		void heartbeat(int now_timestamp) {
-//			relay_ist_an = _ist_an(cfg->heizung_ueberladen_host, cfg->heizung_ueberladen_port);
+			relay_ist_an = _ist_an(cfg->heizung_ueberladen_host, cfg->heizung_ueberladen_port);
 			// TODO wird 1x die Minute gestartet
 		}
 	};
