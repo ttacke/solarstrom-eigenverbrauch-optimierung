@@ -5,11 +5,11 @@
 		const wochentage = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 		var ist_initialisiert = false;
 
-		function refresh(action = null, key = null, val = null) {
+		function refresh(action, key, val) {// DefaultValues kann Kindle nicht
 			if(!ist_initialisiert) {
 				window.warte_auf_daten = false;
 				_erstelle_wettertabelle('solarstrahlung', 18);
-				setInterval(refresh, 1000 * 60);
+				setInterval(function() { refresh('', '', ''); }, 1000 * 60);
 				ist_initialisiert = true;
 			}
 			if(!window.warte_auf_daten) {// Verhindern, dass sich Requests stauen, ueberholen etc
@@ -355,7 +355,7 @@
 			}
 	</style>
 </head>
-<body onload="refresh();">
+<body onload="refresh('', '', '');">
 
 <div id="fehler_vorhang"></div>
 <div id="fehler">
@@ -365,7 +365,7 @@
 	<p>Einfach warten, was wird schon...</p>
 </div>
 
-<div id="elektrische_daten" onclick="refresh();">
+<div id="elektrische_daten" onclick="refresh('', '', '');">
 	<div class="energie">
 		<span id="ueberschuss"></span>
 		<span class="einheit">W</span>
