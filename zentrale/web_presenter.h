@@ -12,6 +12,7 @@
 #include "wasser_netz_relay_api.h"
 #include "heizungs_netz_relay_api.h"
 #include "auto_netz_relay_api.h"
+#include "roller_netz_relay_api.h"
 #include <TimeLib.h>
 
 namespace Local {
@@ -174,7 +175,8 @@ namespace Local {
 				Local::AutoNetzRelayAPI auto_netz_relay_api(*cfg, web_client);
 				auto_netz_relay_api.fuehre_aus(val, now_timestamp);
 			} else if(strcmp(key, "roller") == 0) {
-				// TODO
+				Local::RollerNetzRelayAPI roller_netz_relay_api(*cfg, web_client);
+				roller_netz_relay_api.fuehre_aus(val, now_timestamp);
 			}
 			webserver.server.send(204, "text/plain", "");
 		}
@@ -193,7 +195,9 @@ namespace Local {
 			heizungs_netz_relay_api.heartbeat(now_timestamp);
 			Local::AutoNetzRelayAPI auto_netz_relay_api(*cfg, web_client);
 			auto_netz_relay_api.heartbeat(now_timestamp);
-			// TODO ShellyPlug Roller
+			Local::RollerNetzRelayAPI roller_netz_relay_api(*cfg, web_client);
+			roller_netz_relay_api.heartbeat(now_timestamp);
+			// TODO
 			// Relays prüfen: sollte dort das delay() raus?
 			// ShellyPlug: zeit von dort holen? Neee...
 
@@ -313,11 +317,17 @@ namespace Local {
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"roller_laden\":");
-					_print_char_to_web((char*) "\"off\"");// off force solar
+					_print_char_to_web((char*) (
+						roller_netz_relay_api.ist_force_aktiv()
+						? "\"force\""
+						: roller_netz_relay_api.ist_solar_aktiv()
+							? "\"solar\""
+							: "\"off\""
+					));
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"roller_ladeleistung_in_w\":");
-					_print_int_to_web(800);
+					_print_int_to_web(roller_netz_relay_api.gib_aktuelle_ladeleistung_in_w());
 
 			_print_char_to_web((char*) "}");
 		}
