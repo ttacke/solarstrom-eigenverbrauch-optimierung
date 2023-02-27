@@ -6,13 +6,11 @@
 #include "persistenz.h"
 #include "elektro_anlage.h"
 #include "wetter.h"
-#include "smartmeter_leser.h"
-#include "wechselrichter_leser.h"
-#include "wettervorhersage_leser.h"
-#include "wasser_netz_relay_api.h"
-#include "heizungs_netz_relay_api.h"
-#include "auto_netz_relay_api.h"
-#include "roller_netz_relay_api.h"
+#include "smartmeter_api.h"
+#include "wechselrichter_api.h"
+#include "wettervorhersage_api.h"
+#include "verbraucher.h"
+#include "verbraucher_api.h"
 #include <TimeLib.h>
 
 namespace Local {
@@ -27,6 +25,7 @@ namespace Local {
 
 		Local::ElektroAnlage elektroanlage;
 		Local::Wetter wetter;
+		Local::Verbraucher verbraucher;
 
 		char int_as_char[16];
 		const char* system_status_filename = "system_status.csv";
@@ -171,12 +170,27 @@ namespace Local {
 			const char* key = webserver.server.arg("key").c_str();
 			const char* val = webserver.server.arg("val").c_str();
 
+			Local::VerbraucherAPI verbraucher_api(*cfg, web_client);
 			if(strcmp(key, "auto") == 0) {
-				Local::AutoNetzRelayAPI auto_netz_relay_api(*cfg, web_client);
-				auto_netz_relay_api.fuehre_aus(val, now_timestamp);
+				if(strcmp(val, "force") == 0) {
+					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::force);
+				} else if(strcmp(val, "solar") == 0) {
+					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar);
+				} else if(strcmp(val, "off") == 0) {
+					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
+				} else if(strcmp(val, "change_power") == 0) {
+					verbraucher_api.wechsle_auto_ladeleistung();
+				}
 			} else if(strcmp(key, "roller") == 0) {
-				Local::RollerNetzRelayAPI roller_netz_relay_api(*cfg, web_client);
-				roller_netz_relay_api.fuehre_aus(val, now_timestamp);
+				if(strcmp(val, "force") == 0) {
+					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::force);
+				} else if(strcmp(val, "solar") == 0) {
+					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar);
+				} else if(strcmp(val, "off") == 0) {
+					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::off);
+				} else if(strcmp(val, "change_power") == 0) {
+					verbraucher_api.wechsle_roller_ladeleistung();
+				}
 			}
 			webserver.server.send(204, "text/plain", "");
 		}
@@ -189,28 +203,18 @@ namespace Local {
 				return;
 			}
 
-			Local::WasserNetzRelayAPI wasser_netz_relay_api(*cfg, web_client);
-			wasser_netz_relay_api.heartbeat(now_timestamp);
-			yield();
-			Local::HeizungsNetzRelayAPI heizungs_netz_relay_api(*cfg, web_client);
-			heizungs_netz_relay_api.heartbeat(now_timestamp);
-			yield();
-			Local::AutoNetzRelayAPI auto_netz_relay_api(*cfg, web_client);
-			auto_netz_relay_api.heartbeat(now_timestamp);
-			yield();
-			Local::RollerNetzRelayAPI roller_netz_relay_api(*cfg, web_client);
-			roller_netz_relay_api.heartbeat(now_timestamp);
+			Local::VerbraucherAPI verbraucher_api(*cfg, web_client);
+			verbraucher_api.daten_holen_und_einsetzen(verbraucher);
+
+			Local::WechselrichterAPI wechselrichter_api(*cfg, web_client);
+			wechselrichter_api.daten_holen_und_einsetzen(elektroanlage);
 			yield();
 
-			Local::WechselrichterLeser wechselrichter_leser(*cfg, web_client);
-			wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
+			Local::SmartmeterAPI smartmeter_api(*cfg, web_client);
+			smartmeter_api.daten_holen_und_einsetzen(elektroanlage);
 			yield();
 
-			Local::SmartmeterLeser smartmeter_leser(*cfg, web_client);
-			smartmeter_leser.daten_holen_und_einsetzen(elektroanlage);
-			yield();
-
-			Local::WettervorhersageLeser wetter_leser(*cfg, web_client);
+			Local::WettervorhersageAPI wettervorhersage_api(*cfg, web_client);
 
 			_lese_systemstatus_daten();
 			if(erneuere_daten_automatisch) {
@@ -223,7 +227,7 @@ namespace Local {
 					)
 				) {// Insgesamt also 1x die Stunde ca 10 nach um
 					Serial.println("Schreibe Stunden-Wettervorhersage");
-					wetter_leser.stundendaten_holen_und_persistieren(persistenz);
+					wettervorhersage_api.stundendaten_holen_und_persistieren(persistenz);
 					stunden_wettervorhersage_letzter_abruf = now_timestamp;
 					_schreibe_systemstatus_daten();
 					yield();
@@ -236,13 +240,13 @@ namespace Local {
 					)
 				) {// Insgesamt also 1x alle 4 Stunden
 					Serial.println("Schreibe Tages-Wettervorhersage");
-					wetter_leser.tagesdaten_holen_und_persistieren(persistenz);
+					wettervorhersage_api.tagesdaten_holen_und_persistieren(persistenz);
 					tages_wettervorhersage_letzter_abruf = now_timestamp;
 					_schreibe_systemstatus_daten();
 					yield();
 				}
 			}
-			wetter_leser.persistierte_daten_einsetzen(persistenz, wetter, now_timestamp);
+			wettervorhersage_api.persistierte_daten_einsetzen(persistenz, wetter, now_timestamp);
 
 			if(erneuere_daten_automatisch) {
 				_write_log_data(now_timestamp);
@@ -300,39 +304,39 @@ namespace Local {
 				_print_char_to_web((char*) "],");
 
 				_print_char_to_web((char*) "\"wasser_ueberladen\":");
-					_print_char_to_web((char*) (wasser_netz_relay_api.ist_aktiv() ? "true" : "false"));
+					_print_char_to_web((char*) (verbraucher.wasser_ueberladen_ist_an ? "true" : "false"));
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"heizung_ueberladen\":");
-					_print_char_to_web((char*) (heizungs_netz_relay_api.ist_aktiv() ? "true" : "false"));
+					_print_char_to_web((char*) (verbraucher.heizung_ueberladen_ist_an ? "true" : "false"));
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"auto_laden\":");
 					_print_char_to_web((char*) (
-						auto_netz_relay_api.ist_force_aktiv()
+						verbraucher.auto_laden_status == Local::Verbraucher::Ladestatus::force
 						? "\"force\""
-						: auto_netz_relay_api.ist_solar_aktiv()
+						: verbraucher.auto_laden_status == Local::Verbraucher::Ladestatus::solar
 							? "\"solar\""
 							: "\"off\""
 					));
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"auto_ladeleistung_in_w\":");
-					_print_int_to_web(auto_netz_relay_api.gib_aktuelle_ladeleistung_in_w());
+					_print_int_to_web(verbraucher.auto_ladeleistung_in_w);
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"roller_laden\":");
 					_print_char_to_web((char*) (
-						roller_netz_relay_api.ist_force_aktiv()
+						verbraucher.roller_laden_status == Local::Verbraucher::Ladestatus::force
 						? "\"force\""
-						: roller_netz_relay_api.ist_solar_aktiv()
+						: verbraucher.roller_laden_status == Local::Verbraucher::Ladestatus::solar
 							? "\"solar\""
 							: "\"off\""
 					));
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"roller_ladeleistung_in_w\":");
-					_print_int_to_web(roller_netz_relay_api.gib_aktuelle_ladeleistung_in_w());
+					_print_int_to_web(verbraucher.roller_ladeleistung_in_w);
 
 			_print_char_to_web((char*) "}");
 		}

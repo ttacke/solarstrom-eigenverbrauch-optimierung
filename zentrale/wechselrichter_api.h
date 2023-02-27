@@ -1,11 +1,11 @@
 #pragma once
-#include "base_leser.h"
+#include "base_api.h"
 #include "elektro_anlage.h"
 
 namespace Local {
-	class WechselrichterLeser: public BaseLeser {
+	class WechselrichterAPI: public BaseAPI {
 
-	using BaseLeser::BaseLeser;
+	using BaseAPI::BaseAPI;
 
 	protected:
 		std::uint8_t findings;

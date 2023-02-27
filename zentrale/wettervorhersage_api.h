@@ -1,13 +1,13 @@
 #pragma once
-#include "base_leser.h"
+#include "base_api.h"
 #include "persistenz.h"
 #include "wetter.h"
 #include <TimeLib.h>
 
 namespace Local {
-	class WettervorhersageLeser: public BaseLeser {
+	class WettervorhersageAPI: public BaseAPI {
 
-	using BaseLeser::BaseLeser;
+	using BaseAPI::BaseAPI;
 
 	protected:
 		const char* hourly_filename = "wetter_stundenvorhersage.json";

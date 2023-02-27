@@ -8,6 +8,15 @@ namespace Local {
 		const char* wlan_ssid = "[WLAN-SSID]";
 		const char* wlan_pwd = "[WLAN-PASSWORT]";
 
+		const char* roller_laden_host = "192.168.2.30";
+		int roller_laden_port = 80;
+		const char* wasser_ueberladen_host = "192.168.2.31";
+		int wasser_ueberladen_port = 80;
+		const char* auto_laden_host = "192.168.2.32";
+		int auto_laden_port = 80;
+		const char* heizung_ueberladen_host = "192.168.2.33";
+		const int heizung_ueberladen_port = 80;
+
 		const int webserver_port = 80;
 
 		// Fronius Gen24 8kW mit FromiusSmartMeter

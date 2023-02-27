@@ -1,10 +1,10 @@
 #pragma once
-#include "base_leser.h"
+#include "base_api.h"
 
 namespace Local {
-	class SmartmeterLeser: public BaseLeser {
+	class SmartmeterAPI: public BaseAPI {
 
-	using BaseLeser::BaseLeser;
+	using BaseAPI::BaseAPI;
 
 	protected:
 		std::uint8_t findings;
