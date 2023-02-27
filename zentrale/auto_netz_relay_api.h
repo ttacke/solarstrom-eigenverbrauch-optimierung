@@ -6,9 +6,12 @@ namespace Local {
 
 	using BaseAPI::BaseAPI;
 
+	protected:
+		bool relay_ist_an = false;
+
 	public:
 		bool ist_force_aktiv() {
-			return _ist_an(cfg->auto_laden_host, cfg->auto_laden_port);
+			return relay_ist_an;
 		}
 
 		bool ist_solar_aktiv() {
@@ -21,6 +24,11 @@ namespace Local {
 
 		int gib_aktuelle_ladeleistung_in_w() {
 			return 3700;
+		}
+
+		void heartbeat(int now_timestamp) {
+			relay_ist_an = _ist_an(cfg->auto_laden_host, cfg->auto_laden_port);
+			// TODO wird 1x die Minute gestartet
 		}
 	};
 }

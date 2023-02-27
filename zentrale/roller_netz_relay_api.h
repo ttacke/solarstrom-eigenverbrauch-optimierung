@@ -7,6 +7,8 @@ namespace Local {
 	using BaseAPI::BaseAPI;
 
 	protected:
+		bool relay_ist_an = false;
+
 		bool _ist_an(const char* host, int port) {
 			web_client->send_http_get_request(
 				host,
@@ -43,7 +45,7 @@ namespace Local {
 
 	public:
 		bool ist_force_aktiv() {
-			return _ist_an(cfg->roller_laden_host, cfg->roller_laden_port);
+			return relay_ist_an;
 		}
 
 		bool ist_solar_aktiv() {
@@ -60,6 +62,11 @@ namespace Local {
 
 		int gib_aktuelle_ladeleistung_in_w() {
 			return 840;
+		}
+
+		void heartbeat(int now_timestamp) {
+			relay_ist_an = _ist_an(cfg->roller_laden_host, cfg->roller_laden_port);
+			// TODO wird 1x die Minute gestartet
 		}
 	};
 }

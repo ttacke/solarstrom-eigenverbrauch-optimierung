@@ -191,21 +191,26 @@ namespace Local {
 
 			Local::WasserNetzRelayAPI wasser_netz_relay_api(*cfg, web_client);
 			wasser_netz_relay_api.heartbeat(now_timestamp);
+			yield();
 			Local::HeizungsNetzRelayAPI heizungs_netz_relay_api(*cfg, web_client);
 			heizungs_netz_relay_api.heartbeat(now_timestamp);
+			yield();
 			Local::AutoNetzRelayAPI auto_netz_relay_api(*cfg, web_client);
 			auto_netz_relay_api.heartbeat(now_timestamp);
+			yield();
 			Local::RollerNetzRelayAPI roller_netz_relay_api(*cfg, web_client);
 			roller_netz_relay_api.heartbeat(now_timestamp);
+			yield();
 			// TODO
 			// Relays prüfen: sollte dort das delay() raus?
-			// ShellyPlug: zeit von dort holen? Neee...
 
 			Local::WechselrichterLeser wechselrichter_leser(*cfg, web_client);
 			wechselrichter_leser.daten_holen_und_einsetzen(elektroanlage);
+			yield();
 
 			Local::SmartmeterLeser smartmeter_leser(*cfg, web_client);
 			smartmeter_leser.daten_holen_und_einsetzen(elektroanlage);
+			yield();
 
 			Local::WettervorhersageLeser wetter_leser(*cfg, web_client);
 
@@ -223,6 +228,7 @@ namespace Local {
 					wetter_leser.stundendaten_holen_und_persistieren(persistenz);
 					stunden_wettervorhersage_letzter_abruf = now_timestamp;
 					_schreibe_systemstatus_daten();
+					yield();
 				}
 
 				if(
@@ -235,6 +241,7 @@ namespace Local {
 					wetter_leser.tagesdaten_holen_und_persistieren(persistenz);
 					tages_wettervorhersage_letzter_abruf = now_timestamp;
 					_schreibe_systemstatus_daten();
+					yield();
 				}
 			}
 			wetter_leser.persistierte_daten_einsetzen(persistenz, wetter, now_timestamp);
