@@ -204,15 +204,16 @@ namespace Local {
 			}
 
 			Local::VerbraucherAPI verbraucher_api(*cfg, web_client);
-			verbraucher_api.daten_holen_und_einsetzen(verbraucher);
+			verbraucher_api.status_anpassen_und_daten_holen_und_einsetzen(verbraucher, now_timestamp);
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			Local::WechselrichterAPI wechselrichter_api(*cfg, web_client);
 			wechselrichter_api.daten_holen_und_einsetzen(elektroanlage);
-			yield();
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			Local::SmartmeterAPI smartmeter_api(*cfg, web_client);
 			smartmeter_api.daten_holen_und_einsetzen(elektroanlage);
-			yield();
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			Local::WettervorhersageAPI wettervorhersage_api(*cfg, web_client);
 
@@ -313,9 +314,9 @@ namespace Local {
 
 				_print_char_to_web((char*) "\"auto_laden\":");
 					_print_char_to_web((char*) (
-						verbraucher.auto_laden_status == Local::Verbraucher::Ladestatus::force
+						verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
 						? "\"force\""
-						: verbraucher.auto_laden_status == Local::Verbraucher::Ladestatus::solar
+						: verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::solar
 							? "\"solar\""
 							: "\"off\""
 					));
@@ -327,9 +328,9 @@ namespace Local {
 
 				_print_char_to_web((char*) "\"roller_laden\":");
 					_print_char_to_web((char*) (
-						verbraucher.roller_laden_status == Local::Verbraucher::Ladestatus::force
+						verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::force
 						? "\"force\""
-						: verbraucher.roller_laden_status == Local::Verbraucher::Ladestatus::solar
+						: verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::solar
 							? "\"solar\""
 							: "\"off\""
 					));
