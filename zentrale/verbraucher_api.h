@@ -86,13 +86,16 @@ namespace Local {
 
 		void _lies_status(int strom_auf_auto_leitung_in_ma) {
 			heizung_relay_ist_an = _netz_relay_ist_an(cfg->heizung_relay_host, cfg->heizung_relay_port);
-
+			heizung_relay_zustand_seit = _lese_zustand_seit(heizung_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 			wasser_relay_ist_an = _netz_relay_ist_an(cfg->wasser_relay_host, cfg->wasser_relay_port);
+			wasser_relay_zustand_seit = _lese_zustand_seit(wasser_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 			auto_relay_ist_an = _netz_relay_ist_an(cfg->auto_relay_host, cfg->auto_relay_port);
+			auto_relay_zustand_seit = _lese_zustand_seit(auto_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 			roller_relay_ist_an = _shellyplug_ist_an(cfg->roller_relay_host, cfg->roller_relay_port);
+			roller_relay_zustand_seit = _lese_zustand_seit(roller_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 		}
 
@@ -190,6 +193,19 @@ namespace Local {
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
 			}
+		}
+
+		int _lese_zustand_seit(const char* filename) {
+			int seit = 0;
+			if(persistenz->open_file_to_read(filename)) {
+				while(persistenz->read_next_block_to_buffer()) {
+					if(persistenz->find_in_content((char*) "([0-9]+)")) {
+						seit = atoi(persistenz->finding_buffer);
+					}
+				}
+				persistenz->close_file();
+			}
+			return seit;
 		}
 
 		int _gib_roller_benoetigte_leistung_in_w() {
