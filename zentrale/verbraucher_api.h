@@ -22,17 +22,21 @@ namespace Local {
 		int roller_relay_zustand_seit = 0;
 		const char* roller_relay_zustand_seit_filename = "roller_relay.zustand_seit";
 		const char* roller_relay_status_filename = "roller_relay.status";
-		const char* roller_leistung_filename = "roller_leistung.status";
-		const char* roller_leistung_log_filename = "roller_leistung.log";
 		int roller_benoetigte_leistung_in_w;
+		const char* roller_leistung_filename = "roller_leistung.status";
+		int roller_leistung_log_in_w[5];
+		const char* roller_leistung_log_filename = "roller_leistung.log";
 
 		bool auto_relay_ist_an = false;
 		int auto_relay_zustand_seit = 0;
 		const char* auto_relay_zustand_seit_filename = "auto_relay.zustand_seit";
 		const char* auto_relay_status_filename = "auto_relay.status";
-		const char* auto_leistung_filename = "auto_leistung.status";
-		const char* auto_leistung_log_filename = "auto_leistung.log";
 		int auto_benoetigte_leistung_in_w;
+		const char* auto_leistung_filename = "auto_leistung.status";
+		int auto_leistung_log_in_w[5];
+		const char* auto_leistung_log_filename = "auto_leistung.log";
+
+		int ueberschuss_log_in_w[5];
 
 
 /*
@@ -48,11 +52,7 @@ namespace Local {
 			&& lade_mindestdauer_ist_erreicht
 			&& letzte_5_logs_l3_in_ma mindestens 2x < x*0.9
 		) {
-			schalte(aus)// Auto Aus wenn Laden unterbrochen/fertig (force & solar)
-			schreibe wunsch in datei -> off
-			// --> die 2 sachen direkt beim Schalter machen + Zeit in Datei schreiben
-			auto_relay_ist_an = false;
-			auto_relay_in_zustand_seit = now;
+			setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
 		}
 
 		lade_mindestdauer_ist_erreicht = now - auto_relay_in_zustand_seit >= 10 * 60;
@@ -63,9 +63,7 @@ namespace Local {
 				&& ueberschuss_in_w_letzte_5logs mindestens 3x < auto_benoetigte_leistung_in_w
 				&& akku_ladestand_in_promille < 600
 			) {
-				schalte(aus);
-				auto_relay_ist_an = false;
-				auto_relay_in_zustand_seit = now;
+				_schalte_auto_relay(false);
 			} else if(
 				!auto_relay_ist_an
 				&& (
@@ -73,30 +71,32 @@ namespace Local {
 					|| akku_ladestand_in_promille > 700
 				)
 			) {
-				schalte(ein);
-				auto_relay_ist_an = false;
-				auto_relay_in_zustand_seit = now;
-				// WICHTIG: damit Nachfolgende nicht von falschen Werten ausgehen
-				ueberschuss_in_w -= auto_benoetigte_leistung_in_w;
+				_schalte_auto_relay(true);
+				// TODO alle anderen Elemente duerfen erst in 5min geschalten werden!
 			}
 		}
 */
 
 
 
-		void _lies_status(int strom_auf_auto_leitung_in_ma) {
+		void _ermittle_alle_zustaende() {
 			heizung_relay_ist_an = _netz_relay_ist_an(cfg->heizung_relay_host, cfg->heizung_relay_port);
 			heizung_relay_zustand_seit = _lese_zustand_seit(heizung_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+
 			wasser_relay_ist_an = _netz_relay_ist_an(cfg->wasser_relay_host, cfg->wasser_relay_port);
 			wasser_relay_zustand_seit = _lese_zustand_seit(wasser_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+
 			auto_relay_ist_an = _netz_relay_ist_an(cfg->auto_relay_host, cfg->auto_relay_port);
 			auto_relay_zustand_seit = _lese_zustand_seit(auto_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+
 			roller_relay_ist_an = _shellyplug_ist_an(cfg->roller_relay_host, cfg->roller_relay_port);
 			roller_relay_zustand_seit = _lese_zustand_seit(roller_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+
+
 		}
 
 		bool _netz_relay_ist_an(const char* host, int port) {
@@ -241,7 +241,8 @@ namespace Local {
 			Local::ElektroAnlage& elektroanlage,
 			Local::Wetter wetter
 		) {
-			_lies_status(elektroanlage.l3_strom_ma);
+			_ermittle_alle_zustaende();
+			//elektroanlage.l3_strom_ma
 
 //			int ueberschuss_in_w = elektroanlage.gib_ueberschuss_in_w();
 //			elektroanlage.solarakku_ladestand_in_promille
