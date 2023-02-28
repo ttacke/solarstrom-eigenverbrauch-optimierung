@@ -11,21 +11,27 @@ namespace Local {
 		Local::Persistenz* persistenz;
 
 		bool heizung_relay_ist_an = false;
-		const char* heizung_relay_status_filename = "heizung_relay.status";
+		int heizung_relay_zustand_seit = 0;
+		const char* heizung_relay_zustand_seit_filename = "heizung_relay.status";
 
 		bool wasser_relay_ist_an = false;
-		const char* wasser_relay_status_filename = "wasser_relay.status";
+		int wasser_relay_zustand_seit = 0;
+		const char* wasser_relay_zustand_seit_filename = "wasser_relay.status";
 
 		bool roller_relay_ist_an = false;
-		int roller_relay_ist_an_seit = 0;
+		int roller_relay_zustand_seit = 0;
+		const char* roller_relay_zustand_seit_filename = "roller_relay.zustand_seit";
 		const char* roller_relay_status_filename = "roller_relay.status";
 		const char* roller_leistung_filename = "roller_leistung.status";
+		const char* roller_leistung_log_filename = "roller_leistung.log";
 		int roller_benoetigte_leistung_in_w;
 
 		bool auto_relay_ist_an = false;
-		int auto_relay_ist_an_seit = 0;
+		int auto_relay_zustand_seit = 0;
+		const char* auto_relay_zustand_seit_filename = "auto_relay.zustand_seit";
 		const char* auto_relay_status_filename = "auto_relay.status";
 		const char* auto_leistung_filename = "auto_leistung.status";
+		const char* auto_leistung_log_filename = "auto_leistung.log";
 		int auto_benoetigte_leistung_in_w;
 
 
@@ -78,40 +84,16 @@ namespace Local {
 
 
 
-
-
-
-
-
-
 		void _lies_status(int strom_auf_auto_leitung_in_ma) {
 			heizung_relay_ist_an = _netz_relay_ist_an(cfg->heizung_relay_host, cfg->heizung_relay_port);
+
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 			wasser_relay_ist_an = _netz_relay_ist_an(cfg->wasser_relay_host, cfg->wasser_relay_port);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-
 			auto_relay_ist_an = _netz_relay_ist_an(cfg->auto_relay_host, cfg->auto_relay_port);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-//			if(auto_relay_ist_an) {
-//				if(strom_auf_auto_leitung_in_ma > auto_benoetigte_leistung_in_w * 220 * 0.9) {
-					// TODO KEINE Stichprobe! Das muss aus der Ladelog kommen -> weil unscharf
-					// d.h. bei relay-an immer Loggen
-//					aktuelle_auto_ladeleistung_in_w = auto_benoetigte_leistung_in_w * 0.9;
-//				} else {
-//					aktuelle_auto_ladeleistung_in_w = 0;
-//				}
-//			}
-
 			roller_relay_ist_an = _shellyplug_ist_an(cfg->roller_relay_host, cfg->roller_relay_port);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-//			if(roller_relay_ist_an) {
-//				aktuelle_roller_ladeleisung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_relay_host, cfg->roller_relay_port);
-				// TODO KEINE Stichprobe! Das muss aus der Ladelog kommen -> weil Akku einige Sekunden zum start braucht
-				// d.h. bei relay-an immer Loggen
-//			} else {
-//				aktuelle_roller_ladeleisung_in_w = 0;
-//			}
-//			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 		}
 
 		bool _netz_relay_ist_an(const char* host, int port) {
@@ -172,6 +154,60 @@ namespace Local {
 			return 0;
 		}
 
+		int _gib_auto_benoetigte_leistung_in_w() {
+			int leistung = cfg->auto_benoetigte_leistung_gering_in_w;
+			if(persistenz->open_file_to_read(auto_leistung_filename)) {
+				while(persistenz->read_next_block_to_buffer()) {
+					if(persistenz->find_in_content((char*) "([0-9]+)")) {
+						int i = atoi(persistenz->finding_buffer);
+						if(i > 0) {
+							leistung = i;
+						}
+					}
+				}
+				persistenz->close_file();
+			}
+			return leistung;
+		}
+
+		void _schalte_roller_relay(bool ein) {
+			_schalte_shellyplug(ein, cfg->roller_relay_host, cfg->roller_relay_port);
+			roller_relay_ist_an = ein;
+			roller_relay_zustand_seit = timestamp;
+			if(persistenz->open_file_to_overwrite(roller_relay_zustand_seit_filename)) {
+				sprintf(persistenz->buffer, "%d", roller_relay_zustand_seit);
+				persistenz->print_buffer_to_file();
+				persistenz->close_file();
+			}
+		}
+
+		void _schalte_auto_relay(bool ein) {
+			_schalte_netz_relay(ein, cfg->auto_relay_host, cfg->auto_relay_port);
+			auto_relay_ist_an = ein;
+			auto_relay_zustand_seit = timestamp;
+			if(persistenz->open_file_to_overwrite(auto_relay_zustand_seit_filename)) {
+				sprintf(persistenz->buffer, "%d", auto_relay_zustand_seit);
+				persistenz->print_buffer_to_file();
+				persistenz->close_file();
+			}
+		}
+
+		int _gib_roller_benoetigte_leistung_in_w() {
+			int leistung = cfg->roller_benoetigte_leistung_hoch_in_w;
+			if(persistenz->open_file_to_read(roller_leistung_filename)) {
+				while(persistenz->read_next_block_to_buffer()) {
+					if(persistenz->find_in_content((char*) "([0-9]+)")) {
+						int i = atoi(persistenz->finding_buffer);
+						if(i > 0) {
+							leistung = i;
+						}
+					}
+				}
+				persistenz->close_file();
+			}
+			return leistung;
+		}
+
 	public:
 		VerbraucherAPI(
 			Local::Config& cfg,
@@ -211,7 +247,6 @@ namespace Local {
 		}
 
 		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {
-			// TODO ladelog leeren
 			char stat[6];
 			if(status == Local::Verbraucher::Ladestatus::force) {
 				_schalte_roller_relay(true);
@@ -228,36 +263,12 @@ namespace Local {
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
 			}
-		}
-
-		void _schalte_roller_relay(bool ein) {
-			_schalte_shellyplug(ein, cfg->roller_relay_host, cfg->roller_relay_port);
-			roller_relay_ist_an = ein;
-			if(ein) {
-				roller_relay_ist_an_seit = timestamp;
-				if(persistenz->open_file_to_overwrite(roller_relay_status_filename)) {
-					sprintf(persistenz->buffer, "%d", roller_relay_ist_an_seit);
-					persistenz->print_buffer_to_file();
-					persistenz->close_file();
-				}
-			}
-		}
-
-		void _schalte_auto_relay(bool ein) {
-			_schalte_netz_relay(ein, cfg->auto_relay_host, cfg->auto_relay_port);
-			auto_relay_ist_an = ein;
-			if(ein) {
-				auto_relay_ist_an_seit = timestamp;
-				if(persistenz->open_file_to_overwrite(auto_relay_status_filename)) {
-					sprintf(persistenz->buffer, "%d", auto_relay_ist_an_seit);
-					persistenz->print_buffer_to_file();
-					persistenz->close_file();
-				}
+			if(persistenz->open_file_to_overwrite(roller_leistung_log_filename)) {
+				persistenz->close_file();
 			}
 		}
 
 		void setze_auto_ladestatus(Local::Verbraucher::Ladestatus status) {
-			// TODO ladelog leeren
 			char stat[6];
 			if(status == Local::Verbraucher::Ladestatus::force) {
 				_schalte_auto_relay(true);
@@ -274,22 +285,9 @@ namespace Local {
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
 			}
-		}
-
-		int _gib_auto_benoetigte_leistung_in_w() {
-			int leistung = cfg->auto_benoetigte_leistung_gering_in_w;
-			if(persistenz->open_file_to_read(auto_leistung_filename)) {
-				while(persistenz->read_next_block_to_buffer()) {
-					if(persistenz->find_in_content((char*) "([0-9]+)")) {
-						int i = atoi(persistenz->finding_buffer);
-						if(i > 0) {
-							leistung = i;
-						}
-					}
-				}
+			if(persistenz->open_file_to_overwrite(auto_leistung_log_filename)) {
 				persistenz->close_file();
 			}
-			return leistung;
 		}
 
 		void wechsle_auto_ladeleistung() {
@@ -304,22 +302,6 @@ namespace Local {
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
 			}
-		}
-
-		int _gib_roller_benoetigte_leistung_in_w() {
-			int leistung = cfg->roller_benoetigte_leistung_hoch_in_w;
-			if(persistenz->open_file_to_read(roller_leistung_filename)) {
-				while(persistenz->read_next_block_to_buffer()) {
-					if(persistenz->find_in_content((char*) "([0-9]+)")) {
-						int i = atoi(persistenz->finding_buffer);
-						if(i > 0) {
-							leistung = i;
-						}
-					}
-				}
-				persistenz->close_file();
-			}
-			return leistung;
 		}
 
 		void wechsle_roller_ladeleistung() {
