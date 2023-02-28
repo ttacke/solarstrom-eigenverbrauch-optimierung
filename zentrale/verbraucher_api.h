@@ -7,17 +7,25 @@ namespace Local {
 	using BaseAPI::BaseAPI;
 
 	protected:
+		int timestamp;
+		Local::Persistenz* persistenz;
+
 		bool heizung_relay_ist_an = false;
+		const char* heizung_relay_status_filename = "heizung_relay.status";
+
 		bool wasser_relay_ist_an = false;
+		const char* wasser_relay_status_filename = "wasser_relay.status";
 
 		bool roller_relay_ist_an = false;
-		int eingestellte_roller_ladeleistung_in_w = 840;// 420
-		int aktuelle_roller_ladeleisung_in_w = 0;
+		int roller_relay_ist_an_seit = 0;
+		const char* roller_relay_status_filename = "roller_relay.status";
+		int roller_benoetigte_leistung_in_w;
 
 		bool auto_relay_ist_an = false;
-		int eingestellte_auto_ladeleistung_in_w = 2200;// 3680
-//		int aktuelle_auto_ladeleistung_in_w = 0;
-		int auto_relay_in_zustand_seit = 0;
+		int auto_relay_ist_an_seit = 0;
+		const char* auto_relay_status_filename = "auto_relay.status";
+		int auto_benoetigte_leistung_in_w;
+
 
 /*
 		// TODO erst mal nur Auto
@@ -44,7 +52,7 @@ namespace Local {
 			if(
 				auto_relay_ist_an
 				&& lade_mindestdauer_ist_erreicht
-				&& ueberschuss_in_w_letzte_5logs mindestens 3x < eingestellte_auto_ladeleistung_in_w
+				&& ueberschuss_in_w_letzte_5logs mindestens 3x < auto_benoetigte_leistung_in_w
 				&& akku_ladestand_in_promille < 600
 			) {
 				schalte(aus);
@@ -53,7 +61,7 @@ namespace Local {
 			} else if(
 				!auto_relay_ist_an
 				&& (
-					ueberschuss_in_w_letzte_5logs mindestens 3x > eingestellte_auto_ladeleistung_in_w
+					ueberschuss_in_w_letzte_5logs mindestens 3x > auto_benoetigte_leistung_in_w
 					|| akku_ladestand_in_promille > 700
 				)
 			) {
@@ -61,7 +69,7 @@ namespace Local {
 				auto_relay_ist_an = false;
 				auto_relay_in_zustand_seit = now;
 				// WICHTIG: damit Nachfolgende nicht von falschen Werten ausgehen
-				ueberschuss_in_w -= eingestellte_auto_ladeleistung_in_w;
+				ueberschuss_in_w -= auto_benoetigte_leistung_in_w;
 			}
 		}
 */
@@ -75,27 +83,27 @@ namespace Local {
 
 
 		void _lies_status(int strom_auf_auto_leitung_in_ma) {
-			heizung_relay_ist_an = _netz_relay_ist_an(cfg->heizung_ueberladen_host, cfg->heizung_ueberladen_port);
+			heizung_relay_ist_an = _netz_relay_ist_an(cfg->heizung_relay_host, cfg->heizung_relay_port);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-			wasser_relay_ist_an = _netz_relay_ist_an(cfg->wasser_ueberladen_host, cfg->wasser_ueberladen_port);
+			wasser_relay_ist_an = _netz_relay_ist_an(cfg->wasser_relay_host, cfg->wasser_relay_port);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			auto_relay_ist_an = _netz_relay_ist_an(cfg->auto_laden_host, cfg->auto_laden_port);
+			auto_relay_ist_an = _netz_relay_ist_an(cfg->auto_relay_host, cfg->auto_relay_port);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 //			if(auto_relay_ist_an) {
-//				if(strom_auf_auto_leitung_in_ma > eingestellte_auto_ladeleistung_in_w * 220 * 0.9) {
+//				if(strom_auf_auto_leitung_in_ma > auto_benoetigte_leistung_in_w * 220 * 0.9) {
 					// TODO KEINE Stichprobe! Das muss aus der Ladelog kommen -> weil unscharf
 					// d.h. bei relay-an immer Loggen
-//					aktuelle_auto_ladeleistung_in_w = eingestellte_auto_ladeleistung_in_w * 0.9;
+//					aktuelle_auto_ladeleistung_in_w = auto_benoetigte_leistung_in_w * 0.9;
 //				} else {
 //					aktuelle_auto_ladeleistung_in_w = 0;
 //				}
 //			}
 
-			roller_relay_ist_an = _shellyplug_ist_an(cfg->roller_laden_host, cfg->roller_laden_port);
+			roller_relay_ist_an = _shellyplug_ist_an(cfg->roller_relay_host, cfg->roller_relay_port);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 //			if(roller_relay_ist_an) {
-//				aktuelle_roller_ladeleisung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_laden_host, cfg->roller_laden_port);
+//				aktuelle_roller_ladeleisung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_relay_host, cfg->roller_relay_port);
 				// TODO KEINE Stichprobe! Das muss aus der Ladelog kommen -> weil Akku einige Sekunden zum start braucht
 				// d.h. bei relay-an immer Loggen
 //			} else {
@@ -163,6 +171,17 @@ namespace Local {
 		}
 
 	public:
+		VerbraucherAPI(
+			Local::Config& cfg,
+			Local::WebClient& web_client,
+			Local::Persistenz& persistenz,
+			int timestamp
+		): BaseAPI(cfg, web_client), persistenz(&persistenz), timestamp(timestamp),
+			auto_benoetigte_leistung_in_w(cfg.auto_benoetigte_leistung_gering_in_w),
+			roller_benoetigte_leistung_in_w(cfg.roller_benoetigte_leistung_hoch_in_w)
+		{
+		}
+
 		void daten_holen_und_einsetzen(
 			Local::Verbraucher& verbraucher,
 			Local::ElektroAnlage& elektroanlage,
@@ -185,29 +204,42 @@ namespace Local {
 			if(roller_relay_ist_an) {
 				verbraucher.roller_ladestatus = Local::Verbraucher::Ladestatus::force;
 			}
-			verbraucher.auto_ladeleistung_in_w = eingestellte_auto_ladeleistung_in_w;
-			verbraucher.roller_ladeleistung_in_w = eingestellte_roller_ladeleistung_in_w;
+			verbraucher.auto_ladeleistung_in_w = auto_benoetigte_leistung_in_w;
+			verbraucher.roller_ladeleistung_in_w = roller_benoetigte_leistung_in_w;
 		}
 
-		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status, int timestamp) {
+		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {
 			// TODO wunsch-status in file speichern mit Zeitstempel
 			// TODO ladelog leeren
 			// TODO schalten passiert im "heartbeat", nicht hier
 			if(status == Local::Verbraucher::Ladestatus::force) {
-				_schalte_shellyplug(true, cfg->roller_laden_host, cfg->roller_laden_port);
+				_schalte_roller_relay(true);
 			} else {
-				_schalte_shellyplug(false, cfg->roller_laden_host, cfg->roller_laden_port);
+				_schalte_roller_relay(false);
 			}
 		}
 
-		void setze_auto_ladestatus(Local::Verbraucher::Ladestatus status, int timestamp) {
+		void _schalte_roller_relay(bool ein) {
+			_schalte_shellyplug(ein, cfg->roller_relay_host, cfg->roller_relay_port);
+			roller_relay_ist_an = ein;
+			if(ein) {
+				roller_relay_ist_an_seit = timestamp;
+				if(persistenz->open_file_to_overwrite(roller_relay_status_filename)) {
+					sprintf(persistenz->buffer, "%d", roller_relay_ist_an_seit);
+					persistenz->print_buffer_to_file();
+					persistenz->close_file();
+				}
+			}
+		}
+
+		void setze_auto_ladestatus(Local::Verbraucher::Ladestatus status) {
 			// TODO wunsch-status in file speichern mit Zeitstempel
 			// TODO ladelog leeren
 			// TODO schalten passiert im "heartbeat", nicht hier
 			if(status == Local::Verbraucher::Ladestatus::force) {
-				_schalte_netz_relay(true, cfg->auto_laden_host, cfg->auto_laden_port);
+				_schalte_netz_relay(true, cfg->auto_relay_host, cfg->auto_relay_port);
 			} else {
-				_schalte_netz_relay(false, cfg->auto_laden_host, cfg->auto_laden_port);
+				_schalte_netz_relay(false, cfg->auto_relay_host, cfg->auto_relay_port);
 			}
 		}
 

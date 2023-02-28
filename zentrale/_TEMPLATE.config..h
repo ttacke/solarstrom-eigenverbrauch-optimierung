@@ -8,21 +8,25 @@ namespace Local {
 		const char* wlan_ssid = "[WLAN-SSID]";
 		const char* wlan_pwd = "[WLAN-PASSWORT]";
 
-		const char* roller_laden_host = "192.168.2.30";
-		int roller_laden_port = 80;
-		const char* wasser_ueberladen_host = "192.168.2.31";
-		int wasser_ueberladen_port = 80;
-		const char* auto_laden_host = "192.168.2.32";
-		int auto_laden_port = 80;
-		const char* heizung_ueberladen_host = "192.168.2.33";
-		const int heizung_ueberladen_port = 80;
+		const char* roller_relay_host = "192.168.2.30";
+		int roller_relay_port = 80;
+		const char* wasser_relay_host = "192.168.2.31";
+		int wasser_relay_port = 80;
+		const char* auto_relay_host = "192.168.2.32";
+		int auto_relay_port = 80;
+		const char* heizung_relay_host = "192.168.2.33";
+		const int heizung_relay_port = 80;
 
-		int roller_ladeleistung_gering_in_w = 420;
-		int roller_ladeleistung_hoch_in_w = 840;
-		int auto_ladeleistung_gering_in_w = 2200;
-		int auto_ladeleistung_hoch_in_w = 3680;
-		int wasser_ueberladeleistung_in_w = 420;
-		int heizung_ueberladeleistung_in_w = 420;
+		int roller_benoetigte_leistung_gering_in_w = 420;
+		int roller_benoetigte_leistung_hoch_in_w = 840;
+		int roller_min_schaltzeit_in_min = 10;
+		int auto_benoetigte_leistung_gering_in_w = 2200;
+		int auto_benoetigte_leistung_hoch_in_w = 3680;
+		int auto_min_schaltzeit_in_min = 10;
+		int wasser_benoetigte_leistung_in_w = 420;
+		int wasser_min_schaltzeit_in_min = 30;
+		int heizung_benoetigte_leistung_in_w = 420;
+		int heizung_min_schaltzeit_in_min = 30;
 
 		const int webserver_port = 80;
 

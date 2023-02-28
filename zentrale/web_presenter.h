@@ -97,6 +97,7 @@ namespace Local {
 		WebPresenter(
 			Local::Config& cfg, Local::Wlan& wlan
 		): cfg(&cfg), web_client(wlan.client), webserver(cfg.webserver_port) {
+
 		}
 
 		void zeige_ui() {
@@ -170,24 +171,24 @@ namespace Local {
 			const char* key = webserver.server.arg("key").c_str();
 			const char* val = webserver.server.arg("val").c_str();
 
-			Local::VerbraucherAPI verbraucher_api(*cfg, web_client);
+			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz, now_timestamp);
 			if(strcmp(key, "auto") == 0) {
 				if(strcmp(val, "force") == 0) {
-					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::force, now_timestamp);
+					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::force);
 				} else if(strcmp(val, "solar") == 0) {
-					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar, now_timestamp);
+					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar);
 				} else if(strcmp(val, "off") == 0) {
-					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off, now_timestamp);
+					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
 				} else if(strcmp(val, "change_power") == 0) {
 					verbraucher_api.wechsle_auto_ladeleistung();
 				}
 			} else if(strcmp(key, "roller") == 0) {
 				if(strcmp(val, "force") == 0) {
-					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::force, now_timestamp);
+					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::force);
 				} else if(strcmp(val, "solar") == 0) {
-					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar, now_timestamp);
+					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar);
 				} else if(strcmp(val, "off") == 0) {
-					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::off, now_timestamp);
+					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::off);
 				} else if(strcmp(val, "change_power") == 0) {
 					verbraucher_api.wechsle_roller_ladeleistung();
 				}
@@ -245,7 +246,7 @@ namespace Local {
 			}
 			wettervorhersage_api.persistierte_daten_einsetzen(persistenz, wetter, now_timestamp);
 
-			Local::VerbraucherAPI verbraucher_api(*cfg, web_client);
+			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz, now_timestamp);
 			// TODO -> "erneuere_daten_automatisch" muss hier auch funktionieren
 			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
