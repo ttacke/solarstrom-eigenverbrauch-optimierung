@@ -19,11 +19,13 @@ namespace Local {
 		bool roller_relay_ist_an = false;
 		int roller_relay_ist_an_seit = 0;
 		const char* roller_relay_status_filename = "roller_relay.status";
+		const char* roller_leistung_filename = "roller_leistung.status";
 		int roller_benoetigte_leistung_in_w;
 
 		bool auto_relay_ist_an = false;
 		int auto_relay_ist_an_seit = 0;
 		const char* auto_relay_status_filename = "auto_relay.status";
+		const char* auto_leistung_filename = "auto_leistung.status";
 		int auto_benoetigte_leistung_in_w;
 
 
@@ -177,8 +179,8 @@ namespace Local {
 			Local::Persistenz& persistenz,
 			int timestamp
 		): BaseAPI(cfg, web_client), persistenz(&persistenz), timestamp(timestamp),
-			auto_benoetigte_leistung_in_w(cfg.auto_benoetigte_leistung_gering_in_w),
-			roller_benoetigte_leistung_in_w(cfg.roller_benoetigte_leistung_hoch_in_w)
+			roller_benoetigte_leistung_in_w(_gib_roller_benoetigte_leistung_in_w()),
+			auto_benoetigte_leistung_in_w(_gib_auto_benoetigte_leistung_in_w())
 		{
 		}
 
@@ -243,12 +245,64 @@ namespace Local {
 			}
 		}
 
+		int _gib_auto_benoetigte_leistung_in_w() {
+			int leistung = cfg->auto_benoetigte_leistung_gering_in_w;
+			if(persistenz->open_file_to_read(auto_leistung_filename)) {
+				while(persistenz->read_next_block_to_buffer()) {
+					if(persistenz->find_in_content((char*) "([0-9]+)")) {
+						int i = atoi(persistenz->finding_buffer);
+						if(i > 0) {
+							leistung = i;
+						}
+					}
+				}
+				persistenz->close_file();
+			}
+			return leistung;
+		}
+
 		void wechsle_auto_ladeleistung() {
-			// TODO in file schreiben
+			auto_benoetigte_leistung_in_w = _gib_auto_benoetigte_leistung_in_w();
+			if(auto_benoetigte_leistung_in_w == cfg->auto_benoetigte_leistung_hoch_in_w) {
+				auto_benoetigte_leistung_in_w = cfg->auto_benoetigte_leistung_gering_in_w;
+			} else {
+				auto_benoetigte_leistung_in_w = cfg->auto_benoetigte_leistung_hoch_in_w;
+			}
+			if(persistenz->open_file_to_overwrite(auto_leistung_filename)) {
+				sprintf(persistenz->buffer, "%d", auto_benoetigte_leistung_in_w);
+				persistenz->print_buffer_to_file();
+				persistenz->close_file();
+			}
+		}
+
+		int _gib_roller_benoetigte_leistung_in_w() {
+			int leistung = cfg->roller_benoetigte_leistung_hoch_in_w;
+			if(persistenz->open_file_to_read(roller_leistung_filename)) {
+				while(persistenz->read_next_block_to_buffer()) {
+					if(persistenz->find_in_content((char*) "([0-9]+)")) {
+						int i = atoi(persistenz->finding_buffer);
+						if(i > 0) {
+							leistung = i;
+						}
+					}
+				}
+				persistenz->close_file();
+			}
+			return leistung;
 		}
 
 		void wechsle_roller_ladeleistung() {
-			// TODO in file schreiben
+			roller_benoetigte_leistung_in_w = _gib_roller_benoetigte_leistung_in_w();
+			if(roller_benoetigte_leistung_in_w == cfg->roller_benoetigte_leistung_hoch_in_w) {
+				roller_benoetigte_leistung_in_w = cfg->roller_benoetigte_leistung_gering_in_w;
+			} else {
+				roller_benoetigte_leistung_in_w = cfg->roller_benoetigte_leistung_hoch_in_w;
+			}
+			if(persistenz->open_file_to_overwrite(roller_leistung_filename)) {
+				sprintf(persistenz->buffer, "%d", roller_benoetigte_leistung_in_w);
+				persistenz->print_buffer_to_file();
+				persistenz->close_file();
+			}
 		}
 	};
 }
