@@ -211,13 +211,22 @@ namespace Local {
 		}
 
 		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {
-			// TODO wunsch-status in file speichern mit Zeitstempel
 			// TODO ladelog leeren
-			// TODO schalten passiert im "heartbeat", nicht hier
+			char stat[6];
 			if(status == Local::Verbraucher::Ladestatus::force) {
 				_schalte_roller_relay(true);
+				strcpy(stat, "force");
+			} else if(status == Local::Verbraucher::Ladestatus::solar) {
+				_schalte_roller_relay(false);
+				strcpy(stat, "solar");
 			} else {
 				_schalte_roller_relay(false);
+				strcpy(stat, "off");
+			}
+			if(persistenz->open_file_to_overwrite(roller_relay_status_filename)) {
+				sprintf(persistenz->buffer, "%s,%d", stat, timestamp);
+				persistenz->print_buffer_to_file();
+				persistenz->close_file();
 			}
 		}
 
@@ -234,14 +243,36 @@ namespace Local {
 			}
 		}
 
+		void _schalte_auto_relay(bool ein) {
+			_schalte_netz_relay(ein, cfg->auto_relay_host, cfg->auto_relay_port);
+			auto_relay_ist_an = ein;
+			if(ein) {
+				auto_relay_ist_an_seit = timestamp;
+				if(persistenz->open_file_to_overwrite(auto_relay_status_filename)) {
+					sprintf(persistenz->buffer, "%d", auto_relay_ist_an_seit);
+					persistenz->print_buffer_to_file();
+					persistenz->close_file();
+				}
+			}
+		}
+
 		void setze_auto_ladestatus(Local::Verbraucher::Ladestatus status) {
-			// TODO wunsch-status in file speichern mit Zeitstempel
 			// TODO ladelog leeren
-			// TODO schalten passiert im "heartbeat", nicht hier
+			char stat[6];
 			if(status == Local::Verbraucher::Ladestatus::force) {
-				_schalte_netz_relay(true, cfg->auto_relay_host, cfg->auto_relay_port);
+				_schalte_auto_relay(true);
+				strcpy(stat, "force");
+			} else if(status == Local::Verbraucher::Ladestatus::solar) {
+				_schalte_auto_relay(false);
+				strcpy(stat, "solar");
 			} else {
-				_schalte_netz_relay(false, cfg->auto_relay_host, cfg->auto_relay_port);
+				_schalte_auto_relay(false);
+				strcpy(stat, "off");
+			}
+			if(persistenz->open_file_to_overwrite(auto_relay_status_filename)) {
+				sprintf(persistenz->buffer, "%s,%d", stat, timestamp);
+				persistenz->print_buffer_to_file();
+				persistenz->close_file();
 			}
 		}
 
