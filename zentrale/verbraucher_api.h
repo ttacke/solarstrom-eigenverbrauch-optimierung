@@ -9,12 +9,70 @@ namespace Local {
 	protected:
 		bool heizung_relay_ist_an = false;
 		bool wasser_relay_ist_an = false;
-		bool auto_relay_ist_an = false;
+
 		bool roller_relay_ist_an = false;
-		int eingestellte_auto_ladeleistung_in_w = 2200;// 3700
-		int aktuelle_auto_ladeleistung_in_w = 0;
 		int eingestellte_roller_ladeleistung_in_w = 840;// 420
 		int aktuelle_roller_ladeleisung_in_w = 0;
+
+		bool auto_relay_ist_an = false;
+		int eingestellte_auto_ladeleistung_in_w = 2200;// 3680
+//		int aktuelle_auto_ladeleistung_in_w = 0;
+		int auto_relay_in_zustand_seit = 0;
+
+/*
+		// TODO erst mal nur Auto
+		// Roller arbeitet einfach parallel
+		behandle_logge_in_datei(l3_in_ma);// nur 5 slots (lesen, einfügen, >5 entfernen, schreiben)
+		behandle_logge_in_datei(ueberschuss_in_w);// nur 5 slots (lesen, einfügen, >5 entfernen, schreiben)
+
+		auto_relay_in_zustand_seit = lade(datei) // Immer beim schalten zeitpunkt schreiben
+		lade_mindestdauer_ist_erreicht = now - auto_relay_in_zustand_seit >= 10 * 60; //Mindestlaufzeit: 10min
+		if(
+			auto_relay_ist_an
+			&& lade_mindestdauer_ist_erreicht
+			&& letzte_5_logs_l3_in_ma mindestens 2x < x*0.9
+		) {
+			schalte(aus)// Auto Aus wenn Laden unterbrochen/fertig (force & solar)
+			schreibe wunsch in datei -> off
+			// --> die 2 sachen direkt beim Schalter machen + Zeit in Datei schreiben
+			auto_relay_ist_an = false;
+			auto_relay_in_zustand_seit = now;
+		}
+
+		lade_mindestdauer_ist_erreicht = now - auto_relay_in_zustand_seit >= 10 * 60;
+		if(auto_ladestatus = solar) {
+			if(
+				auto_relay_ist_an
+				&& lade_mindestdauer_ist_erreicht
+				&& ueberschuss_in_w_letzte_5logs mindestens 3x < eingestellte_auto_ladeleistung_in_w
+				&& akku_ladestand_in_promille < 600
+			) {
+				schalte(aus);
+				auto_relay_ist_an = false;
+				auto_relay_in_zustand_seit = now;
+			} else if(
+				!auto_relay_ist_an
+				&& (
+					ueberschuss_in_w_letzte_5logs mindestens 3x > eingestellte_auto_ladeleistung_in_w
+					|| akku_ladestand_in_promille > 700
+				)
+			) {
+				schalte(ein);
+				auto_relay_ist_an = false;
+				auto_relay_in_zustand_seit = now;
+				// WICHTIG: damit Nachfolgende nicht von falschen Werten ausgehen
+				ueberschuss_in_w -= eingestellte_auto_ladeleistung_in_w;
+			}
+		}
+*/
+
+
+
+
+
+
+
+
 
 		void _lies_status(int strom_auf_auto_leitung_in_ma) {
 			heizung_relay_ist_an = _netz_relay_ist_an(cfg->heizung_ueberladen_host, cfg->heizung_ueberladen_port);
@@ -24,26 +82,26 @@ namespace Local {
 
 			auto_relay_ist_an = _netz_relay_ist_an(cfg->auto_laden_host, cfg->auto_laden_port);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-			if(auto_relay_ist_an) {
-				if(strom_auf_auto_leitung_in_ma > eingestellte_auto_ladeleistung_in_w * 220 * 0.9) {
+//			if(auto_relay_ist_an) {
+//				if(strom_auf_auto_leitung_in_ma > eingestellte_auto_ladeleistung_in_w * 220 * 0.9) {
 					// TODO KEINE Stichprobe! Das muss aus der Ladelog kommen -> weil unscharf
 					// d.h. bei relay-an immer Loggen
-					aktuelle_auto_ladeleistung_in_w = eingestellte_auto_ladeleistung_in_w * 0.9;
-				} else {
-					aktuelle_auto_ladeleistung_in_w = 0;
-				}
-			}
+//					aktuelle_auto_ladeleistung_in_w = eingestellte_auto_ladeleistung_in_w * 0.9;
+//				} else {
+//					aktuelle_auto_ladeleistung_in_w = 0;
+//				}
+//			}
 
 			roller_relay_ist_an = _shellyplug_ist_an(cfg->roller_laden_host, cfg->roller_laden_port);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-			if(roller_relay_ist_an) {
-				aktuelle_roller_ladeleisung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_laden_host, cfg->roller_laden_port);
+//			if(roller_relay_ist_an) {
+//				aktuelle_roller_ladeleisung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_laden_host, cfg->roller_laden_port);
 				// TODO KEINE Stichprobe! Das muss aus der Ladelog kommen -> weil Akku einige Sekunden zum start braucht
 				// d.h. bei relay-an immer Loggen
-			} else {
-				aktuelle_roller_ladeleisung_in_w = 0;
-			}
-			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+//			} else {
+//				aktuelle_roller_ladeleisung_in_w = 0;
+//			}
+//			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 		}
 
 		bool _netz_relay_ist_an(const char* host, int port) {

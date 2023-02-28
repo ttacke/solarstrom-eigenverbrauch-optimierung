@@ -17,6 +17,13 @@ namespace Local {
 		const char* heizung_ueberladen_host = "192.168.2.33";
 		const int heizung_ueberladen_port = 80;
 
+		int roller_ladeleistung_gering_in_w = 420;
+		int roller_ladeleistung_hoch_in_w = 840;
+		int auto_ladeleistung_gering_in_w = 2200;
+		int auto_ladeleistung_hoch_in_w = 3680;
+		int wasser_ueberladeleistung_in_w = 420;
+		int heizung_ueberladeleistung_in_w = 420;
+
 		const int webserver_port = 80;
 
 		// Fronius Gen24 8kW mit FromiusSmartMeter
