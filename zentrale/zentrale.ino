@@ -21,7 +21,7 @@ void setup(void) {
 		web_presenter.zeige_ui();
 	});
 	web_presenter.webserver.add_http_get_handler("/master/daten.json", []() {
-		web_presenter.zeige_daten(true);
+		web_presenter.ermittle_daten(true);
 	});
 	web_presenter.webserver.add_http_get_handler("/master/change", []() {
 		web_presenter.aendere();
@@ -31,7 +31,7 @@ void setup(void) {
 		web_presenter.zeige_ui();
 	});
 	web_presenter.webserver.add_http_get_handler("/daten.json", []() {
-		web_presenter.zeige_daten(false);
+		web_presenter.ermittle_daten(false);
 	});
 	web_presenter.webserver.add_http_get_handler("/change", []() {
 		web_presenter.webserver.server.send(403, "text/plain", "For master only!");

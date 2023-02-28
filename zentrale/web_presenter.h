@@ -173,21 +173,21 @@ namespace Local {
 			Local::VerbraucherAPI verbraucher_api(*cfg, web_client);
 			if(strcmp(key, "auto") == 0) {
 				if(strcmp(val, "force") == 0) {
-					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::force);
+					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::force, now_timestamp);
 				} else if(strcmp(val, "solar") == 0) {
-					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar);
+					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar, now_timestamp);
 				} else if(strcmp(val, "off") == 0) {
-					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
+					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off, now_timestamp);
 				} else if(strcmp(val, "change_power") == 0) {
 					verbraucher_api.wechsle_auto_ladeleistung();
 				}
 			} else if(strcmp(key, "roller") == 0) {
 				if(strcmp(val, "force") == 0) {
-					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::force);
+					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::force, now_timestamp);
 				} else if(strcmp(val, "solar") == 0) {
-					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar);
+					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar, now_timestamp);
 				} else if(strcmp(val, "off") == 0) {
-					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::off);
+					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::off, now_timestamp);
 				} else if(strcmp(val, "change_power") == 0) {
 					verbraucher_api.wechsle_roller_ladeleistung();
 				}
@@ -195,17 +195,13 @@ namespace Local {
 			webserver.server.send(204, "text/plain", "");
 		}
 
-		void zeige_daten(bool erneuere_daten_automatisch) {
+		void ermittle_daten(bool erneuere_daten_automatisch) {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
 			int now_timestamp = webserver.server.arg("time").toInt();
 			if(now_timestamp < 1674987010) {
 				webserver.server.send(400, "text/plain", "Bitte den aktuellen UnixTimestamp via Parameter 'time' angeben.");
 				return;
 			}
-
-			Local::VerbraucherAPI verbraucher_api(*cfg, web_client);
-			verbraucher_api.status_anpassen_und_daten_holen_und_einsetzen(verbraucher, now_timestamp);
-			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			Local::WechselrichterAPI wechselrichter_api(*cfg, web_client);
 			wechselrichter_api.daten_holen_und_einsetzen(elektroanlage);
@@ -248,6 +244,11 @@ namespace Local {
 				}
 			}
 			wettervorhersage_api.persistierte_daten_einsetzen(persistenz, wetter, now_timestamp);
+
+			Local::VerbraucherAPI verbraucher_api(*cfg, web_client);
+			// TODO -> "erneuere_daten_automatisch" muss hier auch funktionieren
+			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			if(erneuere_daten_automatisch) {
 				_write_log_data(now_timestamp);
