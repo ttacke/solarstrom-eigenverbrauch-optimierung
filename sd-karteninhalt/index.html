@@ -53,7 +53,7 @@
 			_setze_elektrische_daten(daten);
 			
 			_setze_ladestatus('auto_laden', daten['auto_laden']);
-			document.getElementById('auto_ladeleistung').innerHTML = daten['auto_ladeleistung_in_w'] + " W";
+			document.getElementById('auto_ladeleistung').innerHTML = daten['auto_benoetigte_leistung_in_w'] + " W";
 
 			_setze_ladestatus('roller_laden', daten['roller_laden']);
 			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_ladeleistung_in_w'] + " W";

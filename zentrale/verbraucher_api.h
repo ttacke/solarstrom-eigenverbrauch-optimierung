@@ -24,7 +24,6 @@ namespace Local {
 		const char* roller_relay_status_filename = "roller_relay.status";
 		int roller_benoetigte_leistung_in_w;
 		const char* roller_leistung_filename = "roller_leistung.status";
-		int roller_leistung_log_in_w[5];
 		const char* roller_leistung_log_filename = "roller_leistung.log";
 
 		bool auto_relay_ist_an = false;
@@ -33,11 +32,9 @@ namespace Local {
 		const char* auto_relay_status_filename = "auto_relay.status";
 		int auto_benoetigte_leistung_in_w;
 		const char* auto_leistung_filename = "auto_leistung.status";
-		int auto_leistung_log_in_w[5];
 		const char* auto_leistung_log_filename = "auto_leistung.log";
 
-		int ueberschuss_log_in_w[5];
-
+		const char* ueberschuss_leistung_log_filename = "ueberschuss_leistung.log";
 
 /*
 		// TODO erst mal nur Auto
@@ -95,8 +92,6 @@ namespace Local {
 			roller_relay_ist_an = _shellyplug_ist_an(cfg->roller_relay_host, cfg->roller_relay_port);
 			roller_relay_zustand_seit = _lese_zustand_seit(roller_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-
-
 		}
 
 		bool _netz_relay_ist_an(const char* host, int port) {
@@ -236,21 +231,36 @@ namespace Local {
 		{
 		}
 
+		void _lies_verbraucher_log(int* liste, const char* log_filename) {
+			// TODO Datei lesen und 5 Elemente in liste setzen
+			for(int i = 0; i < 5; i++) {
+//				liste[i] =
+			}
+		}
+
 		void daten_holen_und_einsetzen(
 			Local::Verbraucher& verbraucher,
 			Local::ElektroAnlage& elektroanlage,
 			Local::Wetter wetter
 		) {
 			_ermittle_alle_zustaende();
-			//elektroanlage.l3_strom_ma
 
-//			int ueberschuss_in_w = elektroanlage.gib_ueberschuss_in_w();
-//			elektroanlage.solarakku_ladestand_in_promille
-//			elektroanlage.l3_strom_ma (= auto hängt dran)
-//			elektroanlage.gib_ueberschuss_in_w()
+			verbraucher.aktuelle_auto_ladeleistung_in_w = round(elektroanlage.l3_strom_ma / 1000 * 230);
+			_lies_verbraucher_log(verbraucher.auto_leistung_log_in_w, auto_leistung_log_filename);
+
+			verbraucher.aktuelle_roller_ladeleistung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_relay_host, cfg->roller_relay_port);
+			_lies_verbraucher_log(verbraucher.roller_leistung_log_in_w, roller_leistung_log_filename);
+
+			verbraucher.aktueller_ueberschuss_in_w = elektroanlage.gib_ueberschuss_in_w();
+			_lies_verbraucher_log(verbraucher.ueberschuss_log_in_w, ueberschuss_leistung_log_filename);
+
+			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
 
 			verbraucher.heizung_ueberladen_ist_an = heizung_relay_ist_an;
 			verbraucher.wasser_ueberladen_ist_an = wasser_relay_ist_an;
+
+			// TODO status==force && relay aus -> status aus!
+			// TODO status aus File laden und setzen
 			verbraucher.auto_ladestatus = Local::Verbraucher::Ladestatus::off;
 			if(auto_relay_ist_an) {
 				verbraucher.auto_ladestatus = Local::Verbraucher::Ladestatus::force;
@@ -259,7 +269,7 @@ namespace Local {
 			if(roller_relay_ist_an) {
 				verbraucher.roller_ladestatus = Local::Verbraucher::Ladestatus::force;
 			}
-			verbraucher.auto_ladeleistung_in_w = auto_benoetigte_leistung_in_w;
+			verbraucher.auto_benoetigte_leistung_in_w = auto_benoetigte_leistung_in_w;
 			verbraucher.roller_ladeleistung_in_w = roller_benoetigte_leistung_in_w;
 		}
 
