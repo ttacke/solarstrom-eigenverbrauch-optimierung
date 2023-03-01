@@ -232,13 +232,24 @@ namespace Local {
 		}
 
 		void _lies_verbraucher_log(int* liste, const char* log_filename) {
-			// TODO Datei lesen und 5 Elemente in liste setzen
 			for(int i = 0; i < 5; i++) {
-//				liste[i] =
+				liste[i] = 0;
+			}
+			if(persistenz->open_file_to_read(log_filename)) {
+				while(persistenz->read_next_block_to_buffer()) {
+					char suche[16] = "";
+					for(int i = 0; i < 5; i++) {
+						sprintf(suche, ">%d=([0-9]+)<", i);
+						if(persistenz->find_in_content((char*) suche)) {
+							liste[i] = atoi(persistenz->finding_buffer);
+						}
+					}
+				}
+				persistenz->close_file();
 			}
 		}
 
-		void _schreibe_verbraucher_log(int* liste, int aktuell, const char* filename) {
+		void _schreibe_verbraucher_log(int* liste, int aktuell, const char* log_filename) {
 			int tmp;
 			for(int i = 0; i < 5; i++) {
 				if(i > 0) {
@@ -247,7 +258,14 @@ namespace Local {
 				tmp = liste[i];
 			}
 			liste[4] = aktuell;
-			// TODO datei schreiben
+
+			if(persistenz->open_file_to_overwrite(log_filename)) {
+				for(int i = 0; i < 5; i++) {
+					sprintf(persistenz->buffer, ">%d=%d<", i, liste[i]);
+					persistenz->print_buffer_to_file();
+				}
+				persistenz->close_file();
+			}
 		}
 
 		void _lese_ladestatus(Local::Verbraucher::Ladestatus& ladestatus, const char* filename, bool relay_ist_an) {
