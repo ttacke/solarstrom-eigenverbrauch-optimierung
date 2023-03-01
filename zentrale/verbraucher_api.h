@@ -268,12 +268,20 @@ namespace Local {
 			}
 		}
 
-		void _lese_ladestatus(Local::Verbraucher::Ladestatus& ladestatus, const char* filename, bool relay_ist_an) {
-			// TODO status==force && relay aus -> status aus + schreiben in Datei
-			// TODO status aus File laden und setzen
+		void _lese_ladestatus(Local::Verbraucher::Ladestatus& ladestatus, const char* filename) {
 			ladestatus = Local::Verbraucher::Ladestatus::off;
-			if(relay_ist_an) {
-				ladestatus = Local::Verbraucher::Ladestatus::force;
+			if(persistenz->open_file_to_read(filename)) {
+				while(persistenz->read_next_block_to_buffer()) {
+					if(persistenz->find_in_content((char*) "([a-z]+)")) {
+						if(strcmp(persistenz->finding_buffer, "solar")) {
+							ladestatus = Local::Verbraucher::Ladestatus::solar;
+						} else if(strcmp(persistenz->finding_buffer, "solar")) {
+							ladestatus = Local::Verbraucher::Ladestatus::force;
+						}
+						return;
+					}
+				}
+				persistenz->close_file();
 			}
 		}
 
@@ -309,12 +317,16 @@ namespace Local {
 
 			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
 
-			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename, verbraucher.auto_relay_ist_an);
-			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename, verbraucher.roller_relay_ist_an);
+			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
+			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);
 		}
 
 		void fuehre_lastmanagement_aus(Local::Verbraucher& verbraucher) {
+			// TODO status==force && relay aus -> status aus + schreiben in Datei
+			// verbraucher.auto_relay_ist_an / verbraucher.roller_relay_ist_an
+
 			// TODO Auto/Roller/wasser/heiz: ist in den letzten 5min irgendwas geschalten worden? Wenn ja, raus!
+
 			// TODO alles arbeitet einfach parallel, ohne wissen des anderen
 			if(_auto_laden_ist_beendet(verbraucher)) {
 				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
@@ -338,7 +350,7 @@ namespace Local {
 				strcpy(stat, "off");
 			}
 			if(persistenz->open_file_to_overwrite(roller_ladestatus_filename)) {
-				sprintf(persistenz->buffer, "%s,%d", stat, timestamp);
+				sprintf(persistenz->buffer, "%s", stat);
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
 			}
@@ -360,7 +372,7 @@ namespace Local {
 				strcpy(stat, "off");
 			}
 			if(persistenz->open_file_to_overwrite(auto_ladestatus_filename)) {
-				sprintf(persistenz->buffer, "%s,%d", stat, timestamp);
+				sprintf(persistenz->buffer, "%s", stat);
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
 			}
