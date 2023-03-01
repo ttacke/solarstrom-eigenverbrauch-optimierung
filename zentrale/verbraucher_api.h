@@ -16,13 +16,11 @@ namespace Local {
 
 		const char* roller_relay_zustand_seit_filename = "roller_relay.zustand_seit";
 		const char* roller_relay_status_filename = "roller_relay.status";
-		int roller_benoetigte_leistung_in_w;
 		const char* roller_leistung_filename = "roller_leistung.status";
 		const char* roller_leistung_log_filename = "roller_leistung.log";
 
 		const char* auto_relay_zustand_seit_filename = "auto_relay.zustand_seit";
 		const char* auto_relay_status_filename = "auto_relay.status";
-		int auto_benoetigte_leistung_in_w;
 		const char* auto_leistung_filename = "auto_leistung.status";
 		const char* auto_leistung_log_filename = "auto_leistung.log";
 
@@ -213,10 +211,7 @@ namespace Local {
 			Local::WebClient& web_client,
 			Local::Persistenz& persistenz,
 			int timestamp
-		): BaseAPI(cfg, web_client), persistenz(&persistenz), timestamp(timestamp),
-			roller_benoetigte_leistung_in_w(_gib_roller_benoetigte_leistung_in_w()),
-			auto_benoetigte_leistung_in_w(_gib_auto_benoetigte_leistung_in_w())
-		{
+		): BaseAPI(cfg, web_client), persistenz(&persistenz), timestamp(timestamp) {
 		}
 
 		void _lies_verbraucher_log(int* liste, const char* log_filename) {
@@ -235,9 +230,11 @@ namespace Local {
 
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(elektroanlage.l3_strom_ma / 1000 * 230);
 			_lies_verbraucher_log(verbraucher.auto_leistung_log_in_w, auto_leistung_log_filename);
+			verbraucher.auto_benoetigte_leistung_in_w = _gib_auto_benoetigte_leistung_in_w();
 
 			verbraucher.aktuelle_roller_ladeleistung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_relay_host, cfg->roller_relay_port);
 			_lies_verbraucher_log(verbraucher.roller_leistung_log_in_w, roller_leistung_log_filename);
+			verbraucher.roller_ladeleistung_in_w = _gib_roller_benoetigte_leistung_in_w();
 
 			verbraucher.aktueller_ueberschuss_in_w = elektroanlage.gib_ueberschuss_in_w();
 			_lies_verbraucher_log(verbraucher.ueberschuss_log_in_w, ueberschuss_leistung_log_filename);
@@ -254,8 +251,6 @@ namespace Local {
 			if(verbraucher.roller_relay_ist_an) {
 				verbraucher.roller_ladestatus = Local::Verbraucher::Ladestatus::force;
 			}
-			verbraucher.auto_benoetigte_leistung_in_w = auto_benoetigte_leistung_in_w;
-			verbraucher.roller_ladeleistung_in_w = roller_benoetigte_leistung_in_w;
 		}
 
 		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {
@@ -303,7 +298,7 @@ namespace Local {
 		}
 
 		void wechsle_auto_ladeleistung() {
-			auto_benoetigte_leistung_in_w = _gib_auto_benoetigte_leistung_in_w();
+			int auto_benoetigte_leistung_in_w = _gib_auto_benoetigte_leistung_in_w();
 			if(auto_benoetigte_leistung_in_w == cfg->auto_benoetigte_leistung_hoch_in_w) {
 				auto_benoetigte_leistung_in_w = cfg->auto_benoetigte_leistung_gering_in_w;
 			} else {
@@ -317,7 +312,7 @@ namespace Local {
 		}
 
 		void wechsle_roller_ladeleistung() {
-			roller_benoetigte_leistung_in_w = _gib_roller_benoetigte_leistung_in_w();
+			int roller_benoetigte_leistung_in_w = _gib_roller_benoetigte_leistung_in_w();
 			if(roller_benoetigte_leistung_in_w == cfg->roller_benoetigte_leistung_hoch_in_w) {
 				roller_benoetigte_leistung_in_w = cfg->roller_benoetigte_leistung_gering_in_w;
 			} else {
