@@ -4,25 +4,51 @@
 	<script type="text/javascript">
 		const wochentage = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 		var ist_initialisiert = false;
+		var zeit_des_ersten_fehlers = null;
+		var warte_auf_daten = false;
+		var zeitpunkt_letzte_daten = null;
+		var user_aktionen = [];
+		setInterval(function() {
+			if(
+				zeitpunkt_letzte_daten
+				&& zeitpunkt_letzte_daten < new Date().getTime() - (5 * 60 * 1000)
+			) {
+				_zaehle_fehler(true);
+			}
+		}, 2000);
 
 		function refresh(action, key, val) {// DefaultValues kann Kindle nicht
 			if(!ist_initialisiert) {
-				window.warte_auf_daten = false;
+				warte_auf_daten = false;
 				_erstelle_wettertabelle('solarstrahlung', 18);
 				setInterval(function() { refresh('', '', ''); }, 1000 * 60);
 				ist_initialisiert = true;
 			}
-			if(!window.warte_auf_daten) {// Verhindern, dass sich Requests stauen, ueberholen etc
-				window.warte_auf_daten = true;
+			// user-aktionen immer ausfuehren, nie blocken!
+			if(action && (warte_auf_daten || user_aktionen.length > 0)) {
+				user_aktionen.push({action: action, key: key, val: val});
+				action = '';
+				key = '';
+				val = '';
+			}
+			if(!warte_auf_daten) {// Verhindern, dass sich Requests stauen, ueberholen etc
+				warte_auf_daten = true;
+				if(!action) {
+					var e = user_aktionen.unshift();
+					action = e.action;
+					key = e.key;
+					val = e.val;
+				}
+				
 				if(action == 'change') {
 					_fuehre_aktion_aus(key, val, function() {
 						_lies_daten(function() {
-							window.warte_auf_daten = false;
+							warte_auf_daten = false;
 						});
 					});
 				} else {
 					_lies_daten(function() {
-						window.warte_auf_daten = false;
+						warte_auf_daten = false;
 					});
 				}
 			}
@@ -79,16 +105,15 @@
 		}
 		function _zaehle_fehler(fehler_vorhanden) {
 			if(fehler_vorhanden) {
-				if(!window.zeit_des_ersten_fehlers) {
-					window.zeit_des_ersten_fehlers = new Date().getTime();
+				if(!zeit_des_ersten_fehlers) {
+					zeit_des_ersten_fehlers = new Date().getTime();
 				}
 				document.getElementsByTagName('body')[0].className = "fehler";
-				var minuten_seit_fehler = Math.round((new Date().getTime() - window.zeit_des_ersten_fehlers) / 1000 / 60);
+				var minuten_seit_fehler = Math.round((new Date().getTime() - zeit_des_ersten_fehlers) / 1000 / 60);
 				document.getElementById('fehler_seit').innerHTML = minuten_seit_fehler;
 			} else {
-				window.fehler_seit = null;
 				document.getElementsByTagName('body')[0].className = "";
-				window.zeit_des_ersten_fehlers = null;
+				zeit_des_ersten_fehlers = null;
 			}
 		}
 		function _setze_wetter_stunden_label(id, offset, length, daten) {
@@ -158,6 +183,7 @@
 					if(this.status == 200) {
 						_setze_daten_ein(JSON.parse(this.responseText));
 						_zaehle_fehler(false);
+						zeitpunkt_letzte_daten = new Date().getTime();
 					} else {
 						_zaehle_fehler(true);
 					}
