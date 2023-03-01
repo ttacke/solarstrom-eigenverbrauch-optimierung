@@ -221,9 +221,20 @@ namespace Local {
 			}
 		}
 
+		void _schreibe_verbraucher_log(int* liste, int aktuell, const char* filename) {
+			int tmp;
+			for(int i = 0; i < 5; i++) {
+				if(i > 0) {
+					liste[i - 1] = tmp;
+				}
+				tmp = liste[i];
+			}
+			liste[4] = aktuell;
+			// TODO datei schreiben
+		}
+
 		void _lese_ladestatus(Local::Verbraucher::Ladestatus& ladestatus, const char* filename, bool relay_ist_an) {
 			// TODO status==force && relay aus -> status aus + schreiben in Datei
-			// TODO wenn status = off und relay an -> relay aus
 			// TODO status aus File laden und setzen
 			ladestatus = Local::Verbraucher::Ladestatus::off;
 			if(relay_ist_an) {
@@ -240,19 +251,23 @@ namespace Local {
 
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(elektroanlage.l3_strom_ma / 1000 * 230);
 			_lies_verbraucher_log(verbraucher.auto_leistung_log_in_w, auto_leistung_log_filename);
+			_schreibe_verbraucher_log(verbraucher.auto_leistung_log_in_w, verbraucher.aktuelle_auto_ladeleistung_in_w, auto_leistung_log_filename);
 			verbraucher.auto_benoetigte_leistung_in_w = _gib_auto_benoetigte_leistung_in_w();
 
 			verbraucher.aktuelle_roller_ladeleistung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_relay_host, cfg->roller_relay_port);
 			_lies_verbraucher_log(verbraucher.roller_leistung_log_in_w, roller_leistung_log_filename);
+			_schreibe_verbraucher_log(verbraucher.roller_leistung_log_in_w, verbraucher.aktuelle_roller_ladeleistung_in_w, roller_leistung_log_filename);
 			verbraucher.roller_ladeleistung_in_w = _gib_roller_benoetigte_leistung_in_w();
 
 			verbraucher.aktueller_ueberschuss_in_w = elektroanlage.gib_ueberschuss_in_w();
 			_lies_verbraucher_log(verbraucher.ueberschuss_log_in_w, ueberschuss_leistung_log_filename);
+			_schreibe_verbraucher_log(verbraucher.ueberschuss_log_in_w, verbraucher.aktueller_ueberschuss_in_w, ueberschuss_leistung_log_filename);
 
 			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
 
 			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename, verbraucher.auto_relay_ist_an);
 			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename, verbraucher.roller_relay_ist_an);
+			// TODO wenn status = off und relay an -> relay aus
 		}
 
 		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {
