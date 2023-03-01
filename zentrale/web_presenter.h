@@ -307,11 +307,11 @@ namespace Local {
 				_print_char_to_web((char*) "],");
 
 				_print_char_to_web((char*) "\"wasser_ueberladen\":");
-					_print_char_to_web((char*) (verbraucher.wasser_ueberladen_ist_an ? "true" : "false"));
+					_print_char_to_web((char*) (verbraucher.wasser_relay_ist_an ? "true" : "false"));
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"heizung_ueberladen\":");
-					_print_char_to_web((char*) (verbraucher.heizung_ueberladen_ist_an ? "true" : "false"));
+					_print_char_to_web((char*) (verbraucher.heizung_relay_ist_an ? "true" : "false"));
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"auto_laden\":");

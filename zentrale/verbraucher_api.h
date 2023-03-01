@@ -10,24 +10,16 @@ namespace Local {
 		int timestamp;
 		Local::Persistenz* persistenz;
 
-		bool heizung_relay_ist_an = false;
-		int heizung_relay_zustand_seit = 0;
 		const char* heizung_relay_zustand_seit_filename = "heizung_relay.status";
 
-		bool wasser_relay_ist_an = false;
-		int wasser_relay_zustand_seit = 0;
 		const char* wasser_relay_zustand_seit_filename = "wasser_relay.status";
 
-		bool roller_relay_ist_an = false;
-		int roller_relay_zustand_seit = 0;
 		const char* roller_relay_zustand_seit_filename = "roller_relay.zustand_seit";
 		const char* roller_relay_status_filename = "roller_relay.status";
 		int roller_benoetigte_leistung_in_w;
 		const char* roller_leistung_filename = "roller_leistung.status";
 		const char* roller_leistung_log_filename = "roller_leistung.log";
 
-		bool auto_relay_ist_an = false;
-		int auto_relay_zustand_seit = 0;
 		const char* auto_relay_zustand_seit_filename = "auto_relay.zustand_seit";
 		const char* auto_relay_status_filename = "auto_relay.status";
 		int auto_benoetigte_leistung_in_w;
@@ -76,21 +68,21 @@ namespace Local {
 
 
 
-		void _ermittle_alle_zustaende() {
-			heizung_relay_ist_an = _netz_relay_ist_an(cfg->heizung_relay_host, cfg->heizung_relay_port);
-			heizung_relay_zustand_seit = _lese_zustand_seit(heizung_relay_zustand_seit_filename);
+		void _ermittle_relay_zustaende(Local::Verbraucher& verbraucher) {
+			verbraucher.heizung_relay_ist_an = _netz_relay_ist_an(cfg->heizung_relay_host, cfg->heizung_relay_port);
+			verbraucher.heizung_relay_zustand_seit = _lese_zustand_seit(heizung_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			wasser_relay_ist_an = _netz_relay_ist_an(cfg->wasser_relay_host, cfg->wasser_relay_port);
-			wasser_relay_zustand_seit = _lese_zustand_seit(wasser_relay_zustand_seit_filename);
+			verbraucher.wasser_relay_ist_an = _netz_relay_ist_an(cfg->wasser_relay_host, cfg->wasser_relay_port);
+			verbraucher.wasser_relay_zustand_seit = _lese_zustand_seit(wasser_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			auto_relay_ist_an = _netz_relay_ist_an(cfg->auto_relay_host, cfg->auto_relay_port);
-			auto_relay_zustand_seit = _lese_zustand_seit(auto_relay_zustand_seit_filename);
+			verbraucher.auto_relay_ist_an = _netz_relay_ist_an(cfg->auto_relay_host, cfg->auto_relay_port);
+			verbraucher.auto_relay_zustand_seit = _lese_zustand_seit(auto_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			roller_relay_ist_an = _shellyplug_ist_an(cfg->roller_relay_host, cfg->roller_relay_port);
-			roller_relay_zustand_seit = _lese_zustand_seit(roller_relay_zustand_seit_filename);
+			verbraucher.roller_relay_ist_an = _shellyplug_ist_an(cfg->roller_relay_host, cfg->roller_relay_port);
+			verbraucher.roller_relay_zustand_seit = _lese_zustand_seit(roller_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 		}
 
@@ -170,10 +162,8 @@ namespace Local {
 
 		void _schalte_roller_relay(bool ein) {
 			_schalte_shellyplug(ein, cfg->roller_relay_host, cfg->roller_relay_port);
-			roller_relay_ist_an = ein;
-			roller_relay_zustand_seit = timestamp;
 			if(persistenz->open_file_to_overwrite(roller_relay_zustand_seit_filename)) {
-				sprintf(persistenz->buffer, "%d", roller_relay_zustand_seit);
+				sprintf(persistenz->buffer, "%d", timestamp);
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
 			}
@@ -181,10 +171,8 @@ namespace Local {
 
 		void _schalte_auto_relay(bool ein) {
 			_schalte_netz_relay(ein, cfg->auto_relay_host, cfg->auto_relay_port);
-			auto_relay_ist_an = ein;
-			auto_relay_zustand_seit = timestamp;
 			if(persistenz->open_file_to_overwrite(auto_relay_zustand_seit_filename)) {
-				sprintf(persistenz->buffer, "%d", auto_relay_zustand_seit);
+				sprintf(persistenz->buffer, "%d", timestamp);
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
 			}
@@ -243,7 +231,7 @@ namespace Local {
 			Local::ElektroAnlage& elektroanlage,
 			Local::Wetter wetter
 		) {
-			_ermittle_alle_zustaende();
+			_ermittle_relay_zustaende(verbraucher);
 
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(elektroanlage.l3_strom_ma / 1000 * 230);
 			_lies_verbraucher_log(verbraucher.auto_leistung_log_in_w, auto_leistung_log_filename);
@@ -256,17 +244,14 @@ namespace Local {
 
 			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
 
-			verbraucher.heizung_ueberladen_ist_an = heizung_relay_ist_an;
-			verbraucher.wasser_ueberladen_ist_an = wasser_relay_ist_an;
-
 			// TODO status==force && relay aus -> status aus!
 			// TODO status aus File laden und setzen
 			verbraucher.auto_ladestatus = Local::Verbraucher::Ladestatus::off;
-			if(auto_relay_ist_an) {
+			if(verbraucher.auto_relay_ist_an) {
 				verbraucher.auto_ladestatus = Local::Verbraucher::Ladestatus::force;
 			}
 			verbraucher.roller_ladestatus = Local::Verbraucher::Ladestatus::off;
-			if(roller_relay_ist_an) {
+			if(verbraucher.roller_relay_ist_an) {
 				verbraucher.roller_ladestatus = Local::Verbraucher::Ladestatus::force;
 			}
 			verbraucher.auto_benoetigte_leistung_in_w = auto_benoetigte_leistung_in_w;
