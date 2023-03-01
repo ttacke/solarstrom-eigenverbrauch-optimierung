@@ -28,6 +28,8 @@ namespace Local {
 		Local::Verbraucher verbraucher;
 
 		char int_as_char[16];
+		// TODO configwerte als SD_File ablegen? dann können komlpexere Dinge außerhalb laufen
+		// z.b. die Grundlast und die Monatlichen/Stündlichen Anpassungen für Strahlungswerte
 		const char* system_status_filename = "system_status.csv";
 		int stunden_wettervorhersage_letzter_abruf;
 		int tages_wettervorhersage_letzter_abruf;

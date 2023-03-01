@@ -205,8 +205,6 @@ namespace Local {
 			persistenz.close_file();
 		}
 
-	// TODO configwerte als SD_File ablegen - und auch wie CURL schreibbar machen -> dan können komlpexere Dinge außerhalb laufen
-	// TODO das beim Status-File Lesen auch nutzen
 	public:
 		void stundendaten_holen_und_persistieren(Local::Persistenz& persistenz) {
 			_daten_holen_und_persistieren(persistenz, hourly_filename, hourly_request_uri);
