@@ -328,13 +328,15 @@ namespace Local {
 			// TODO Auto/Roller/wasser/heiz: ist in den letzten 5min irgendwas geschalten worden? Wenn ja, raus!
 
 			// TODO alles arbeitet einfach parallel, ohne wissen des anderen
-			if(_auto_laden_ist_beendet(verbraucher)) {
-				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
-				return;
-			}
-			if(_auto_schalte_solarstatus_automatisch(verbraucher)) {
-				return;
-			}
+
+			// TODO erst noch inaktiv. Erst mal testen
+//			if(_auto_laden_ist_beendet(verbraucher)) {
+//				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
+//				return;
+//			}
+//			if(_auto_schalte_solarstatus_automatisch(verbraucher)) {
+//				return;
+//			}
 		}
 
 		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {

@@ -18,6 +18,17 @@ foreach my $filename (qw/
     wetter_stundenvorhersage.csv
     wetter_tagesvorhersage.json
     wetter_tagesvorhersage.csv
+    heizung_relay.status
+    wasser_relay.status
+    roller_relay.zustand_seit
+    roller.ladestatus
+    roller_leistung.status
+    roller_leistung.log
+    auto_relay.zustand_seit
+    auto.ladestatus
+    auto_leistung.status
+    auto_leistung.log
+    ueberschuss_leistung.log
 /) {
     print "$filename...";
     if(system("wget -q 'http://$ARGV[0]/download_file?name=$filename' -O ../sd-karteninhalt/$filename") == 0) {
