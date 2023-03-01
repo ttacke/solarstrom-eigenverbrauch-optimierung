@@ -247,9 +247,13 @@ namespace Local {
 			wettervorhersage_api.persistierte_daten_einsetzen(persistenz, wetter, now_timestamp);
 
 			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz, now_timestamp);
-			// TODO -> "erneuere_daten_automatisch" muss hier auch funktionieren
 			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+			if(erneuere_daten_automatisch) {
+				verbraucher_api.fuehre_lastmanagement_aus(verbraucher);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+			}
+
 
 			if(erneuere_daten_automatisch) {
 				_write_log_data(now_timestamp);

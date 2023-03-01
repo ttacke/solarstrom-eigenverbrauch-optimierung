@@ -293,7 +293,9 @@ namespace Local {
 
 			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename, verbraucher.auto_relay_ist_an);
 			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename, verbraucher.roller_relay_ist_an);
+		}
 
+		void fuehre_lastmanagement_aus(Local::Verbraucher& verbraucher) {
 			// TODO Auto/Roller/wasser/heiz: ist in den letzten 5min irgendwas geschalten worden? Wenn ja, raus!
 			// TODO alles arbeitet einfach parallel, ohne wissen des anderen
 			if(_auto_laden_ist_beendet(verbraucher)) {
