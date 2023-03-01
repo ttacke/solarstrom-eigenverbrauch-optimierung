@@ -15,12 +15,12 @@ namespace Local {
 		const char* wasser_relay_zustand_seit_filename = "wasser_relay.status";
 
 		const char* roller_relay_zustand_seit_filename = "roller_relay.zustand_seit";
-		const char* roller_relay_status_filename = "roller_relay.status";
+		const char* roller_ladestatus_filename = "roller.ladestatus";
 		const char* roller_leistung_filename = "roller_leistung.status";
 		const char* roller_leistung_log_filename = "roller_leistung.log";
 
 		const char* auto_relay_zustand_seit_filename = "auto_relay.zustand_seit";
-		const char* auto_relay_status_filename = "auto_relay.status";
+		const char* auto_ladestatus_filename = "auto.ladestatus";
 		const char* auto_leistung_filename = "auto_leistung.status";
 		const char* auto_leistung_log_filename = "auto_leistung.log";
 
@@ -221,6 +221,16 @@ namespace Local {
 			}
 		}
 
+		void _lese_ladestatus(Local::Verbraucher::Ladestatus& ladestatus, const char* filename, bool relay_ist_an) {
+			// TODO status==force && relay aus -> status aus + schreiben in Datei
+			// TODO wenn status = off und relay an -> relay aus
+			// TODO status aus File laden und setzen
+			ladestatus = Local::Verbraucher::Ladestatus::off;
+			if(relay_ist_an) {
+				ladestatus = Local::Verbraucher::Ladestatus::force;
+			}
+		}
+
 		void daten_holen_und_einsetzen(
 			Local::Verbraucher& verbraucher,
 			Local::ElektroAnlage& elektroanlage,
@@ -241,16 +251,8 @@ namespace Local {
 
 			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
 
-			// TODO status==force && relay aus -> status aus!
-			// TODO status aus File laden und setzen
-			verbraucher.auto_ladestatus = Local::Verbraucher::Ladestatus::off;
-			if(verbraucher.auto_relay_ist_an) {
-				verbraucher.auto_ladestatus = Local::Verbraucher::Ladestatus::force;
-			}
-			verbraucher.roller_ladestatus = Local::Verbraucher::Ladestatus::off;
-			if(verbraucher.roller_relay_ist_an) {
-				verbraucher.roller_ladestatus = Local::Verbraucher::Ladestatus::force;
-			}
+			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename, verbraucher.auto_relay_ist_an);
+			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename, verbraucher.roller_relay_ist_an);
 		}
 
 		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {
@@ -265,7 +267,7 @@ namespace Local {
 				_schalte_roller_relay(false);
 				strcpy(stat, "off");
 			}
-			if(persistenz->open_file_to_overwrite(roller_relay_status_filename)) {
+			if(persistenz->open_file_to_overwrite(roller_ladestatus_filename)) {
 				sprintf(persistenz->buffer, "%s,%d", stat, timestamp);
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
@@ -287,7 +289,7 @@ namespace Local {
 				_schalte_auto_relay(false);
 				strcpy(stat, "off");
 			}
-			if(persistenz->open_file_to_overwrite(auto_relay_status_filename)) {
+			if(persistenz->open_file_to_overwrite(auto_ladestatus_filename)) {
 				sprintf(persistenz->buffer, "%s,%d", stat, timestamp);
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
