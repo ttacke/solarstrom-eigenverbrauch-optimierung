@@ -26,45 +26,71 @@ namespace Local {
 
 		const char* ueberschuss_leistung_log_filename = "ueberschuss_leistung.log";
 
-/*
-		// TODO erst mal nur Auto
-		// Roller arbeitet einfach parallel
-		behandle_logge_in_datei(l3_in_ma);// nur 5 slots (lesen, einfügen, >5 entfernen, schreiben)
-		behandle_logge_in_datei(ueberschuss_in_w);// nur 5 slots (lesen, einfügen, >5 entfernen, schreiben)
-
-		auto_relay_in_zustand_seit = lade(datei) // Immer beim schalten zeitpunkt schreiben
-		lade_mindestdauer_ist_erreicht = now - auto_relay_in_zustand_seit >= 10 * 60; //Mindestlaufzeit: 10min
-		if(
-			auto_relay_ist_an
-			&& lade_mindestdauer_ist_erreicht
-			&& letzte_5_logs_l3_in_ma mindestens 2x < x*0.9
-		) {
-			setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
+		bool _liste_enthaelt_mindestens(int* liste, int mindest_wert, int mindest_anzahl) {
+			int anzahl = 0;
+			for(int i = 0; i < 5; i++) {
+				if(liste[i] >= mindest_wert) {
+					anzahl++;
+				}
+			}
+			return anzahl >= mindest_anzahl;
 		}
 
-		lade_mindestdauer_ist_erreicht = now - auto_relay_in_zustand_seit >= 10 * 60;
-		if(auto_ladestatus = solar) {
+		bool _auto_laden_ist_beendet(Local::Verbraucher& verbraucher) {
 			if(
-				auto_relay_ist_an
-				&& lade_mindestdauer_ist_erreicht
-				&& ueberschuss_in_w_letzte_5logs mindestens 3x < auto_benoetigte_leistung_in_w
-				&& akku_ladestand_in_promille < 600
+				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::off
+				&& verbraucher.auto_relay_ist_an
+			) {
+				return true;
+			}
+			if(
+				verbraucher.auto_relay_ist_an
+				&& !_liste_enthaelt_mindestens(
+					verbraucher.auto_ladeleistung_log_in_w,
+					verbraucher.auto_benoetigte_ladeleistung_in_w * 0.9,
+					3
+				)
+			) {
+				return true;
+			}
+			return false;
+		}
+
+		bool _auto_schalte_solarstatus_automatisch(Local::Verbraucher& verbraucher) {
+			if(verbraucher.auto_ladestatus != Local::Verbraucher::Ladestatus::solar) {
+				return false;
+			}
+
+			bool auto_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.auto_relay_zustand_seit >= cfg->roller_min_schaltzeit_in_min * 60;
+			if(
+				verbraucher.auto_relay_ist_an
+				&& auto_schalt_mindestdauer_ist_erreicht
+				&& !_liste_enthaelt_mindestens(
+					verbraucher.ueberschuss_log_in_w,
+					verbraucher.auto_benoetigte_ladeleistung_in_w * 0.9,
+					3
+				)
+				&& verbraucher.aktueller_akku_ladenstand_in_promille < 500
 			) {
 				_schalte_auto_relay(false);
+				return true;
 			} else if(
-				!auto_relay_ist_an
+				!verbraucher.auto_relay_ist_an
+				&& auto_schalt_mindestdauer_ist_erreicht
 				&& (
-					ueberschuss_in_w_letzte_5logs mindestens 3x > auto_benoetigte_leistung_in_w
-					|| akku_ladestand_in_promille > 700
+					_liste_enthaelt_mindestens(
+						verbraucher.ueberschuss_log_in_w,
+						verbraucher.auto_benoetigte_ladeleistung_in_w * 0.9,
+						3
+					)
+					|| verbraucher.aktueller_akku_ladenstand_in_promille > 700
 				)
 			) {
 				_schalte_auto_relay(true);
-				// TODO alle anderen Elemente duerfen erst in 5min geschalten werden!
+				return true;
 			}
+			return false;
 		}
-*/
-
-
 
 		void _ermittle_relay_zustaende(Local::Verbraucher& verbraucher) {
 			verbraucher.heizung_relay_ist_an = _netz_relay_ist_an(cfg->heizung_relay_host, cfg->heizung_relay_port);
@@ -142,7 +168,7 @@ namespace Local {
 			return 0;
 		}
 
-		int _gib_auto_benoetigte_leistung_in_w() {
+		int _gib_auto_benoetigte_ladeleistung_in_w() {
 			int leistung = cfg->auto_benoetigte_leistung_gering_in_w;
 			if(persistenz->open_file_to_read(auto_leistung_filename)) {
 				while(persistenz->read_next_block_to_buffer()) {
@@ -205,15 +231,6 @@ namespace Local {
 			return leistung;
 		}
 
-	public:
-		VerbraucherAPI(
-			Local::Config& cfg,
-			Local::WebClient& web_client,
-			Local::Persistenz& persistenz,
-			int timestamp
-		): BaseAPI(cfg, web_client), persistenz(&persistenz), timestamp(timestamp) {
-		}
-
 		void _lies_verbraucher_log(int* liste, const char* log_filename) {
 			// TODO Datei lesen und 5 Elemente in liste setzen
 			for(int i = 0; i < 5; i++) {
@@ -242,6 +259,15 @@ namespace Local {
 			}
 		}
 
+	public:
+		VerbraucherAPI(
+			Local::Config& cfg,
+			Local::WebClient& web_client,
+			Local::Persistenz& persistenz,
+			int timestamp
+		): BaseAPI(cfg, web_client), persistenz(&persistenz), timestamp(timestamp) {
+		}
+
 		void daten_holen_und_einsetzen(
 			Local::Verbraucher& verbraucher,
 			Local::ElektroAnlage& elektroanlage,
@@ -250,13 +276,13 @@ namespace Local {
 			_ermittle_relay_zustaende(verbraucher);
 
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(elektroanlage.l3_strom_ma / 1000 * 230);
-			_lies_verbraucher_log(verbraucher.auto_leistung_log_in_w, auto_leistung_log_filename);
-			_schreibe_verbraucher_log(verbraucher.auto_leistung_log_in_w, verbraucher.aktuelle_auto_ladeleistung_in_w, auto_leistung_log_filename);
-			verbraucher.auto_benoetigte_leistung_in_w = _gib_auto_benoetigte_leistung_in_w();
+			_lies_verbraucher_log(verbraucher.auto_ladeleistung_log_in_w, auto_leistung_log_filename);
+			_schreibe_verbraucher_log(verbraucher.auto_ladeleistung_log_in_w, verbraucher.aktuelle_auto_ladeleistung_in_w, auto_leistung_log_filename);
+			verbraucher.auto_benoetigte_ladeleistung_in_w = _gib_auto_benoetigte_ladeleistung_in_w();
 
 			verbraucher.aktuelle_roller_ladeleistung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_relay_host, cfg->roller_relay_port);
-			_lies_verbraucher_log(verbraucher.roller_leistung_log_in_w, roller_leistung_log_filename);
-			_schreibe_verbraucher_log(verbraucher.roller_leistung_log_in_w, verbraucher.aktuelle_roller_ladeleistung_in_w, roller_leistung_log_filename);
+			_lies_verbraucher_log(verbraucher.roller_ladeleistung_log_in_w, roller_leistung_log_filename);
+			_schreibe_verbraucher_log(verbraucher.roller_ladeleistung_log_in_w, verbraucher.aktuelle_roller_ladeleistung_in_w, roller_leistung_log_filename);
 			verbraucher.roller_ladeleistung_in_w = _gib_roller_benoetigte_leistung_in_w();
 
 			verbraucher.aktueller_ueberschuss_in_w = elektroanlage.gib_ueberschuss_in_w();
@@ -267,7 +293,16 @@ namespace Local {
 
 			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename, verbraucher.auto_relay_ist_an);
 			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename, verbraucher.roller_relay_ist_an);
-			// TODO wenn status = off und relay an -> relay aus
+
+			// TODO Auto/Roller/wasser/heiz: ist in den letzten 5min irgendwas geschalten worden? Wenn ja, raus!
+			// TODO alles arbeitet einfach parallel, ohne wissen des anderen
+			if(_auto_laden_ist_beendet(verbraucher)) {
+				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
+				return;
+			}
+			if(_auto_schalte_solarstatus_automatisch(verbraucher)) {
+				return;
+			}
 		}
 
 		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {
@@ -315,14 +350,14 @@ namespace Local {
 		}
 
 		void wechsle_auto_ladeleistung() {
-			int auto_benoetigte_leistung_in_w = _gib_auto_benoetigte_leistung_in_w();
-			if(auto_benoetigte_leistung_in_w == cfg->auto_benoetigte_leistung_hoch_in_w) {
-				auto_benoetigte_leistung_in_w = cfg->auto_benoetigte_leistung_gering_in_w;
+			int auto_benoetigte_ladeleistung_in_w = _gib_auto_benoetigte_ladeleistung_in_w();
+			if(auto_benoetigte_ladeleistung_in_w == cfg->auto_benoetigte_leistung_hoch_in_w) {
+				auto_benoetigte_ladeleistung_in_w = cfg->auto_benoetigte_leistung_gering_in_w;
 			} else {
-				auto_benoetigte_leistung_in_w = cfg->auto_benoetigte_leistung_hoch_in_w;
+				auto_benoetigte_ladeleistung_in_w = cfg->auto_benoetigte_leistung_hoch_in_w;
 			}
 			if(persistenz->open_file_to_overwrite(auto_leistung_filename)) {
-				sprintf(persistenz->buffer, "%d", auto_benoetigte_leistung_in_w);
+				sprintf(persistenz->buffer, "%d", auto_benoetigte_ladeleistung_in_w);
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
 			}

@@ -324,8 +324,8 @@ namespace Local {
 					));
 					_print_char_to_web((char*) ",");
 
-				_print_char_to_web((char*) "\"auto_benoetigte_leistung_in_w\":");
-					_print_int_to_web(verbraucher.auto_benoetigte_leistung_in_w);
+				_print_char_to_web((char*) "\"auto_benoetigte_ladeleistung_in_w\":");
+					_print_int_to_web(verbraucher.auto_benoetigte_ladeleistung_in_w);
 					_print_char_to_web((char*) ",");
 
 				_print_char_to_web((char*) "\"roller_laden\":");
