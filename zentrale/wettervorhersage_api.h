@@ -60,7 +60,7 @@ namespace Local {
 			std::uint8_t findings = 0b0000'0001;
 			int letzte_gefundene_zeit = 0;
 			while(persistenz.read_next_block_to_buffer() && i < stunden_anzahl) {
-				if(persistenz.find_in_content((char*) "\"EpochDateTime\":([0-9]+)[,}]")) {
+				if(persistenz.find_in_buffer((char*) "\"EpochDateTime\":([0-9]+)[,}]")) {
 					int zeitpunkt = atoi(persistenz.finding_buffer);
 					if(
 						letzte_gefundene_zeit != zeitpunkt // nur 1x behandeln
@@ -82,7 +82,7 @@ namespace Local {
 				if(
 					!(findings & 0b000'0001) // Nur das erste passend zur gefundenen Zeit ermitteln
 					// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
-					&& persistenz.find_in_content((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")
+					&& persistenz.find_in_buffer((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")
 				) {
 					solarstrahlung_stunden_liste[i] = round(atof(persistenz.finding_buffer));
 					findings = 0b0000'0001;
@@ -105,7 +105,7 @@ namespace Local {
 			int letzte_gefundene_zeit = 0;
 			int now_date = _timestamp_to_date(now_timestamp);
 			while(persistenz.read_next_block_to_buffer() && i < tage_anzahl) {
-				if(persistenz.find_in_content((char*) "\"EpochDate\":([0-9]+)[,}]")) {
+				if(persistenz.find_in_buffer((char*) "\"EpochDate\":([0-9]+)[,}]")) {
 					int zeitpunkt = atoi(persistenz.finding_buffer);
 					if(
 						letzte_gefundene_zeit != zeitpunkt // nur 1x behandeln
@@ -128,13 +128,13 @@ namespace Local {
 				if(
 					!(findings & 0b0000'0001)
 					&&
-					persistenz.find_in_content((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")
+					persistenz.find_in_buffer((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")
 				) {
 					// Tag & Nacht (das sind 2 gleich lautende Keys)
 					solarstrahlung_tage_liste[i] += round(atof(persistenz.finding_buffer));
 					findings |= 0b0000'0001;
 				}
-				if(persistenz.find_in_content((char*) "\"Night\":")) {
+				if(persistenz.find_in_buffer((char*) "\"Night\":")) {
 					// Erst wenn der Nacht-Uebergang gefunden wurde, nochmal auslesen erlauben
 					findings = 0b0000'0000;
 				}
@@ -148,7 +148,7 @@ namespace Local {
 			}
 			int i = 0;
 			while(persistenz.read_next_line_to_buffer() && i < stunden_anzahl) {
-				if(persistenz.find_in_content((char*) "^([0-9]+),([0-9]+)$")) {
+				if(persistenz.find_in_buffer((char*) "^([0-9]+),([0-9]+)$")) {
 					int cache_zeit = atoi(persistenz.finding_buffer);
 					if(now_timestamp - 1800 > cache_zeit) {
 						continue;// Zu alt, ueberspringen
@@ -169,7 +169,7 @@ namespace Local {
 			int i = 0;
 			int now_date = _timestamp_to_date(now_timestamp);
 			while(persistenz.read_next_line_to_buffer() && i < tage_anzahl) {
-				if(persistenz.find_in_content((char*) "^([0-9]+),([0-9]+)$")) {
+				if(persistenz.find_in_buffer((char*) "^([0-9]+),([0-9]+)$")) {
 					int cache_zeit = atoi(persistenz.finding_buffer);
 					if(_timestamp_to_date(cache_zeit) < now_date) {
 						continue;// Zu alt, ueberspringen

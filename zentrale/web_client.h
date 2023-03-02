@@ -34,7 +34,7 @@ namespace Local {
 		}
 
 		bool _content_start_reached() {
-			if(find_in_content((char*) "\r\n\r\n(.*)$")) {
+			if(find_in_buffer((char*) "\r\n\r\n(.*)$")) {
 				memcpy(buffer, finding_buffer, strlen(finding_buffer) + 1);
 				return true;
 			}
@@ -42,7 +42,7 @@ namespace Local {
 		}
 
 		void _read_content_length_header() {
-			if(content_length == 0 && find_in_content((char*) "\r\nContent[-]Length: *([0-9]+)\r\n")) {
+			if(content_length == 0 && find_in_buffer((char*) "\r\nContent[-]Length: *([0-9]+)\r\n")) {
 				content_length = atoi(finding_buffer);
 			}
 		}
@@ -60,7 +60,7 @@ namespace Local {
 		WebClient(WiFiClient& wlan_client): wlan_client(&wlan_client) {
 		}
 
-		bool find_in_content(char* regex) {
+		bool find_in_buffer(char* regex) {
 			match_state.Target(search_buffer);
 			char result = match_state.Match(regex);
 			if(result > 0) {

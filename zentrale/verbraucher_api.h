@@ -117,7 +117,7 @@ namespace Local {
 				"/relay"
 			);
 			while(web_client->read_next_block_to_buffer()) {
-				if(web_client->find_in_content((char*) "\"ison\":true")) {
+				if(web_client->find_in_buffer((char*) "\"ison\":true")) {
 					return true;
 				}
 			}
@@ -139,7 +139,7 @@ namespace Local {
 				"/status"
 			);
 			while(web_client->read_next_block_to_buffer()) {
-				if(web_client->find_in_content((char*) "\"ison\":true")) {
+				if(web_client->find_in_buffer((char*) "\"ison\":true")) {
 					return true;
 				}
 			}
@@ -161,7 +161,7 @@ namespace Local {
 				"/status"
 			);
 			while(web_client->read_next_block_to_buffer()) {
-				if(web_client->find_in_content((char*) "\"power\":([0-9]+)")) {
+				if(web_client->find_in_buffer((char*) "\"power\":([0-9]+)")) {
 					return atoi(web_client->finding_buffer);
 				}
 			}
@@ -172,7 +172,7 @@ namespace Local {
 			int leistung = cfg->auto_benoetigte_leistung_gering_in_w;
 			if(persistenz->open_file_to_read(auto_leistung_filename)) {
 				while(persistenz->read_next_block_to_buffer()) {
-					if(persistenz->find_in_content((char*) "([0-9]+)")) {
+					if(persistenz->find_in_buffer((char*) "([0-9]+)")) {
 						int i = atoi(persistenz->finding_buffer);
 						if(i > 0) {
 							leistung = i;
@@ -206,7 +206,7 @@ namespace Local {
 			int seit = 0;
 			if(persistenz->open_file_to_read(filename)) {
 				while(persistenz->read_next_block_to_buffer()) {
-					if(persistenz->find_in_content((char*) "([0-9]+)")) {
+					if(persistenz->find_in_buffer((char*) "([0-9]+)")) {
 						seit = atoi(persistenz->finding_buffer);
 					}
 				}
@@ -219,7 +219,7 @@ namespace Local {
 			int leistung = cfg->roller_benoetigte_leistung_hoch_in_w;
 			if(persistenz->open_file_to_read(roller_leistung_filename)) {
 				while(persistenz->read_next_block_to_buffer()) {
-					if(persistenz->find_in_content((char*) "([0-9]+)")) {
+					if(persistenz->find_in_buffer((char*) "([0-9]+)")) {
 						int i = atoi(persistenz->finding_buffer);
 						if(i > 0) {
 							leistung = i;
@@ -239,8 +239,8 @@ namespace Local {
 				while(persistenz->read_next_block_to_buffer()) {
 					char suche[16] = "";
 					for(int i = 0; i < 5; i++) {
-						sprintf(suche, ">%d=([0-9]+)<", i);
-						if(persistenz->find_in_content((char*) suche)) {
+						sprintf(suche, ">%d=([-0-9]+)<", i);
+						if(persistenz->find_in_buffer((char*) suche)) {
 							liste[i] = atoi(persistenz->finding_buffer);
 						}
 					}
@@ -250,12 +250,8 @@ namespace Local {
 		}
 
 		void _schreibe_verbraucher_log(int* liste, int aktuell, const char* log_filename) {
-			int tmp;
-			for(int i = 0; i < 5; i++) {
-				if(i > 0) {
-					liste[i - 1] = tmp;
-				}
-				tmp = liste[i];
+			for(int i = 1; i < 5; i++) {
+				liste[i - 1] = liste[i];
 			}
 			liste[4] = aktuell;
 
@@ -272,7 +268,7 @@ namespace Local {
 			ladestatus = Local::Verbraucher::Ladestatus::off;
 			if(persistenz->open_file_to_read(filename)) {
 				while(persistenz->read_next_block_to_buffer()) {
-					if(persistenz->find_in_content((char*) "([a-z]+)")) {
+					if(persistenz->find_in_buffer((char*) "([a-z]+)")) {
 						if(strcmp(persistenz->finding_buffer, "solar")) {
 							ladestatus = Local::Verbraucher::Ladestatus::solar;
 						} else if(strcmp(persistenz->finding_buffer, "solar")) {
@@ -299,26 +295,57 @@ namespace Local {
 			Local::ElektroAnlage& elektroanlage,
 			Local::Wetter wetter
 		) {
+		/* TODO Relay-Laden untersuchen. Was dauert da so lang? Ggf nur alle x Minuten lesen, sonst in Datei!
+ermittle_daten...
+verbraucher debug...
+_ermittle_relay_zustaende
+20467
+auto
+20546
+roller
+21046
+ueber
+21095
+ende
+21107
+
+		*/
+			long start = millis();
+			Serial.println("verbraucher debug...");
 			_ermittle_relay_zustaende(verbraucher);
+			Serial.println("_ermittle_relay_zustaende");
+			Serial.println(millis() - start);
 
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(elektroanlage.l3_strom_ma / 1000 * 230);
 			_lies_verbraucher_log(verbraucher.auto_ladeleistung_log_in_w, auto_leistung_log_filename);
 			_schreibe_verbraucher_log(verbraucher.auto_ladeleistung_log_in_w, verbraucher.aktuelle_auto_ladeleistung_in_w, auto_leistung_log_filename);
 			verbraucher.auto_benoetigte_ladeleistung_in_w = _gib_auto_benoetigte_ladeleistung_in_w();
 
+			Serial.println("auto");
+			Serial.println(millis() - start);
+
 			verbraucher.aktuelle_roller_ladeleistung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_relay_host, cfg->roller_relay_port);
 			_lies_verbraucher_log(verbraucher.roller_ladeleistung_log_in_w, roller_leistung_log_filename);
 			_schreibe_verbraucher_log(verbraucher.roller_ladeleistung_log_in_w, verbraucher.aktuelle_roller_ladeleistung_in_w, roller_leistung_log_filename);
 			verbraucher.roller_ladeleistung_in_w = _gib_roller_benoetigte_leistung_in_w();
 
+			Serial.println("roller");
+			Serial.println(millis() - start);
+
 			verbraucher.aktueller_ueberschuss_in_w = elektroanlage.gib_ueberschuss_in_w();
 			_lies_verbraucher_log(verbraucher.ueberschuss_log_in_w, ueberschuss_leistung_log_filename);
 			_schreibe_verbraucher_log(verbraucher.ueberschuss_log_in_w, verbraucher.aktueller_ueberschuss_in_w, ueberschuss_leistung_log_filename);
+
+			Serial.println("ueber");
+			Serial.println(millis() - start);
 
 			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
 
 			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
 			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);
+
+			Serial.println("ende");
+			Serial.println(millis() - start);
 		}
 
 		void fuehre_lastmanagement_aus(Local::Verbraucher& verbraucher) {

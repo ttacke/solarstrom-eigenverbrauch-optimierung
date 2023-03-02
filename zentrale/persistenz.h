@@ -90,7 +90,7 @@ namespace Local {
 			return true;
 		}
 
-		bool find_in_content(char* regex) {
+		bool find_in_buffer(char* regex) {
 			next_capture_group = 0;
 			std::fill(finding_buffer, finding_buffer + sizeof(finding_buffer), 0);// zur Sicherheit
 			match_state.Target(search_buffer);

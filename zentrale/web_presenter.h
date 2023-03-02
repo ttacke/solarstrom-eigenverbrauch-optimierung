@@ -49,10 +49,10 @@ namespace Local {
 		void _lese_systemstatus_daten() {
 			if(persistenz.open_file_to_read(system_status_filename)) {
 				while(persistenz.read_next_block_to_buffer()) {
-					if(persistenz.find_in_content((char*) "\nstunden_wettervorhersage_letzter_abruf,([0-9]+),")) {
+					if(persistenz.find_in_buffer((char*) "\nstunden_wettervorhersage_letzter_abruf,([0-9]+),")) {
 						stunden_wettervorhersage_letzter_abruf = atoi(persistenz.finding_buffer);
 					}
-					if(persistenz.find_in_content((char*) "\ntages_wettervorhersage_letzter_abruf,([0-9]+),")) {
+					if(persistenz.find_in_buffer((char*) "\ntages_wettervorhersage_letzter_abruf,([0-9]+),")) {
 						tages_wettervorhersage_letzter_abruf = atoi(persistenz.finding_buffer);
 					}
 				}
