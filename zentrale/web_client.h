@@ -11,7 +11,6 @@ namespace Local {
 		WiFiClient* wlan_client;
 		MatchState match_state;
 		int content_length = 0;
-		bool remaining_content_after_header = true;
 		char old_buffer[64];
 		char search_buffer[128];
 
@@ -31,14 +30,6 @@ namespace Local {
 				delay(10);
 			}
 			return true;
-		}
-
-		bool _content_start_reached() {
-			if(find_in_buffer((char*) "\r\n\r\n(.*)$")) {
-				memcpy(buffer, finding_buffer, strlen(finding_buffer) + 1);
-				return true;
-			}
-			return false;
 		}
 
 		void _read_content_length_header() {
@@ -71,7 +62,6 @@ namespace Local {
 		}
 
 		void send_http_get_request(const char* host, const int port, const char* request_uri) {
-			remaining_content_after_header = false;
 			content_length = 0;
 			buffer[0] = '\0';
 			if(!wlan_client->connect(host, port)) {
@@ -84,17 +74,40 @@ namespace Local {
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			old_buffer[0] = '\0';
+			int max_read_size = sizeof(buffer) - 1;
 			while(wlan_client->available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
-				int read_size = wlan_client->readBytes(buffer, sizeof(buffer) - 1);
+
+				int read_size = 0;
+				bool content_start_reached = false;
+				while(true) {
+					wlan_client->readBytes(buffer + read_size, 1);
+					read_size++;
+					if(
+						read_size >= 4
+						&& strncmp(buffer + read_size - 4, "\r\n\r\n", 4) == 0
+					) {
+						content_start_reached = true;
+						break;
+					}
+					if(
+						read_size == max_read_size - 1
+						||
+						(
+							read_size == max_read_size - (1 + 4)
+							&& !strncmp(buffer + read_size, "\r", 1) == 0
+							&& !strncmp(buffer + read_size, "\n", 1) == 0
+						)
+					) {
+						break;
+					}
+				}
 				std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
 				_prepare_search_buffer();
-
 				_read_content_length_header();
-				if(_content_start_reached()) {
+				if(content_start_reached) {
 					old_buffer[0] = '\0';
 					_prepare_search_buffer();
-					remaining_content_after_header = true;
 					return;
 				}
 			}
@@ -107,11 +120,6 @@ namespace Local {
 
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			if(remaining_content_after_header) {
-				remaining_content_after_header = false;
-				content_length -= strlen(buffer);
-				return true;
-			}
 			if(wlan_client->available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
 				int read_size = wlan_client->readBytes(

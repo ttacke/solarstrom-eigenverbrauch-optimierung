@@ -310,42 +310,26 @@ ende
 21107
 
 		*/
-			long start = millis();
-			Serial.println("verbraucher debug...");
 			_ermittle_relay_zustaende(verbraucher);
-			Serial.println("_ermittle_relay_zustaende");
-			Serial.println(millis() - start);
 
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(elektroanlage.l3_strom_ma / 1000 * 230);
 			_lies_verbraucher_log(verbraucher.auto_ladeleistung_log_in_w, auto_leistung_log_filename);
 			_schreibe_verbraucher_log(verbraucher.auto_ladeleistung_log_in_w, verbraucher.aktuelle_auto_ladeleistung_in_w, auto_leistung_log_filename);
 			verbraucher.auto_benoetigte_ladeleistung_in_w = _gib_auto_benoetigte_ladeleistung_in_w();
 
-			Serial.println("auto");
-			Serial.println(millis() - start);
-
 			verbraucher.aktuelle_roller_ladeleistung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_relay_host, cfg->roller_relay_port);
 			_lies_verbraucher_log(verbraucher.roller_ladeleistung_log_in_w, roller_leistung_log_filename);
 			_schreibe_verbraucher_log(verbraucher.roller_ladeleistung_log_in_w, verbraucher.aktuelle_roller_ladeleistung_in_w, roller_leistung_log_filename);
 			verbraucher.roller_ladeleistung_in_w = _gib_roller_benoetigte_leistung_in_w();
 
-			Serial.println("roller");
-			Serial.println(millis() - start);
-
 			verbraucher.aktueller_ueberschuss_in_w = elektroanlage.gib_ueberschuss_in_w();
 			_lies_verbraucher_log(verbraucher.ueberschuss_log_in_w, ueberschuss_leistung_log_filename);
 			_schreibe_verbraucher_log(verbraucher.ueberschuss_log_in_w, verbraucher.aktueller_ueberschuss_in_w, ueberschuss_leistung_log_filename);
-
-			Serial.println("ueber");
-			Serial.println(millis() - start);
 
 			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
 
 			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
 			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);
-
-			Serial.println("ende");
-			Serial.println(millis() - start);
 		}
 
 		void fuehre_lastmanagement_aus(Local::Verbraucher& verbraucher) {
