@@ -38,8 +38,13 @@ namespace Local {
 
 		bool _auto_laden_ist_beendet(Local::Verbraucher& verbraucher) {
 			if(
-				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::off
-				&& verbraucher.auto_relay_ist_an
+				(
+					verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::off
+					&& verbraucher.auto_relay_ist_an
+				) || (
+					verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
+					&& !verbraucher.auto_relay_ist_an
+				)
 			) {
 				return true;
 			}
@@ -48,6 +53,31 @@ namespace Local {
 				&& !_liste_enthaelt_mindestens(
 					verbraucher.auto_ladeleistung_log_in_w,
 					verbraucher.auto_benoetigte_ladeleistung_in_w * 0.9,
+					3
+				)
+			) {
+				return true;
+			}
+			return false;
+		}
+
+		bool _roller_laden_ist_beendet(Local::Verbraucher& verbraucher) {
+			if(
+				(
+					verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::off
+					&& verbraucher.roller_relay_ist_an
+				) || (
+					verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::force
+					&& !verbraucher.roller_relay_ist_an
+				)
+			) {
+				return true;
+			}
+			if(
+				verbraucher.roller_relay_ist_an
+				&& !_liste_enthaelt_mindestens(
+					verbraucher.roller_ladeleistung_log_in_w,
+					verbraucher.roller_benoetigte_ladeleistung_in_w * 0.9,
 					3
 				)
 			) {
@@ -87,6 +117,42 @@ namespace Local {
 				)
 			) {
 				_schalte_auto_relay(true);
+				return true;
+			}
+			return false;
+		}
+
+		bool _roller_schalte_solarstatus_automatisch(Local::Verbraucher& verbraucher) {
+			if(verbraucher.roller_ladestatus != Local::Verbraucher::Ladestatus::solar) {
+				return false;
+			}
+
+			bool roller_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.roller_relay_zustand_seit >= cfg->roller_min_schaltzeit_in_min * 60;
+			if(
+				verbraucher.roller_relay_ist_an
+				&& roller_schalt_mindestdauer_ist_erreicht
+				&& !_liste_enthaelt_mindestens(
+					verbraucher.ueberschuss_log_in_w,
+					verbraucher.roller_benoetigte_ladeleistung_in_w * 0.9,
+					3
+				)
+				&& verbraucher.aktueller_akku_ladenstand_in_promille < 500
+			) {
+				_schalte_roller_relay(false);
+				return true;
+			} else if(
+				!verbraucher.roller_relay_ist_an
+				&& roller_schalt_mindestdauer_ist_erreicht
+				&& (
+					_liste_enthaelt_mindestens(
+						verbraucher.ueberschuss_log_in_w,
+						verbraucher.roller_benoetigte_ladeleistung_in_w * 0.9,
+						3
+					)
+					|| verbraucher.aktueller_akku_ladenstand_in_promille > 700
+				)
+			) {
+				_schalte_roller_relay(true);
 				return true;
 			}
 			return false;
@@ -215,7 +281,7 @@ namespace Local {
 			return seit;
 		}
 
-		int _gib_roller_benoetigte_leistung_in_w() {
+		int _gib_roller_benoetigte_ladeleistung_in_w() {
 			int leistung = cfg->roller_benoetigte_leistung_hoch_in_w;
 			if(persistenz->open_file_to_read(roller_leistung_filename)) {
 				while(persistenz->read_next_block_to_buffer()) {
@@ -295,21 +361,6 @@ namespace Local {
 			Local::ElektroAnlage& elektroanlage,
 			Local::Wetter wetter
 		) {
-		/* TODO Relay-Laden untersuchen. Was dauert da so lang? Ggf nur alle x Minuten lesen, sonst in Datei!
-ermittle_daten...
-verbraucher debug...
-_ermittle_relay_zustaende
-20467
-auto
-20546
-roller
-21046
-ueber
-21095
-ende
-21107
-
-		*/
 			_ermittle_relay_zustaende(verbraucher);
 
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(elektroanlage.l3_strom_ma / 1000 * 230);
@@ -320,7 +371,7 @@ ende
 			verbraucher.aktuelle_roller_ladeleistung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_relay_host, cfg->roller_relay_port);
 			_lies_verbraucher_log(verbraucher.roller_ladeleistung_log_in_w, roller_leistung_log_filename);
 			_schreibe_verbraucher_log(verbraucher.roller_ladeleistung_log_in_w, verbraucher.aktuelle_roller_ladeleistung_in_w, roller_leistung_log_filename);
-			verbraucher.roller_ladeleistung_in_w = _gib_roller_benoetigte_leistung_in_w();
+			verbraucher.roller_benoetigte_ladeleistung_in_w = _gib_roller_benoetigte_ladeleistung_in_w();
 
 			verbraucher.aktueller_ueberschuss_in_w = elektroanlage.gib_ueberschuss_in_w();
 			_lies_verbraucher_log(verbraucher.ueberschuss_log_in_w, ueberschuss_leistung_log_filename);
@@ -333,21 +384,33 @@ ende
 		}
 
 		void fuehre_lastmanagement_aus(Local::Verbraucher& verbraucher) {
-			// TODO status==force && relay aus -> status aus + schreiben in Datei
-			// verbraucher.auto_relay_ist_an / verbraucher.roller_relay_ist_an
-
-			// TODO Auto/Roller/wasser/heiz: ist in den letzten 5min irgendwas geschalten worden? Wenn ja, raus!
-
-			// TODO alles arbeitet einfach parallel, ohne wissen des anderen
-
-			// TODO erst noch inaktiv. Erst mal testen
-//			if(_auto_laden_ist_beendet(verbraucher)) {
-//				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
-//				return;
-//			}
-//			if(_auto_schalte_solarstatus_automatisch(verbraucher)) {
-//				return;
-//			}
+			int karenszeit = (cfg->lastmanagement_schalt_karenszeit_in_min * 60);
+			if(
+				verbraucher.auto_relay_zustand_seit >= timestamp - karenszeit
+				|| verbraucher.roller_relay_zustand_seit >= timestamp - karenszeit
+				|| verbraucher.wasser_relay_zustand_seit >= timestamp - karenszeit
+				|| verbraucher.heizung_relay_zustand_seit >= timestamp - karenszeit
+			) {
+				return;
+			}
+			// TODO Roller umsetzen
+			// TODO wsser umetzen
+			// TODO heiz umsetzen
+			// TODO: die benoetigte Ladung nutzen um was kleines/ueberladen zu deaktiviren wen dadurch was groesseres passt
+			if(_roller_laden_ist_beendet(verbraucher)) {
+				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::off);
+				return;
+			}
+			if(_auto_laden_ist_beendet(verbraucher)) {
+				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
+				return;
+			}
+			if(_auto_schalte_solarstatus_automatisch(verbraucher)) {
+				return;
+			}
+			if(_roller_schalte_solarstatus_automatisch(verbraucher)) {
+				return;
+			}
 		}
 
 		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {
@@ -409,14 +472,14 @@ ende
 		}
 
 		void wechsle_roller_ladeleistung() {
-			int roller_benoetigte_leistung_in_w = _gib_roller_benoetigte_leistung_in_w();
-			if(roller_benoetigte_leistung_in_w == cfg->roller_benoetigte_leistung_hoch_in_w) {
-				roller_benoetigte_leistung_in_w = cfg->roller_benoetigte_leistung_gering_in_w;
+			int roller_benoetigte_ladeleistung_in_w = _gib_roller_benoetigte_ladeleistung_in_w();
+			if(roller_benoetigte_ladeleistung_in_w == cfg->roller_benoetigte_leistung_hoch_in_w) {
+				roller_benoetigte_ladeleistung_in_w = cfg->roller_benoetigte_leistung_gering_in_w;
 			} else {
-				roller_benoetigte_leistung_in_w = cfg->roller_benoetigte_leistung_hoch_in_w;
+				roller_benoetigte_ladeleistung_in_w = cfg->roller_benoetigte_leistung_hoch_in_w;
 			}
 			if(persistenz->open_file_to_overwrite(roller_leistung_filename)) {
-				sprintf(persistenz->buffer, "%d", roller_benoetigte_leistung_in_w);
+				sprintf(persistenz->buffer, "%d", roller_benoetigte_ladeleistung_in_w);
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
 			}

@@ -19,7 +19,7 @@ namespace Local {
 		int auto_relay_zustand_seit = 0;
 
 		Ladestatus roller_ladestatus = Local::Verbraucher::Ladestatus::off;
-		int roller_ladeleistung_in_w = 0;
+		int roller_benoetigte_ladeleistung_in_w = 0;
 		int aktuelle_roller_ladeleistung_in_w = 0;
 		int roller_ladeleistung_log_in_w[5];
 		bool roller_relay_ist_an = false;

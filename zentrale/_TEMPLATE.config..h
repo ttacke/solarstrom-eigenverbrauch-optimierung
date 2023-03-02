@@ -28,6 +28,8 @@ namespace Local {
 		int heizung_benoetigte_leistung_in_w = 420;
 		int heizung_min_schaltzeit_in_min = 30;
 
+		int lastmanagement_schalt_karenszeit_in_min = 3;
+
 		const int webserver_port = 80;
 
 		// Fronius Gen24 8kW mit FromiusSmartMeter

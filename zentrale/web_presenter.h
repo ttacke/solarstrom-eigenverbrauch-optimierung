@@ -344,8 +344,8 @@ namespace Local {
 					));
 					_print_char_to_web((char*) ",");
 
-				_print_char_to_web((char*) "\"roller_ladeleistung_in_w\":");
-					_print_int_to_web(verbraucher.roller_ladeleistung_in_w);
+				_print_char_to_web((char*) "\"roller_benoetigte_ladeleistung_in_w\":");
+					_print_int_to_web(verbraucher.roller_benoetigte_ladeleistung_in_w);
 
 			_print_char_to_web((char*) "}");
 		}

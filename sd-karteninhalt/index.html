@@ -82,7 +82,7 @@
 			document.getElementById('auto_ladeleistung').innerHTML = daten['auto_benoetigte_ladeleistung_in_w'] + " W";
 
 			_setze_ladestatus('roller_laden', daten['roller_laden']);
-			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_ladeleistung_in_w'] + " W";
+			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
 			
 			document.getElementById('wasser_ueberladen').innerHTML = daten['wasser_ueberladen'] ? 'AN' : 'AUS';
 			document.getElementById('heizung_ueberladen').innerHTML = daten['heizung_ueberladen'] ? 'AN' : 'AUS';
