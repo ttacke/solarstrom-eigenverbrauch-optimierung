@@ -24,7 +24,7 @@ namespace Local {
 			int i = 0;
 			while(!wlan_client->available()) {
 				i++;
-				if(i > 1000) {// 10s timeout
+				if(i > 2000) {// 20s timeout
 					return false;
 				}
 				delay(10);
