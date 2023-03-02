@@ -48,13 +48,14 @@ namespace Local {
 			) {
 				return true;
 			}
+			bool es_wird_strom_verbraucht = _liste_enthaelt_mindestens(
+				verbraucher.auto_ladeleistung_log_in_w,
+				verbraucher.auto_benoetigte_ladeleistung_in_w * 0.9,
+				3
+			);
 			if(
 				verbraucher.auto_relay_ist_an
-				&& !_liste_enthaelt_mindestens(
-					verbraucher.auto_ladeleistung_log_in_w,
-					verbraucher.auto_benoetigte_ladeleistung_in_w * 0.9,
-					3
-				)
+				&& !es_wird_strom_verbraucht
 			) {
 				return true;
 			}
@@ -73,13 +74,14 @@ namespace Local {
 			) {
 				return true;
 			}
+			bool es_wird_strom_verbraucht = _liste_enthaelt_mindestens(
+				verbraucher.roller_ladeleistung_log_in_w,
+				verbraucher.roller_benoetigte_ladeleistung_in_w * 0.9,
+				3
+			);
 			if(
 				verbraucher.roller_relay_ist_an
-				&& !_liste_enthaelt_mindestens(
-					verbraucher.roller_ladeleistung_log_in_w,
-					verbraucher.roller_benoetigte_ladeleistung_in_w * 0.9,
-					3
-				)
+				&& !es_wird_strom_verbraucht
 			) {
 				return true;
 			}
@@ -92,27 +94,27 @@ namespace Local {
 			}
 
 			bool auto_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.auto_relay_zustand_seit >= cfg->auto_min_schaltzeit_in_min * 60;
+			if(!auto_schalt_mindestdauer_ist_erreicht) {
+				return false;
+			}
+
+			bool es_gibt_genug_ueberschuss = _liste_enthaelt_mindestens(
+				verbraucher.ueberschuss_log_in_w,
+				verbraucher.auto_benoetigte_ladeleistung_in_w * 0.9,
+				3
+			);
 			if(
 				verbraucher.auto_relay_ist_an
-				&& auto_schalt_mindestdauer_ist_erreicht
-				&& !_liste_enthaelt_mindestens(
-					verbraucher.ueberschuss_log_in_w,
-					verbraucher.auto_benoetigte_ladeleistung_in_w * 0.9,
-					3
-				)
+				&& !es_gibt_genug_ueberschuss
 				&& verbraucher.aktueller_akku_ladenstand_in_promille < 500
 			) {
 				_schalte_auto_relay(false);
 				return true;
-			} else if(
+			}
+			if(
 				!verbraucher.auto_relay_ist_an
-				&& auto_schalt_mindestdauer_ist_erreicht
 				&& (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						verbraucher.auto_benoetigte_ladeleistung_in_w * 0.9,
-						3
-					)
+					es_gibt_genug_ueberschuss
 					|| verbraucher.aktueller_akku_ladenstand_in_promille > 700
 				)
 			) {
@@ -160,27 +162,27 @@ namespace Local {
 			}
 
 			bool roller_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.roller_relay_zustand_seit >= cfg->roller_min_schaltzeit_in_min * 60;
+			if(!roller_schalt_mindestdauer_ist_erreicht) {
+				return false;
+			}
+
+			bool es_gibt_genug_ueberschuss = _liste_enthaelt_mindestens(
+				verbraucher.ueberschuss_log_in_w,
+				verbraucher.roller_benoetigte_ladeleistung_in_w * 0.9,
+				3
+			);
 			if(
 				verbraucher.roller_relay_ist_an
-				&& roller_schalt_mindestdauer_ist_erreicht
-				&& !_liste_enthaelt_mindestens(
-					verbraucher.ueberschuss_log_in_w,
-					verbraucher.roller_benoetigte_ladeleistung_in_w * 0.9,
-					3
-				)
+				&& !es_gibt_genug_ueberschuss
 				&& verbraucher.aktueller_akku_ladenstand_in_promille < 500
 			) {
 				_schalte_roller_relay(false);
 				return true;
-			} else if(
+			}
+			if(
 				!verbraucher.roller_relay_ist_an
-				&& roller_schalt_mindestdauer_ist_erreicht
 				&& (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						verbraucher.roller_benoetigte_ladeleistung_in_w * 0.9,
-						3
-					)
+					es_gibt_genug_ueberschuss
 					|| verbraucher.aktueller_akku_ladenstand_in_promille > 700
 				)
 			) {
