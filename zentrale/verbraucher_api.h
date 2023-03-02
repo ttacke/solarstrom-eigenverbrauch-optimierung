@@ -479,8 +479,6 @@ namespace Local {
 			}
 
 			// TODO: die benoetigte Ladung nutzen um was kleines/ueberladen zu deaktiviren wen dadurch was groesseres passt
-
-			// TODO in index -> eingestelltLadung schaltbar machen
 			if(_roller_laden_ist_beendet(verbraucher)) {
 				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::off);
 				return;
