@@ -8,6 +8,7 @@
 		var warte_auf_daten = false;
 		var zeitpunkt_letzte_daten = null;
 		var user_aktionen = [];
+		var secure_action_list = [];
 		setInterval(function() {
 			if(
 				zeitpunkt_letzte_daten
@@ -51,6 +52,32 @@
 						warte_auf_daten = false;
 					});
 				}
+			}
+		}
+		function secure_action(action, key, val) {
+			var now = Math.round(new Date().getTime() / 1000);
+			var tmp_list = [];
+			var last_action_time = 0;
+			for(var i = 0; i < secure_action_list.length; i++) {
+				if(
+					secure_action_list[i].time < now - 20
+					|| action != secure_action_list[i].action
+					|| key != secure_action_list[i].key
+					|| val != secure_action_list[i].val
+				) {
+					continue;
+				}
+				last_action_time = secure_action_list[i].time;
+				tmp_list.push(secure_action_list[i]);
+			}
+			if(last_action_time - now == 0) {
+				return;
+			}
+			tmp_list.push({action: action, key: key, val: val, time: now});
+			secure_action_list = tmp_list;
+			
+			if(secure_action_list.length >= 5) {
+				refresh(action, key, val);
 			}
 		}
 		function _fuehre_aktion_aus(key, val, done_func) {
@@ -412,13 +439,13 @@
 <table class="wetter" id="solarstrahlung"></table>
 
 <div class="schalter" id="auto_laden">
-	<span onclick="refresh('change', 'auto', 'change_power')">Auto<br>
+	<span onclick="secure_action('change', 'auto', 'change_power')">Auto<br>
 	<span class="ladeleistung" id="auto_ladeleistung"></span></span>
 	<button onclick="refresh('change', 'auto', this.className == 'on' ? 'off' : 'force')">&#9889;</button>
 	<button onclick="refresh('change', 'auto', this.className == 'on' ? 'off' : 'solar')">&#9728;</button>
 </div>
 <div class="schalter" id="roller_laden">
-	<span onclick="refresh('change', 'roller', 'change_power')">Roller<br>
+	<span onclick="secure_action('change', 'roller', 'change_power')">Roller<br>
 	<span class="ladeleistung" id="roller_ladeleistung"></span></span>
 	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'off' : 'force')">&#9889;</button>
 	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'off' : 'solar')">&#9728;</button>
