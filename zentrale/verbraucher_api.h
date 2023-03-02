@@ -269,9 +269,9 @@ namespace Local {
 			if(persistenz->open_file_to_read(filename)) {
 				while(persistenz->read_next_block_to_buffer()) {
 					if(persistenz->find_in_buffer((char*) "([a-z]+)")) {
-						if(strcmp(persistenz->finding_buffer, "solar")) {
+						if(strcmp(persistenz->finding_buffer, "solar") == 0) {
 							ladestatus = Local::Verbraucher::Ladestatus::solar;
-						} else if(strcmp(persistenz->finding_buffer, "solar")) {
+						} else if(strcmp(persistenz->finding_buffer, "force") == 0) {
 							ladestatus = Local::Verbraucher::Ladestatus::force;
 						}
 						return;
