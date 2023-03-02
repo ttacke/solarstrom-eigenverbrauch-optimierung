@@ -124,6 +124,42 @@ namespace Local {
 			return false;
 		}
 
+		bool _roller_schalte_solarstatus_automatisch(Local::Verbraucher& verbraucher) {
+			if(verbraucher.roller_ladestatus != Local::Verbraucher::Ladestatus::solar) {
+				return false;
+			}
+
+			bool roller_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.roller_relay_zustand_seit >= cfg->roller_min_schaltzeit_in_min * 60;
+			if(!roller_schalt_mindestdauer_ist_erreicht) {
+				return false;
+			}
+
+			bool es_gibt_genug_ueberschuss = _liste_enthaelt_mindestens(
+				verbraucher.ueberschuss_log_in_w,
+				verbraucher.roller_benoetigte_ladeleistung_in_w * 0.9,
+				3
+			);
+			if(
+				verbraucher.roller_relay_ist_an
+				&& !es_gibt_genug_ueberschuss
+				&& verbraucher.aktueller_akku_ladenstand_in_promille < 500
+			) {
+				_schalte_roller_relay(false);
+				return true;
+			}
+			if(
+				!verbraucher.roller_relay_ist_an
+				&& (
+					es_gibt_genug_ueberschuss
+					|| verbraucher.aktueller_akku_ladenstand_in_promille > 700
+				)
+			) {
+				_schalte_roller_relay(true);
+				return true;
+			}
+			return false;
+		}
+
 		bool _wasser_schalte_ueberladen_automatisch(Local::Verbraucher& verbraucher) {
 			bool wasser_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.wasser_relay_zustand_seit >= cfg->wasser_min_schaltzeit_in_min * 60;
 			if(!wasser_schalt_mindestdauer_ist_erreicht) {
@@ -156,37 +192,33 @@ namespace Local {
 			return false;
 		}
 
-		bool _roller_schalte_solarstatus_automatisch(Local::Verbraucher& verbraucher) {
-			if(verbraucher.roller_ladestatus != Local::Verbraucher::Ladestatus::solar) {
-				return false;
-			}
-
-			bool roller_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.roller_relay_zustand_seit >= cfg->roller_min_schaltzeit_in_min * 60;
-			if(!roller_schalt_mindestdauer_ist_erreicht) {
+		bool _heizung_schalte_ueberladen_automatisch(Local::Verbraucher& verbraucher) {
+			bool heizung_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.heizung_relay_zustand_seit >= cfg->heizung_min_schaltzeit_in_min * 60;
+			if(!heizung_schalt_mindestdauer_ist_erreicht) {
 				return false;
 			}
 
 			bool es_gibt_genug_ueberschuss = _liste_enthaelt_mindestens(
 				verbraucher.ueberschuss_log_in_w,
-				verbraucher.roller_benoetigte_ladeleistung_in_w * 0.9,
+				cfg->heizung_benoetigte_leistung_in_w * 0.9,
 				3
 			);
 			if(
-				verbraucher.roller_relay_ist_an
+				verbraucher.heizung_relay_ist_an
 				&& !es_gibt_genug_ueberschuss
-				&& verbraucher.aktueller_akku_ladenstand_in_promille < 500
+				&& verbraucher.aktueller_akku_ladenstand_in_promille < 700
 			) {
-				_schalte_roller_relay(false);
+				_schalte_heizung_relay(false);
 				return true;
 			}
 			if(
-				!verbraucher.roller_relay_ist_an
+				!verbraucher.heizung_relay_ist_an
 				&& (
 					es_gibt_genug_ueberschuss
-					|| verbraucher.aktueller_akku_ladenstand_in_promille > 700
+					|| verbraucher.aktueller_akku_ladenstand_in_promille > 800
 				)
 			) {
-				_schalte_roller_relay(true);
+				_schalte_heizung_relay(true);
 				return true;
 			}
 			return false;
@@ -305,6 +337,15 @@ namespace Local {
 		void _schalte_wasser_relay(bool ein) {
 			_schalte_netz_relay(ein, cfg->wasser_relay_host, cfg->wasser_relay_port);
 			if(persistenz->open_file_to_overwrite(wasser_relay_zustand_seit_filename)) {
+				sprintf(persistenz->buffer, "%d", timestamp);
+				persistenz->print_buffer_to_file();
+				persistenz->close_file();
+			}
+		}
+
+		void _schalte_heizung_relay(bool ein) {
+			_schalte_netz_relay(ein, cfg->heizung_relay_host, cfg->heizung_relay_port);
+			if(persistenz->open_file_to_overwrite(heizung_relay_zustand_seit_filename)) {
 				sprintf(persistenz->buffer, "%d", timestamp);
 				persistenz->print_buffer_to_file();
 				persistenz->close_file();
@@ -437,7 +478,6 @@ namespace Local {
 				return;
 			}
 
-			// TODO heiz umsetzen
 			// TODO: die benoetigte Ladung nutzen um was kleines/ueberladen zu deaktiviren wen dadurch was groesseres passt
 
 			// TODO in index -> eingestelltLadung schaltbar machen
@@ -456,6 +496,9 @@ namespace Local {
 				return;
 			}
 			if(_wasser_schalte_ueberladen_automatisch(verbraucher)) {
+				return;
+			}
+			if(_heizung_schalte_ueberladen_automatisch(verbraucher)) {
 				return;
 			}
 		}
