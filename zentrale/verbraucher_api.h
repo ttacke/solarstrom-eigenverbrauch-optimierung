@@ -50,7 +50,7 @@ namespace Local {
 			}
 			bool es_wird_strom_verbraucht = _liste_enthaelt_mindestens(
 				verbraucher.auto_ladeleistung_log_in_w,
-				round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.9),
+				round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.8),
 				3
 			);
 			if(
@@ -76,7 +76,7 @@ namespace Local {
 			}
 			bool es_wird_strom_verbraucht = _liste_enthaelt_mindestens(
 				verbraucher.roller_ladeleistung_log_in_w,
-				round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.9),
+				round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.8),
 				3
 			);
 			if(
