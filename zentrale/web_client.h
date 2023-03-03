@@ -12,7 +12,7 @@ namespace Local {
 		MatchState match_state;
 		int content_length = 0;
 		char old_buffer[64];
-		char search_buffer[128];
+		bool first_body_part_exist = false;
 
 		bool _send_request(const char* host, const char* request_uri) {
 			wlan_client->print("GET ");
@@ -47,6 +47,8 @@ namespace Local {
 	public:
 		char finding_buffer[65];
 		char buffer[64];
+		// TODO!
+		char search_buffer[128];
 
 		WebClient(WiFiClient& wlan_client): wlan_client(&wlan_client) {
 		}
@@ -62,7 +64,9 @@ namespace Local {
 		}
 
 		void send_http_get_request(const char* host, const int port, const char* request_uri) {
+			first_body_part_exist = false;
 			content_length = 0;
+			old_buffer[0] = '\0';
 			buffer[0] = '\0';
 			if(!wlan_client->connect(host, port)) {
 				return;
@@ -73,10 +77,10 @@ namespace Local {
 
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			old_buffer[0] = '\0';
 			int max_read_size = sizeof(buffer) - 1;
 			while(wlan_client->available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
+				std::fill(buffer, buffer + sizeof(buffer), 0);// Reset
 
 				int read_size = 0;
 				bool content_start_reached = false;
@@ -89,8 +93,7 @@ namespace Local {
 					) {
 						content_start_reached = true;
 						break;
-					}
-					if(
+					} else if(
 						read_size == max_read_size - 1
 						||
 						(
@@ -107,14 +110,22 @@ namespace Local {
 				_read_content_length_header();
 				if(content_start_reached) {
 					old_buffer[0] = '\0';
-					_prepare_search_buffer();
+					buffer[0] = '\0';
+					if(content_length > 0) {
+						first_body_part_exist = true;
+						_read_body_content_to_buffer();// Zu kurze Inhalte enden sonst hier!
+					}
 					return;
 				}
 			}
 		}
 
 		bool read_next_block_to_buffer() {
-			if(content_length <=0) {
+			if(first_body_part_exist) {
+				first_body_part_exist = false;
+				return true;
+			}
+			if(content_length <= 0) {
 				return false;
 			}
 
@@ -122,18 +133,22 @@ namespace Local {
 
 			if(wlan_client->available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
-				int read_size = wlan_client->readBytes(
-					buffer,
-					std::min((size_t) content_length, (size_t) (sizeof(buffer) - 1))
-				);
-				std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
-				_prepare_search_buffer();
-				content_length -= strlen(buffer);
+				_read_body_content_to_buffer();
 				return true;
 			}
 			buffer[0] = '\0';
 			content_length = 0;
 			return false;
+		}
+
+		void _read_body_content_to_buffer() {
+			int read_size = wlan_client->readBytes(
+				buffer,
+				std::min((size_t) content_length, (size_t) (sizeof(buffer) - 1))
+			);
+			std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
+			_prepare_search_buffer();
+			content_length -= strlen(buffer);
 		}
 	};
 }
