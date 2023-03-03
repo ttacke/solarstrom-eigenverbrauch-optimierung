@@ -80,25 +80,25 @@ namespace Local {
 				elektroanlage.set_log_data(persistenz.buffer);
 				persistenz.print_buffer_to_file();
 
-				memcpy(persistenz.buffer, ",\0", 2);
+				sprintf(persistenz.buffer, "%s", ",");
 				persistenz.print_buffer_to_file();
 
 				wetter.set_log_data(persistenz.buffer);
 				persistenz.print_buffer_to_file();
 
-				memcpy(persistenz.buffer, ",\0", 2);
+				sprintf(persistenz.buffer, "%s", ",");
 				persistenz.print_buffer_to_file();
 
 				verbraucher.set_log_data_a(persistenz.buffer);
 				persistenz.print_buffer_to_file();
 
-				memcpy(persistenz.buffer, ",\0", 2);
+				sprintf(persistenz.buffer, "%s", ",");
 				persistenz.print_buffer_to_file();
 
 				verbraucher.set_log_data_b(persistenz.buffer);
 				persistenz.print_buffer_to_file();
 
-				memcpy(persistenz.buffer, "\n\0", 2);
+				sprintf(persistenz.buffer, "%s", "\n");
 				persistenz.print_buffer_to_file();
 
 				persistenz.close_file();
