@@ -86,6 +86,18 @@ namespace Local {
 				wetter.set_log_data(persistenz.buffer);
 				persistenz.print_buffer_to_file();
 
+				memcpy(persistenz.buffer, ",\0", 2);
+				persistenz.print_buffer_to_file();
+
+				verbraucher.set_log_data_a(persistenz.buffer);
+				persistenz.print_buffer_to_file();
+
+				memcpy(persistenz.buffer, ",\0", 2);
+				persistenz.print_buffer_to_file();
+
+				verbraucher.set_log_data_b(persistenz.buffer);
+				persistenz.print_buffer_to_file();
+
 				memcpy(persistenz.buffer, "\n\0", 2);
 				persistenz.print_buffer_to_file();
 
