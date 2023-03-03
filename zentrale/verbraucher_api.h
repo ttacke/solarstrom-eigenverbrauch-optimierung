@@ -80,12 +80,22 @@ namespace Local {
 1677858885,e1,-31,1660,611,2134,972,-2638,-2482,5048,21,w1,168,4512,
 	va1,solar,an,3680,1840,1840,1840,1840,1840,1840,an,
 	vb1,off,aus,840,0,0,0,0,0,0,aus
+
 >> 34 -> 54: schalt-Zeit? Das sollte doch schon früher ausgehen, weil es schon <0 Überschuss gibt
+Über = 31 - 1660 = -1629 W
+Akku: 97.2 %
+
+
+-> Idee: Logdatei in verrbaucher_api schreiben
+-> Bei jeder aktion Zeitpunkt, Alle Daten warum es passierte hinterlegen
+-> Auch "karenzzeit nicht abgelaufen" und so kram
+
 
 1677858945,e1,-38,-190,558,280,971,-276,567,-377,21,w1,168,4512,
 	va1,off,aus,3680,0,0,0,0,0,0,an,
 	vb1,off,aus,840,0,0,0,0,0,0,aus
 >> Warum ist WW weiterhin an? -3000W Überschuss; 89% Akku -> und es ist noch immer an
+--> Antwort: weil initial <80% als Ausschaltschwelle galt. Das ist jetzt anders
 
 1677859005,e1,-3,-186,550,317,972,283,542,-376,21,w1,168,4512,va1,off,aus,3680,0,0,0,0,0,0,an,vb1,off,aus,840,0,0,0,0,0,0,aus
 
