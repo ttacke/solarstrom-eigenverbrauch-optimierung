@@ -112,8 +112,8 @@
 			_setze_ladestatus('roller_laden', daten['roller_laden']);
 			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
 			
-			document.getElementById('wasser_ueberladen').innerHTML = daten['wasser_ueberladen'] ? 'AN' : 'AUS';
-			document.getElementById('heizung_ueberladen').innerHTML = daten['heizung_ueberladen'] ? 'AN' : 'AUS';
+			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : 'off';
+			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : 'off';
 		
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
@@ -377,6 +377,12 @@
 			.zusatzinfo>span {
 				padding-right: 0.8rem;
 			}
+			.zusatzinfo .on {
+				text-decoration: underline;
+			}
+			.zusatzinfo .off {
+				color: #666;
+			}
 		
 		.schalter {
 			vertical-align: bottom;
@@ -433,8 +439,8 @@
 <div class="zusatzinfo">
 	<span>NO <span id="solaranteil_in_prozent_string1"></span>%</span>
 	<span>SW <span id="solaranteil_in_prozent_string2"></span>%</span>
-	<span>H2O++ <span id="wasser_ueberladen"></span></span>
-	<span>HZG++ <span id="heizung_ueberladen"></span></span>
+	<span id="wasser_ueberladen">WASSER</span>
+	<span id="heizung_ueberladen">HEIZUNG</span>
 </div>
 
 <table class="wetter" id="solarstrahlung"></table>
