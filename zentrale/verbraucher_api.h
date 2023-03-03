@@ -435,7 +435,9 @@ namespace Local {
 		) {
 			_ermittle_relay_zustaende(verbraucher);
 
-			verbraucher.aktuelle_auto_ladeleistung_in_w = round(elektroanlage.l3_strom_ma / 1000 * 230);
+			verbraucher.aktuelle_auto_ladeleistung_in_w = round(
+				(elektroanlage.l3_strom_ma + elektroanlage.l3_solarstrom_ma) / 1000 * 230
+			);
 			_lies_verbraucher_log(verbraucher.auto_ladeleistung_log_in_w, auto_leistung_log_filename);
 			_schreibe_verbraucher_log(verbraucher.auto_ladeleistung_log_in_w, verbraucher.aktuelle_auto_ladeleistung_in_w, auto_leistung_log_filename);
 			verbraucher.auto_benoetigte_ladeleistung_in_w = _gib_auto_benoetigte_ladeleistung_in_w();
@@ -487,6 +489,12 @@ namespace Local {
 				- warum ist der Status falsch
 				- warum hat das Auto erst mit 72% angefangen zu laden, nicht mit 70%?
 				- warum wurde der Roller nachts geladen? (vermutlich der gleiche Fehler)
+				- warum wird der Ladewert des Autos nur mit 1150 gezeigt?
+				-- ANTWORT: der Strom ist ja schon der mit PV gegengerechnete!
+				-- TODO "AC-Strom L3" vom ->Wechselrichter<- dazuZaehlen
+				-- ACBRIDGE_CURRENT_ACTIVE_MEAN_03_F32
+				-- das ist NICHT im Smartmeter und muss spaeter gerechnet werden
+				--> bugfix ist drin
 			*/
 			if(_auto_schalte_solarstatus_automatisch(verbraucher)) {
 				return;

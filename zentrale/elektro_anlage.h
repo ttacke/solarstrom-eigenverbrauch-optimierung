@@ -12,6 +12,7 @@ namespace Local {
 		int l1_strom_ma = 0;
 		int l2_strom_ma = 0;
 		int l3_strom_ma = 0;
+		int l3_solarstrom_ma = 0;
 		int leistungsanteil_pv1 = 0;
 		int leistungsanteil_pv2 = 0;
 

@@ -22,6 +22,10 @@ namespace Local {
 				elektroanlage.l3_strom_ma = round(atof(web_client->finding_buffer) * 1000);
 				findings |= 0b0000'0100;
 			}
+			if(web_client->find_in_buffer((char*) "\"ACBRIDGE_CURRENT_ACTIVE_MEAN_03_F32\" *: *([-0-9.]+)[^0-9]")) {
+				elektroanlage.l3_solarstrom_ma = round(atof(web_client->finding_buffer) * 1000);
+				findings |= 0b0000'1000;
+			}
 		}
 
 	public:
@@ -35,10 +39,11 @@ namespace Local {
 			while(web_client->read_next_block_to_buffer()) {
 				_daten_extrahieren_und_einsetzen(elektroanlage);
 			}
-			if(!(findings & 0b0000'0111)) {
+			if(!(findings & 0b0000'1111)) {
 				elektroanlage.l1_strom_ma = 0;
 				elektroanlage.l2_strom_ma = 0;
 				elektroanlage.l3_strom_ma = 0;
+				elektroanlage.l3_solarstrom_ma = 0;
 			}
 		}
 	};
