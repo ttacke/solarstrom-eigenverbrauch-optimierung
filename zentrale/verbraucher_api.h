@@ -37,6 +37,11 @@ namespace Local {
 		}
 
 		bool _auto_laden_ist_beendet(Local::Verbraucher& verbraucher) {
+			bool auto_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.auto_relay_zustand_seit >= cfg->auto_min_schaltzeit_in_min * 60;
+			if(!auto_schalt_mindestdauer_ist_erreicht) {
+				return false;
+			}
+
 			if(
 				(
 					verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::off
@@ -63,6 +68,11 @@ namespace Local {
 		}
 
 		bool _roller_laden_ist_beendet(Local::Verbraucher& verbraucher) {
+			bool roller_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.roller_relay_zustand_seit >= cfg->roller_min_schaltzeit_in_min * 60;
+			if(!roller_schalt_mindestdauer_ist_erreicht) {
+				return false;
+			}
+
 			if(
 				(
 					verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::off
@@ -117,8 +127,14 @@ namespace Local {
 			if(
 				!verbraucher.auto_relay_ist_an
 				&& (
-					!es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 1.0))
-					|| verbraucher.aktueller_akku_ladenstand_in_promille > 700
+					es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 1.0))
+					&& verbraucher.aktueller_akku_ladenstand_in_promille > 250
+				) || (
+					es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.5))
+					&& verbraucher.aktueller_akku_ladenstand_in_promille > 500
+				) || (
+					es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.2))
+					&& verbraucher.aktueller_akku_ladenstand_in_promille > 800
 				)
 			) {
 				_schalte_auto_relay(true);
@@ -149,7 +165,13 @@ namespace Local {
 				!verbraucher.roller_relay_ist_an
 				&& (
 					es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.roller_benoetigte_ladeleistung_in_w * 1.0))
-					|| verbraucher.aktueller_akku_ladenstand_in_promille > 700
+					&& verbraucher.aktueller_akku_ladenstand_in_promille > 350
+				) || (
+					es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.5))
+					&& verbraucher.aktueller_akku_ladenstand_in_promille > 600
+				) || (
+					es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.2))
+					&& verbraucher.aktueller_akku_ladenstand_in_promille > 850
 				)
 			) {
 				_schalte_roller_relay(true);
@@ -167,7 +189,7 @@ namespace Local {
 			if(
 				verbraucher.wasser_relay_ist_an
 				&& !es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 0.8))
-				&& verbraucher.aktueller_akku_ladenstand_in_promille < 700
+				&& verbraucher.aktueller_akku_ladenstand_in_promille < 600
 			) {
 				_schalte_wasser_relay(false);
 				return true;
@@ -175,8 +197,16 @@ namespace Local {
 			if(
 				!verbraucher.wasser_relay_ist_an
 				&& (
-					es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 1.0))
-					|| verbraucher.aktueller_akku_ladenstand_in_promille > 800
+					(
+						es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 1.0))
+						&& verbraucher.aktueller_akku_ladenstand_in_promille > 650
+					) || (
+						es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 0.5))
+						&& verbraucher.aktueller_akku_ladenstand_in_promille > 800
+					) || (
+						es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 0.2))
+						&& verbraucher.aktueller_akku_ladenstand_in_promille > 950
+					)
 				)
 			) {
 				_schalte_wasser_relay(true);
@@ -194,7 +224,7 @@ namespace Local {
 			if(
 				verbraucher.heizung_relay_ist_an
 				&& !es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 0.8))
-				&& verbraucher.aktueller_akku_ladenstand_in_promille < 700
+				&& verbraucher.aktueller_akku_ladenstand_in_promille < 600
 			) {
 				_schalte_heizung_relay(false);
 				return true;
@@ -203,7 +233,13 @@ namespace Local {
 				!verbraucher.heizung_relay_ist_an
 				&& (
 					es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 1.0))
+					|| verbraucher.aktueller_akku_ladenstand_in_promille > 650
+				) || (
+					es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 0.5))
 					|| verbraucher.aktueller_akku_ladenstand_in_promille > 800
+				) || (
+					es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 0.2))
+					|| verbraucher.aktueller_akku_ladenstand_in_promille > 950
 				)
 			) {
 				_schalte_heizung_relay(true);
