@@ -476,18 +476,32 @@ namespace Local {
 			}
 
 			// TODO: die benoetigte Ladung nutzen um was kleines/ueberladen zu deaktiviren wen dadurch was groesseres passt
+			//TODO Bug?
+			/*
+				Zu dem Zeitpunkt, war wasser und heizung und auto an, aber hier steht aus. Auch in der UI ist wasser+heiz aus
+				Wird der Status richtig gelesen?
+
+				1677832374,e1,-1,697,1449,2078,687,-2806,-2337,5273,50,w1,563,4954,va1,solar,aus,2200,1150,1150,1150,1150,1150,1150,aus,vb1,off,aus,840,0,0,0,0,0,0,aus
+
+				- Warum startet es, obwohl Ueberschuss negativ?
+				- warum ist der Status falsch
+				- warum hat das Auto erst mit 72% angefangen zu laden, nicht mit 70%?
+				- warum wurde der Roller nachts geladen? (vermutlich der gleiche Fehler)
+			*/
 			if(_auto_schalte_solarstatus_automatisch(verbraucher)) {
 				return;
 			}
 			if(_roller_schalte_solarstatus_automatisch(verbraucher)) {
 				return;
 			}
-			if(_wasser_schalte_ueberladen_automatisch(verbraucher)) {
-				return;
-			}
-			if(_heizung_schalte_ueberladen_automatisch(verbraucher)) {
-				return;
-			}
+			// TODO noch nicht, erst mal muss das mit dem Auto sicher laufen
+			// die wurde aktiviert, ohne dass es sinnvoll war (Akku < 70%, -1000 Ueberschuss)
+//			if(_wasser_schalte_ueberladen_automatisch(verbraucher)) {
+//				return;
+//			}
+//			if(_heizung_schalte_ueberladen_automatisch(verbraucher)) {
+//				return;
+//			}
 		}
 
 		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {
