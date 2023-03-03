@@ -9,6 +9,7 @@ namespace Local {
 
 	protected:
 		std::uint8_t findings;
+		std::uint8_t findings2;
 
 		void _daten_extrahieren_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
 			if(web_client->find_in_buffer((char*) "\"P_PV\":([-0-9.]+)[^0-9]")) {
@@ -57,7 +58,7 @@ namespace Local {
 			}
 		}
 
-		void _verteilungsdaten_extrahieren_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
+		void _detaildaten_einsetzen(Local::ElektroAnlage& elektroanlage) {
 			if(web_client->find_in_buffer((char*) "\"PV_POWERACTIVE_MEAN_01_F32\" *: *([0-9.]+)[^0-9]")) {
 				elektroanlage.leistungsanteil_pv1 = round(atof(web_client->finding_buffer) * 1000);
 				findings |= 0b0100'0000;
@@ -65,6 +66,10 @@ namespace Local {
 			if(web_client->find_in_buffer((char*) "\"PV_POWERACTIVE_MEAN_02_F32\" *: *([0-9.]+)[^0-9]")) {
 				elektroanlage.leistungsanteil_pv2 = round(atof(web_client->finding_buffer) * 1000);
 				findings |= 0b1000'0000;
+			}
+			if(web_client->find_in_buffer((char*) "\"ACBRIDGE_CURRENT_ACTIVE_MEAN_03_F32\" *: *([-0-9.]+)[^0-9]")) {
+				elektroanlage.l3_solarstrom_ma = round(atof(web_client->finding_buffer) * 1000);
+				findings2 |= 0b0000'0001;
 			}
 		}
 
@@ -76,6 +81,7 @@ namespace Local {
 				"/status/powerflow"
 			);
 			findings = 0b0000'0000;
+			findings2 = 0b0000'0000;
 			while(web_client->read_next_block_to_buffer()) {
 				_daten_extrahieren_und_einsetzen(elektroanlage);
 			}
@@ -85,9 +91,9 @@ namespace Local {
 				"/components/cache/readable"
 			);
 			while(web_client->read_next_block_to_buffer()) {
-				_verteilungsdaten_extrahieren_und_einsetzen(elektroanlage);
+				_detaildaten_einsetzen(elektroanlage);
 			}
-			if(!(findings & 0b1111'1111)) {
+			if(!(findings & 0b1111'1111) && !(findings2 & 0b0000'0001)) {
 				elektroanlage.solarerzeugung_in_w = 0;
 				elektroanlage.solarakku_zuschuss_in_w = 0;
 				elektroanlage.solarakku_ladestand_in_promille = 0;
@@ -96,6 +102,7 @@ namespace Local {
 				elektroanlage.solarakku_ist_an = false;
 				elektroanlage.leistungsanteil_pv1 = 0;
 				elektroanlage.leistungsanteil_pv2 = 0;
+				elektroanlage.l3_solarstrom_ma = 0;
 			}
 		}
 	};
