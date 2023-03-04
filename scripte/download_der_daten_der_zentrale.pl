@@ -29,6 +29,7 @@ foreach my $filename (qw/
     auto_leistung.status
     auto_leistung.log
     ueberschuss_leistung.log
+    verbraucher_automatisierung.log
 /) {
     print "$filename...";
     if(system("wget -q 'http://$ARGV[0]/download_file?name=$filename' -O ../sd-karteninhalt/$filename") == 0) {
@@ -36,10 +37,4 @@ foreach my $filename (qw/
     } else {
         print "FEHLER\n";
     }
-}
-print "daten.json...";
-if(system("wget -q 'http://$ARGV[0]/daten.json?time=" . time() . "' -O ../sd-karteninhalt/daten.json") == 0) {
-    print "ok\n";
-} else {
-    print "FEHLER\n";
 }
