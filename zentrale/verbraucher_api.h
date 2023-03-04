@@ -567,7 +567,7 @@ namespace Local {
 			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);
 		}
 
-		void fuehre_lastmanagement_aus(Local::Verbraucher& verbraucher) {
+		void fuehre_schaltautomat_aus(Local::Verbraucher& verbraucher) {
 			if(_roller_laden_ist_beendet(verbraucher)) {
 				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::off);
 				return;
@@ -577,7 +577,7 @@ namespace Local {
 				return;
 			}
 
-			int karenzzeit = (cfg->lastmanagement_schalt_karenzzeit_in_min * 60);
+			int karenzzeit = (cfg->schaltautomat_schalt_karenzzeit_in_min * 60);
 			if(
 				verbraucher.auto_relay_zustand_seit >= timestamp - karenzzeit
 				|| verbraucher.roller_relay_zustand_seit >= timestamp - karenzzeit

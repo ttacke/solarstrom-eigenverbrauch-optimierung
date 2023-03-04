@@ -264,7 +264,7 @@ namespace Local {
 			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 			if(erneuere_daten_automatisch) {
-				verbraucher_api.fuehre_lastmanagement_aus(verbraucher);
+				verbraucher_api.fuehre_schaltautomat_aus(verbraucher);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 			}
 

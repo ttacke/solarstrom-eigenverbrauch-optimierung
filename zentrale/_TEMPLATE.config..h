@@ -28,7 +28,7 @@ namespace Local {
 		int heizung_benoetigte_leistung_in_w = 420;
 		int heizung_min_schaltzeit_in_min = 30;
 
-		int lastmanagement_schalt_karenzzeit_in_min = 5;
+		int schaltautomat_schalt_karenzzeit_in_min = 5;
 
 		const int webserver_port = 80;
 
