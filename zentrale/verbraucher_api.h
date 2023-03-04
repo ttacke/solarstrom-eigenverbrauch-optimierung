@@ -26,6 +26,20 @@ namespace Local {
 
 		const char* ueberschuss_leistung_log_filename = "ueberschuss_leistung.log";
 
+		const char* log_filename = "verbraucher_automatisierung.log";
+
+		void _log(char* msg) {
+			if(persistenz->open_file_to_append(log_filename)) {
+				sprintf(persistenz->buffer, "%d:", timestamp);
+				persistenz->print_buffer_to_file();
+
+				sprintf(persistenz->buffer, "%s\n", msg);
+				persistenz->print_buffer_to_file();
+
+				persistenz->close_file();
+			}
+		}
+
 		bool _liste_enthaelt_mindestens(int* liste, int mindest_wert, int mindest_anzahl) {
 			int anzahl = 0;
 			for(int i = 0; i < 5; i++) {
@@ -39,6 +53,7 @@ namespace Local {
 		bool _auto_laden_ist_beendet(Local::Verbraucher& verbraucher) {
 			bool auto_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.auto_relay_zustand_seit >= cfg->auto_min_schaltzeit_in_min * 60;
 			if(!auto_schalt_mindestdauer_ist_erreicht) {
+				_log((char*) "_auto_laden_ist_beendet>schaltdauerNichtErreicht");
 				return false;
 			}
 
@@ -51,6 +66,7 @@ namespace Local {
 					&& !verbraucher.auto_relay_ist_an
 				)
 			) {
+				_log((char*) "_auto_laden_ist_beendet>StatusFehlerKorrigiert");
 				return true;
 			}
 			bool es_wird_strom_verbraucht = _liste_enthaelt_mindestens(
@@ -58,53 +74,22 @@ namespace Local {
 				round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.8),
 				5
 			);
+			_log((char*) "_auto_laden_ist_beendet>stromverbrauch");
+			_log((char*) (es_wird_strom_verbraucht ? "ja" : "nein"));
 			if(
-				// TODO Das geht aber aus, wenn solar das Laden unterbrochen hat. Wieso?
 				verbraucher.auto_relay_ist_an
 				&& !es_wird_strom_verbraucht
 			) {
+				_log((char*) "_auto_laden_ist_beendet>AusWeilBeendet");
 				return true;
 			}
 			return false;
 		}
 
-// TODO warum wurde WW und Auto da ausgeschaltet? Und nicht früher?
-/*
-
-1677858705,e1,-9,1258,1054,2188,981,-2632,-2459,5087,13,w1,168,4512,va1,solar,an,3680,1840,1840,1840,1610,1840,1840,an,vb1,off,aus,840,0,0,0,0,0,0,aus
-1677858765,e1,23,1384,901,2204,979,-2666,-2516,5006,15,w1,168,4512,va1,solar,an,3680,1840,1840,1840,1840,1610,1840,an,vb1,off,aus,840,0,0,0,0,0,0,aus
-1677858825,e1,-69,1600,719,2134,976,-2694,-2513,4982,18,w1,168,4512,
-	va1,solar,an,3680,1840,1840,1840,1840,1840,1610,an,
-	vb1,off,aus,840,0,0,0,0,0,0,aus
-
-1677858885,e1,-31,1660,611,2134,972,-2638,-2482,5048,21,w1,168,4512,
-	va1,solar,an,3680,1840,1840,1840,1840,1840,1840,an,
-	vb1,off,aus,840,0,0,0,0,0,0,aus
-
->> 34 -> 54: schalt-Zeit? Das sollte doch schon früher ausgehen, weil es schon <0 Überschuss gibt
-Über = 31 - 1660 = -1629 W
-Akku: 97.2 %
-
-
--> Idee: Logdatei in verrbaucher_api schreiben
--> Bei jeder aktion Zeitpunkt, Alle Daten warum es passierte hinterlegen
--> Auch "karenzzeit nicht abgelaufen" und so kram
-
-
-1677858945,e1,-38,-190,558,280,971,-276,567,-377,21,w1,168,4512,
-	va1,off,aus,3680,0,0,0,0,0,0,an,
-	vb1,off,aus,840,0,0,0,0,0,0,aus
->> Warum ist WW weiterhin an? -3000W Überschuss; 89% Akku -> und es ist noch immer an
---> Antwort: weil initial <80% als Ausschaltschwelle galt. Das ist jetzt anders
-
-1677859005,e1,-3,-186,550,317,972,283,542,-376,21,w1,168,4512,va1,off,aus,3680,0,0,0,0,0,0,an,vb1,off,aus,840,0,0,0,0,0,0,aus
-
-
-*/
-
 		bool _roller_laden_ist_beendet(Local::Verbraucher& verbraucher) {
 			bool roller_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.roller_relay_zustand_seit >= cfg->roller_min_schaltzeit_in_min * 60;
 			if(!roller_schalt_mindestdauer_ist_erreicht) {
+				_log((char*) "_roller_laden_ist_beendet>schaltdauerNichtErreicht");
 				return false;
 			}
 
@@ -117,6 +102,7 @@ Akku: 97.2 %
 					&& !verbraucher.roller_relay_ist_an
 				)
 			) {
+				_log((char*) "_roller_laden_ist_beendet>StatusFehlerKorrigiert");
 				return true;
 			}
 			bool es_wird_strom_verbraucht = _liste_enthaelt_mindestens(
@@ -124,10 +110,13 @@ Akku: 97.2 %
 				round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.8),
 				5
 			);
+			_log((char*) "_roller_laden_ist_beendet>stromverbrauch");
+			_log((char*) (es_wird_strom_verbraucht ? "ja" : "nein"));
 			if(
 				verbraucher.roller_relay_ist_an
 				&& !es_wird_strom_verbraucht
 			) {
+				_log((char*) "_roller_laden_ist_beendet>AusWeilBeendet");
 				return true;
 			}
 			return false;
@@ -148,6 +137,7 @@ Akku: 97.2 %
 
 			bool auto_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.auto_relay_zustand_seit >= cfg->auto_min_schaltzeit_in_min * 60;
 			if(!auto_schalt_mindestdauer_ist_erreicht) {
+				_log((char*) "_auto-automatisch>SchaltdauerNichtErreicht");
 				return false;
 			}
 
@@ -156,6 +146,7 @@ Akku: 97.2 %
 				&& !es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.8))
 				&& verbraucher.aktueller_akku_ladenstand_in_promille < 500
 			) {
+				_log((char*) "_auto-automatisch>AusWeilZuWenig");
 				_schalte_auto_relay(false);
 				return true;
 			}
@@ -172,6 +163,7 @@ Akku: 97.2 %
 					&& verbraucher.aktueller_akku_ladenstand_in_promille > 800
 				)
 			) {
+				_log((char*) "_auto-automatisch>AnWeilGenug");
 				_schalte_auto_relay(true);
 				return true;
 			}
@@ -185,6 +177,7 @@ Akku: 97.2 %
 
 			bool roller_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.roller_relay_zustand_seit >= cfg->roller_min_schaltzeit_in_min * 60;
 			if(!roller_schalt_mindestdauer_ist_erreicht) {
+				_log((char*) "_roller-automatisch>SchaltdauerNichtErreicht");
 				return false;
 			}
 
@@ -193,6 +186,7 @@ Akku: 97.2 %
 				&& !es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.8))
 				&& verbraucher.aktueller_akku_ladenstand_in_promille < 500
 			) {
+				_log((char*) "_roller-automatisch>AusWeilZuWenig");
 				_schalte_roller_relay(false);
 				return true;
 			}
@@ -209,6 +203,7 @@ Akku: 97.2 %
 					&& verbraucher.aktueller_akku_ladenstand_in_promille > 850
 				)
 			) {
+				_log((char*) "_roller-automatisch>AnWeilGenug");
 				_schalte_roller_relay(true);
 				return true;
 			}
@@ -218,6 +213,7 @@ Akku: 97.2 %
 		bool _wasser_schalte_ueberladen_automatisch(Local::Verbraucher& verbraucher) {
 			bool wasser_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.wasser_relay_zustand_seit >= cfg->wasser_min_schaltzeit_in_min * 60;
 			if(!wasser_schalt_mindestdauer_ist_erreicht) {
+				_log((char*) "_wasser-automatisch>SchaltdauerNichtErreicht");
 				return false;
 			}
 
@@ -225,17 +221,15 @@ Akku: 97.2 %
 				verbraucher.wasser_relay_ist_an
 				&& (
 					(
-						!es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 0.8))
-						&& verbraucher.aktueller_akku_ladenstand_in_promille < 650
+						!es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 1.0))
+						&& verbraucher.aktueller_akku_ladenstand_in_promille < 950
 					) || (
-						!es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 0.5))
+						es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 1.0))
 						&& verbraucher.aktueller_akku_ladenstand_in_promille < 800
-					) || (
-						!es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 0.2))
-						&& verbraucher.aktueller_akku_ladenstand_in_promille < 980
 					)
 				)
 			) {
+				_log((char*) "_wasser-automatisch>AusWeilZuWenig");
 				_schalte_wasser_relay(false);
 				return true;
 			}
@@ -243,17 +237,15 @@ Akku: 97.2 %
 				!verbraucher.wasser_relay_ist_an
 				&& (
 					(
-						es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 1.0))
-						&& verbraucher.aktueller_akku_ladenstand_in_promille > 650
+						es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 1.5))
+						&& verbraucher.aktueller_akku_ladenstand_in_promille > 830
 					) || (
-						es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 0.5))
-						&& verbraucher.aktueller_akku_ladenstand_in_promille > 800
-					) || (
-						es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 0.2))
-						&& verbraucher.aktueller_akku_ladenstand_in_promille > 980
+						es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 0.3))
+						&& verbraucher.aktueller_akku_ladenstand_in_promille > 970
 					)
 				)
 			) {
+				_log((char*) "_wasser-automatisch>AnWeilGenug");
 				_schalte_wasser_relay(true);
 				return true;
 			}
@@ -263,6 +255,7 @@ Akku: 97.2 %
 		bool _heizung_schalte_ueberladen_automatisch(Local::Verbraucher& verbraucher) {
 			bool heizung_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.heizung_relay_zustand_seit >= cfg->heizung_min_schaltzeit_in_min * 60;
 			if(!heizung_schalt_mindestdauer_ist_erreicht) {
+				_log((char*) "_heiz-automatisch>SchaltdauerNichtErreicht");
 				return false;
 			}
 
@@ -270,31 +263,27 @@ Akku: 97.2 %
 				verbraucher.heizung_relay_ist_an
 				&& (
 					!es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 1.0))
-					|| verbraucher.aktueller_akku_ladenstand_in_promille < 750
+					&& verbraucher.aktueller_akku_ladenstand_in_promille < 970
 				) || (
-					!es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 0.5))
-					|| verbraucher.aktueller_akku_ladenstand_in_promille < 850
-				) || (
-					!es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 0.2))
-					|| verbraucher.aktueller_akku_ladenstand_in_promille < 980
+					es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 1.0))
+					&& verbraucher.aktueller_akku_ladenstand_in_promille < 820
 				)
 			) {
+				_log((char*) "_heiz-automatisch>AusWeilZuWenig");
 				_schalte_heizung_relay(false);
 				return true;
 			}
 			if(
 				!verbraucher.heizung_relay_ist_an
 				&& (
-					es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 1.0))
-					|| verbraucher.aktueller_akku_ladenstand_in_promille > 750
+					es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 1.5))
+					&& verbraucher.aktueller_akku_ladenstand_in_promille > 850
 				) || (
-					es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 0.5))
-					|| verbraucher.aktueller_akku_ladenstand_in_promille > 850
-				) || (
-					es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 0.2))
-					|| verbraucher.aktueller_akku_ladenstand_in_promille > 980
+					es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 0.3))
+					&& verbraucher.aktueller_akku_ladenstand_in_promille > 990
 				)
 			) {
+				_log((char*) "_heiz-automatisch>AnWeilGenug");
 				_schalte_heizung_relay(true);
 				return true;
 			}
@@ -566,7 +555,7 @@ Akku: 97.2 %
 				return;
 			}
 
-			// TODO: die benoetigte Ladung nutzen um was kleines/ueberladen zu deaktiviren wen dadurch was groesseres passt
+			// TODO: die benoetigte Ladung nutzen um was kleines/ueberladen zu deaktivieren wen dadurch was groesseres passt
 			if(_auto_schalte_solarstatus_automatisch(verbraucher)) {
 				return;
 			}
@@ -576,10 +565,9 @@ Akku: 97.2 %
 			if(_wasser_schalte_ueberladen_automatisch(verbraucher)) {
 				return;
 			}
-// TODO Das existiert noch nicht
-//			if(_heizung_schalte_ueberladen_automatisch(verbraucher)) {
-//				return;
-//			}
+			if(_heizung_schalte_ueberladen_automatisch(verbraucher)) {
+				return;
+			}
 		}
 
 		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {
@@ -587,12 +575,15 @@ Akku: 97.2 %
 			if(status == Local::Verbraucher::Ladestatus::force) {
 				_schalte_roller_relay(true);
 				strcpy(stat, "force");
+				_log((char*) "setze_roller_ladestatus>force");
 			} else if(status == Local::Verbraucher::Ladestatus::solar) {
 				_schalte_roller_relay(false);
 				strcpy(stat, "solar");
+				_log((char*) "setze_roller_ladestatus>solar");
 			} else {
 				_schalte_roller_relay(false);
 				strcpy(stat, "off");
+				_log((char*) "setze_roller_ladestatus>off");
 			}
 			if(persistenz->open_file_to_overwrite(roller_ladestatus_filename)) {
 				sprintf(persistenz->buffer, "%s", stat);
@@ -609,12 +600,15 @@ Akku: 97.2 %
 			if(status == Local::Verbraucher::Ladestatus::force) {
 				_schalte_auto_relay(true);
 				strcpy(stat, "force");
+				_log((char*) "setze_auto_ladestatus>force");
 			} else if(status == Local::Verbraucher::Ladestatus::solar) {
 				_schalte_auto_relay(false);
 				strcpy(stat, "solar");
+				_log((char*) "setze_auto_ladestatus>solar");
 			} else {
 				_schalte_auto_relay(false);
 				strcpy(stat, "off");
+				_log((char*) "setze_auto_ladestatus>off");
 			}
 			if(persistenz->open_file_to_overwrite(auto_ladestatus_filename)) {
 				sprintf(persistenz->buffer, "%s", stat);
@@ -627,6 +621,7 @@ Akku: 97.2 %
 		}
 
 		void wechsle_auto_ladeleistung() {
+			_log((char*) "wechsle_auto_ladeleistung");
 			int auto_benoetigte_ladeleistung_in_w = _gib_auto_benoetigte_ladeleistung_in_w();
 			if(auto_benoetigte_ladeleistung_in_w == cfg->auto_benoetigte_leistung_hoch_in_w) {
 				auto_benoetigte_ladeleistung_in_w = cfg->auto_benoetigte_leistung_gering_in_w;
@@ -641,6 +636,7 @@ Akku: 97.2 %
 		}
 
 		void wechsle_roller_ladeleistung() {
+			_log((char*) "wechsle_roller_ladeleistung");
 			int roller_benoetigte_ladeleistung_in_w = _gib_roller_benoetigte_ladeleistung_in_w();
 			if(roller_benoetigte_ladeleistung_in_w == cfg->roller_benoetigte_leistung_hoch_in_w) {
 				roller_benoetigte_ladeleistung_in_w = cfg->roller_benoetigte_leistung_gering_in_w;
