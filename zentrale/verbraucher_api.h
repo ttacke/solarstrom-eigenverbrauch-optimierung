@@ -40,14 +40,22 @@ namespace Local {
 			}
 		}
 
-		bool _liste_enthaelt_mindestens(int* liste, int mindest_wert, int mindest_anzahl) {
-			int anzahl = 0;
+		bool _liste_enthaelt_mindestens(int* liste, int mindest_wert) {
 			for(int i = 0; i < 5; i++) {
-				if(liste[i] >= mindest_wert) {
-					anzahl++;
+				if(liste[i] < mindest_wert) {
+					return false;
 				}
 			}
-			return anzahl >= mindest_anzahl;
+			return true;
+		}
+
+		bool _liste_enthaelt_maximal(int* liste, int mindest_wert) {
+			for(int i = 0; i < 5; i++) {
+				if(liste[i] > mindest_wert) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 		bool _auto_laden_ist_beendet(Local::Verbraucher& verbraucher) {
@@ -69,16 +77,15 @@ namespace Local {
 				_log((char*) "_auto_laden_ist_beendet>StatusFehlerKorrigiert");
 				return true;
 			}
-			bool es_wird_strom_verbraucht = _liste_enthaelt_mindestens(
+			bool es_wird_kein_strom_verbraucht = _liste_enthaelt_maximal(
 				verbraucher.auto_ladeleistung_log_in_w,
-				round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.8),
-				5
+				round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.8)
 			);
-			_log((char*) "_auto_laden_ist_beendet>stromverbrauch");
-			_log((char*) (es_wird_strom_verbraucht ? "ja" : "nein"));
+			_log((char*) "_auto_laden_ist_beendet>VerbrauchZuGering:");
+			_log((char*) (es_wird_kein_strom_verbraucht ? "ja" : "nein"));
 			if(
 				verbraucher.auto_relay_ist_an
-				&& !es_wird_strom_verbraucht
+				&& es_wird_kein_strom_verbraucht
 			) {
 				_log((char*) "_auto_laden_ist_beendet>AusWeilBeendet");
 				return true;
@@ -105,29 +112,20 @@ namespace Local {
 				_log((char*) "_roller_laden_ist_beendet>StatusFehlerKorrigiert");
 				return true;
 			}
-			bool es_wird_strom_verbraucht = _liste_enthaelt_mindestens(
+			bool es_wird_kein_strom_verbraucht = _liste_enthaelt_maximal(
 				verbraucher.roller_ladeleistung_log_in_w,
-				round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.8),
-				5
+				round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.8)
 			);
-			_log((char*) "_roller_laden_ist_beendet>stromverbrauch");
-			_log((char*) (es_wird_strom_verbraucht ? "ja" : "nein"));
+			_log((char*) "_roller_laden_ist_beendet>VerbrauchZuGering:");
+			_log((char*) (es_wird_kein_strom_verbraucht ? "ja" : "nein"));
 			if(
 				verbraucher.roller_relay_ist_an
-				&& !es_wird_strom_verbraucht
+				&& es_wird_kein_strom_verbraucht
 			) {
 				_log((char*) "_roller_laden_ist_beendet>AusWeilBeendet");
 				return true;
 			}
 			return false;
-		}
-
-		bool es_gibt_genug_ueberschuss(Local::Verbraucher& verbraucher, int benoetigte_leistung) {
-			 return _liste_enthaelt_mindestens(
-				verbraucher.ueberschuss_log_in_w,
-				benoetigte_leistung,
-				3
-			);
 		}
 
 		bool _auto_schalte_solarstatus_automatisch(Local::Verbraucher& verbraucher) {
@@ -143,7 +141,7 @@ namespace Local {
 
 			if(
 				verbraucher.auto_relay_ist_an
-				&& !es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.8))
+				&& _liste_enthaelt_maximal(verbraucher.ueberschuss_log_in_w, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.8))
 				&& verbraucher.aktueller_akku_ladenstand_in_promille < 500
 			) {
 				_log((char*) "_auto-automatisch>AusWeilZuWenig");
@@ -153,13 +151,13 @@ namespace Local {
 			if(
 				!verbraucher.auto_relay_ist_an
 				&& (
-					es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 1.0))
+					_liste_enthaelt_mindestens(verbraucher.ueberschuss_log_in_w, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 1.0))
 					&& verbraucher.aktueller_akku_ladenstand_in_promille > 250
 				) || (
-					es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.5))
+					_liste_enthaelt_mindestens(verbraucher.ueberschuss_log_in_w, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.5))
 					&& verbraucher.aktueller_akku_ladenstand_in_promille > 500
 				) || (
-					es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.2))
+					_liste_enthaelt_mindestens(verbraucher.ueberschuss_log_in_w, round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.2))
 					&& verbraucher.aktueller_akku_ladenstand_in_promille > 800
 				)
 			) {
@@ -183,7 +181,7 @@ namespace Local {
 
 			if(
 				verbraucher.roller_relay_ist_an
-				&& !es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.8))
+				&& _liste_enthaelt_maximal(verbraucher.ueberschuss_log_in_w, round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.8))
 				&& verbraucher.aktueller_akku_ladenstand_in_promille < 500
 			) {
 				_log((char*) "_roller-automatisch>AusWeilZuWenig");
@@ -193,13 +191,13 @@ namespace Local {
 			if(
 				!verbraucher.roller_relay_ist_an
 				&& (
-					es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.roller_benoetigte_ladeleistung_in_w * 1.0))
+					_liste_enthaelt_mindestens(verbraucher.ueberschuss_log_in_w, round(verbraucher.roller_benoetigte_ladeleistung_in_w * 1.0))
 					&& verbraucher.aktueller_akku_ladenstand_in_promille > 350
 				) || (
-					es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.5))
+					_liste_enthaelt_mindestens(verbraucher.ueberschuss_log_in_w, round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.5))
 					&& verbraucher.aktueller_akku_ladenstand_in_promille > 600
 				) || (
-					es_gibt_genug_ueberschuss(verbraucher, round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.2))
+					_liste_enthaelt_mindestens(verbraucher.ueberschuss_log_in_w, round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.2))
 					&& verbraucher.aktueller_akku_ladenstand_in_promille > 850
 				)
 			) {
@@ -221,10 +219,10 @@ namespace Local {
 				verbraucher.wasser_relay_ist_an
 				&& (
 					(
-						!es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 1.0))
+						_liste_enthaelt_maximal(verbraucher.ueberschuss_log_in_w, round(cfg->wasser_benoetigte_leistung_in_w * 1.0))
 						&& verbraucher.aktueller_akku_ladenstand_in_promille < 950
 					) || (
-						es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 1.0))
+						_liste_enthaelt_mindestens(verbraucher.ueberschuss_log_in_w, round(cfg->wasser_benoetigte_leistung_in_w * 1.0))
 						&& verbraucher.aktueller_akku_ladenstand_in_promille < 800
 					)
 				)
@@ -237,10 +235,10 @@ namespace Local {
 				!verbraucher.wasser_relay_ist_an
 				&& (
 					(
-						es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 1.5))
+						_liste_enthaelt_mindestens(verbraucher.ueberschuss_log_in_w, round(cfg->wasser_benoetigte_leistung_in_w * 1.5))
 						&& verbraucher.aktueller_akku_ladenstand_in_promille > 830
 					) || (
-						es_gibt_genug_ueberschuss(verbraucher, round(cfg->wasser_benoetigte_leistung_in_w * 0.3))
+						_liste_enthaelt_mindestens(verbraucher.ueberschuss_log_in_w, round(cfg->wasser_benoetigte_leistung_in_w * 0.3))
 						&& verbraucher.aktueller_akku_ladenstand_in_promille > 970
 					)
 				)
@@ -262,10 +260,10 @@ namespace Local {
 			if(
 				verbraucher.heizung_relay_ist_an
 				&& (
-					!es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 1.0))
+					_liste_enthaelt_maximal(verbraucher.ueberschuss_log_in_w, round(cfg->heizung_benoetigte_leistung_in_w * 1.0))
 					&& verbraucher.aktueller_akku_ladenstand_in_promille < 970
 				) || (
-					es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 1.0))
+					_liste_enthaelt_mindestens(verbraucher.ueberschuss_log_in_w, round(cfg->heizung_benoetigte_leistung_in_w * 1.0))
 					&& verbraucher.aktueller_akku_ladenstand_in_promille < 820
 				)
 			) {
@@ -276,10 +274,10 @@ namespace Local {
 			if(
 				!verbraucher.heizung_relay_ist_an
 				&& (
-					es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 1.5))
+					_liste_enthaelt_mindestens(verbraucher.ueberschuss_log_in_w, round(cfg->heizung_benoetigte_leistung_in_w * 1.5))
 					&& verbraucher.aktueller_akku_ladenstand_in_promille > 850
 				) || (
-					es_gibt_genug_ueberschuss(verbraucher, round(cfg->heizung_benoetigte_leistung_in_w * 0.3))
+					_liste_enthaelt_mindestens(verbraucher.ueberschuss_log_in_w, round(cfg->heizung_benoetigte_leistung_in_w * 0.3))
 					&& verbraucher.aktueller_akku_ladenstand_in_promille > 990
 				)
 			) {
