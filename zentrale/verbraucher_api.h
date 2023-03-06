@@ -622,9 +622,11 @@ namespace Local {
 				|| verbraucher.wasser_relay_zustand_seit >= timestamp - karenzzeit
 				|| verbraucher.heizung_relay_zustand_seit >= timestamp - karenzzeit
 			) {
+				_log((char*) "SchaltKarenzzeit");
 				return;
 			}
 
+			// TODO Schaltkorridore grafisch festlegen - als Kurve, so dass einSchalten auch WW bei seeeehr viel zu Viel schon bei wenigen % passiert
 			// TODO: die benoetigte Ladung nutzen um was kleines/ueberladen zu deaktivieren wen dadurch was groesseres passt
 			if(_auto_schalte_solarstatus_automatisch(verbraucher)) {
 				return;
