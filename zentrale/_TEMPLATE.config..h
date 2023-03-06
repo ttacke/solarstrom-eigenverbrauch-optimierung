@@ -24,9 +24,9 @@ namespace Local {
 		int auto_benoetigte_leistung_hoch_in_w = 3680;
 		int auto_min_schaltzeit_in_min = 10;
 		int wasser_benoetigte_leistung_in_w = 420;
-		int wasser_min_schaltzeit_in_min = 30;
+		int wasser_min_schaltzeit_in_min = 60;
 		int heizung_benoetigte_leistung_in_w = 420;
-		int heizung_min_schaltzeit_in_min = 30;
+		int heizung_min_schaltzeit_in_min = 60;
 
 		int schaltautomat_schalt_karenzzeit_in_min = 5;
 

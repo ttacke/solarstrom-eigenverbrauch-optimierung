@@ -133,10 +133,29 @@ namespace Local {
 
 			if(
 				verbraucher.auto_relay_ist_an
-				&& _liste_enthaelt_maximal(
-					verbraucher.ueberschuss_log_in_w,
-					round(verbraucher.auto_benoetigte_ladeleistung_in_w * 1.0)
-				) && verbraucher.aktueller_akku_ladenstand_in_promille < 500
+				&& (
+					(
+						_liste_enthaelt_maximal(
+							verbraucher.ueberschuss_log_in_w,
+							round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.8 * -1)
+						) && verbraucher.aktueller_akku_ladenstand_in_promille < 750
+					) || (
+						_liste_enthaelt_maximal(
+							verbraucher.ueberschuss_log_in_w,
+							round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.5 * -1)
+						) && verbraucher.aktueller_akku_ladenstand_in_promille < 550
+					) || (
+						_liste_enthaelt_maximal(
+							verbraucher.ueberschuss_log_in_w,
+							round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.2 * -1)
+						) && verbraucher.aktueller_akku_ladenstand_in_promille < 450
+					) || (
+						_liste_enthaelt_maximal(
+							verbraucher.ueberschuss_log_in_w,
+							0
+						) && verbraucher.aktueller_akku_ladenstand_in_promille < 300
+					)
+				)
 			) {
 				_log((char*) "_auto-automatisch>AusWeilZuWenig");
 				_schalte_auto_relay(false);
@@ -191,10 +210,29 @@ namespace Local {
 
 			if(
 				verbraucher.roller_relay_ist_an
-				&& _liste_enthaelt_maximal(
-					verbraucher.ueberschuss_log_in_w,
-					round(verbraucher.roller_benoetigte_ladeleistung_in_w * 1.0)
-				) && verbraucher.aktueller_akku_ladenstand_in_promille < 500
+				&& (
+					(
+						_liste_enthaelt_maximal(
+							verbraucher.ueberschuss_log_in_w,
+							round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.8 * -1)
+						) && verbraucher.aktueller_akku_ladenstand_in_promille < 800
+					) || (
+						_liste_enthaelt_maximal(
+							verbraucher.ueberschuss_log_in_w,
+							round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.5 * -1)
+						) && verbraucher.aktueller_akku_ladenstand_in_promille < 600
+					) || (
+						_liste_enthaelt_maximal(
+							verbraucher.ueberschuss_log_in_w,
+							round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.2 * -1)
+						) && verbraucher.aktueller_akku_ladenstand_in_promille < 500
+					) || (
+						_liste_enthaelt_maximal(
+							verbraucher.ueberschuss_log_in_w,
+							0
+						) && verbraucher.aktueller_akku_ladenstand_in_promille < 350
+					)
+				)
 			) {
 				_log((char*) "_roller-automatisch>AusWeilZuWenig");
 				_schalte_roller_relay(false);
@@ -249,7 +287,7 @@ namespace Local {
 					(
 						_liste_enthaelt_maximal(
 							verbraucher.ueberschuss_log_in_w,
-							round(cfg->wasser_benoetigte_leistung_in_w * 1.0)
+							0
 						) && verbraucher.aktueller_akku_ladenstand_in_promille < 920
 					)
 				)
@@ -293,7 +331,7 @@ namespace Local {
 				&& (
 					_liste_enthaelt_maximal(
 						verbraucher.ueberschuss_log_in_w,
-						round(cfg->heizung_benoetigte_leistung_in_w * 1.0)
+						0
 					) && verbraucher.aktueller_akku_ladenstand_in_promille < 940
 				)
 			) {
