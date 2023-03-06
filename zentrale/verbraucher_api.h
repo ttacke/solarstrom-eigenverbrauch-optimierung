@@ -40,22 +40,24 @@ namespace Local {
 			}
 		}
 
-		bool _liste_enthaelt_mindestens(int* liste, int mindest_wert) {
-			for(int i = 0; i < 5; i++) {
-				if(liste[i] < mindest_wert) {
-					return false;
+		int _gib_listen_maximum(int* liste) {
+			int max = liste[0];
+			for(int i = 1; i < 5; i++) {
+				if(liste[i] > max) {
+					max = liste[i];
 				}
 			}
-			return true;
+			return max;
 		}
 
-		bool _liste_enthaelt_maximal(int* liste, int mindest_wert) {
-			for(int i = 0; i < 5; i++) {
-				if(liste[i] > mindest_wert) {
-					return false;
+		int _gib_listen_minimum(int* liste) {
+			int min = liste[0];
+			for(int i = 1; i < 5; i++) {
+				if(liste[i] < min) {
+					min = liste[i];
 				}
 			}
-			return true;
+			return min;
 		}
 
 		bool _auto_laden_ist_beendet(Local::Verbraucher& verbraucher) {
@@ -78,10 +80,11 @@ namespace Local {
 				return true;
 			}
 			if(verbraucher.auto_relay_ist_an) {
-				if(_liste_enthaelt_maximal(
-					verbraucher.auto_ladeleistung_log_in_w,
-					round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.7)
-				)) {
+				if(
+					_gib_listen_maximum(verbraucher.auto_ladeleistung_log_in_w)
+					<
+					verbraucher.auto_benoetigte_ladeleistung_in_w * 0.7
+				) {
 					_log((char*) "_auto_laden_ist_beendet>AusWeilBeendet");
 					return true;
 				}
@@ -109,10 +112,11 @@ namespace Local {
 				return true;
 			}
 			if(verbraucher.roller_relay_ist_an) {
-				if(_liste_enthaelt_maximal(
-					verbraucher.roller_ladeleistung_log_in_w,
-					round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.7)
-				)) {
+				if(
+					_gib_listen_maximum(verbraucher.roller_ladeleistung_log_in_w)
+					<
+					verbraucher.roller_benoetigte_ladeleistung_in_w * 0.7
+				) {
 					_log((char*) "_roller_laden_ist_beendet>AusWeilBeendet");
 					return true;
 				}
@@ -131,29 +135,22 @@ namespace Local {
 				return false;
 			}
 
+			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
+			float noetiges_max_leistungsverhaetnis =
+				_gib_listen_maximum(verbraucher.ueberschuss_log_in_w)
+				/
+				verbraucher.auto_benoetigte_ladeleistung_in_w;
 			if(
 				verbraucher.auto_relay_ist_an
 				&& (
 					(
-						_liste_enthaelt_maximal(
-							verbraucher.ueberschuss_log_in_w,
-							round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.8 * -1)
-						) && verbraucher.aktueller_akku_ladenstand_in_promille < 750
+						akku <= 200
 					) || (
-						_liste_enthaelt_maximal(
-							verbraucher.ueberschuss_log_in_w,
-							round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.5 * -1)
-						) && verbraucher.aktueller_akku_ladenstand_in_promille < 550
+						akku <= 700
+						&& noetiges_max_leistungsverhaetnis < 0 - (0.1 / 50 * (akku - 200))
 					) || (
-						_liste_enthaelt_maximal(
-							verbraucher.ueberschuss_log_in_w,
-							round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.2 * -1)
-						) && verbraucher.aktueller_akku_ladenstand_in_promille < 450
-					) || (
-						_liste_enthaelt_maximal(
-							verbraucher.ueberschuss_log_in_w,
-							0
-						) && verbraucher.aktueller_akku_ladenstand_in_promille < 300
+						akku > 700
+						&& noetiges_max_leistungsverhaetnis < -1.0
 					)
 				)
 			) {
@@ -161,33 +158,25 @@ namespace Local {
 				_schalte_auto_relay(false);
 				return true;
 			}
+
+			float noetiges_min_leistungsverhaetnis =
+				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w)
+				/
+				verbraucher.auto_benoetigte_ladeleistung_in_w;
 			if(
 				!verbraucher.auto_relay_ist_an
 				&& (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						round(verbraucher.auto_benoetigte_ladeleistung_in_w * 1.3)
-					) && verbraucher.aktueller_akku_ladenstand_in_promille > 250
-				) || (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						round(verbraucher.auto_benoetigte_ladeleistung_in_w * 1.0)
-					) && verbraucher.aktueller_akku_ladenstand_in_promille > 500
-				) || (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.7)
-					) && verbraucher.aktueller_akku_ladenstand_in_promille > 600
-				) || (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						round(verbraucher.auto_benoetigte_ladeleistung_in_w * 0.5)
-					) && verbraucher.aktueller_akku_ladenstand_in_promille > 800
-				) || (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						100
-					) && verbraucher.aktueller_akku_ladenstand_in_promille > 900
+					(
+						akku > 800
+						&& noetiges_min_leistungsverhaetnis > 0.1
+					) || (
+						akku > 350
+						&& akku <= 800
+						&& noetiges_min_leistungsverhaetnis > 1.0 - (0.1 / 50 * (akku - 350))
+					) || (
+						akku >= 200
+						&& noetiges_min_leistungsverhaetnis > 1.9 - (0.3 / 50 * (akku - 200))
+					)
 				)
 			) {
 				_log((char*) "_auto-automatisch>AnWeilGenug");
@@ -208,29 +197,22 @@ namespace Local {
 				return false;
 			}
 
+			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
+			float noetiges_max_leistungsverhaetnis =
+				_gib_listen_maximum(verbraucher.ueberschuss_log_in_w)
+				/
+				verbraucher.roller_benoetigte_ladeleistung_in_w;
 			if(
 				verbraucher.roller_relay_ist_an
 				&& (
 					(
-						_liste_enthaelt_maximal(
-							verbraucher.ueberschuss_log_in_w,
-							round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.8 * -1)
-						) && verbraucher.aktueller_akku_ladenstand_in_promille < 800
+						akku <= 200
 					) || (
-						_liste_enthaelt_maximal(
-							verbraucher.ueberschuss_log_in_w,
-							round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.5 * -1)
-						) && verbraucher.aktueller_akku_ladenstand_in_promille < 600
+						akku <= 700
+						&& noetiges_max_leistungsverhaetnis < 0 - (0.1 / 50 * (akku - 200))
 					) || (
-						_liste_enthaelt_maximal(
-							verbraucher.ueberschuss_log_in_w,
-							round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.2 * -1)
-						) && verbraucher.aktueller_akku_ladenstand_in_promille < 500
-					) || (
-						_liste_enthaelt_maximal(
-							verbraucher.ueberschuss_log_in_w,
-							0
-						) && verbraucher.aktueller_akku_ladenstand_in_promille < 350
+						akku > 700
+						&& noetiges_max_leistungsverhaetnis < -1.0
 					)
 				)
 			) {
@@ -238,33 +220,25 @@ namespace Local {
 				_schalte_roller_relay(false);
 				return true;
 			}
+
+			float noetiges_min_leistungsverhaetnis =
+				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w)
+				/
+				verbraucher.roller_benoetigte_ladeleistung_in_w;
 			if(
 				!verbraucher.roller_relay_ist_an
 				&& (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						round(verbraucher.roller_benoetigte_ladeleistung_in_w * 1.3)
-					) && verbraucher.aktueller_akku_ladenstand_in_promille > 300
-				) || (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						round(verbraucher.roller_benoetigte_ladeleistung_in_w * 1.0)
-					) && verbraucher.aktueller_akku_ladenstand_in_promille > 550
-				) || (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.7)
-					) && verbraucher.aktueller_akku_ladenstand_in_promille > 650
-				) || (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						round(verbraucher.roller_benoetigte_ladeleistung_in_w * 0.5)
-					) && verbraucher.aktueller_akku_ladenstand_in_promille > 850
-				) || (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						100
-					) && verbraucher.aktueller_akku_ladenstand_in_promille > 920
+					(
+						akku > 800
+						&& noetiges_min_leistungsverhaetnis > 0.1
+					) || (
+						akku > 350
+						&& akku <= 800
+						&& noetiges_min_leistungsverhaetnis > 1.0 - (0.1 / 50 * (akku - 350))
+					) || (
+						akku >= 200
+						&& noetiges_min_leistungsverhaetnis > 1.9 - (0.3 / 50 * (akku - 200))
+					)
 				)
 			) {
 				_log((char*) "_roller-automatisch>AnWeilGenug");
@@ -281,14 +255,18 @@ namespace Local {
 				return false;
 			}
 
+			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
+			float noetiges_max_leistungsverhaetnis =
+				_gib_listen_maximum(verbraucher.ueberschuss_log_in_w)
+				/
+				cfg->wasser_benoetigte_leistung_in_w;
 			if(
 				verbraucher.wasser_relay_ist_an
 				&& (
 					(
-						_liste_enthaelt_maximal(
-							verbraucher.ueberschuss_log_in_w,
-							0
-						) && verbraucher.aktueller_akku_ladenstand_in_promille < 920
+						akku <= 350
+					) || (
+						noetiges_max_leistungsverhaetnis < 1.6 - (0.2 / 50 * (akku - 350))
 					)
 				)
 			) {
@@ -296,19 +274,24 @@ namespace Local {
 				_schalte_wasser_relay(false);
 				return true;
 			}
+
+			float noetiges_min_leistungsverhaetnis =
+				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w)
+				/
+				cfg->wasser_benoetigte_leistung_in_w;
 			if(
 				!verbraucher.wasser_relay_ist_an
 				&& (
 					(
-						_liste_enthaelt_mindestens(
-							verbraucher.ueberschuss_log_in_w,
-							round(cfg->wasser_benoetigte_leistung_in_w * 1.2)
-						) && verbraucher.aktueller_akku_ladenstand_in_promille > 940
+						akku > 900
+						&& noetiges_min_leistungsverhaetnis > 0.9 - (0.4 / 50 * (akku - 900))
 					) || (
-						_liste_enthaelt_mindestens(
-							verbraucher.ueberschuss_log_in_w,
-							100
-						) && verbraucher.aktueller_akku_ladenstand_in_promille > 960
+						akku > 550
+						&& akku <= 900
+						&& noetiges_min_leistungsverhaetnis > 1.6 - (0.1 / 50 * (akku - 550))
+					) || (
+						akku >= 350
+						&& noetiges_min_leistungsverhaetnis > 2.6 - (0.2 / 50 * (akku - 350))
 					)
 				)
 			) {
@@ -326,31 +309,44 @@ namespace Local {
 				return false;
 			}
 
+			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
+			float noetiges_max_leistungsverhaetnis =
+				_gib_listen_maximum(verbraucher.ueberschuss_log_in_w)
+				/
+				cfg->heizung_benoetigte_leistung_in_w;
 			if(
 				verbraucher.heizung_relay_ist_an
 				&& (
-					_liste_enthaelt_maximal(
-						verbraucher.ueberschuss_log_in_w,
-						0
-					) && verbraucher.aktueller_akku_ladenstand_in_promille < 940
+					(
+						akku <= 350
+					) || (
+						noetiges_max_leistungsverhaetnis < 1.6 - (0.2 / 50 * (akku - 350))
+					)
 				)
 			) {
 				_log((char*) "_heiz-automatisch>AusWeilZuWenig");
 				_schalte_heizung_relay(false);
 				return true;
 			}
+
+			float noetiges_min_leistungsverhaetnis =
+				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w)
+				/
+				cfg->heizung_benoetigte_leistung_in_w;
 			if(
 				!verbraucher.heizung_relay_ist_an
 				&& (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						round(cfg->heizung_benoetigte_leistung_in_w * 1.2)
-					) && verbraucher.aktueller_akku_ladenstand_in_promille > 960
-				) || (
-					_liste_enthaelt_mindestens(
-						verbraucher.ueberschuss_log_in_w,
-						100
-					) && verbraucher.aktueller_akku_ladenstand_in_promille > 980
+					(
+						akku > 900
+						&& noetiges_min_leistungsverhaetnis > 0.9 - (0.4 / 50 * (akku - 900))
+					) || (
+						akku > 550
+						&& akku <= 900
+						&& noetiges_min_leistungsverhaetnis > 1.6 - (0.1 / 50 * (akku - 550))
+					) || (
+						akku >= 350
+						&& noetiges_min_leistungsverhaetnis > 2.6 - (0.2 / 50 * (akku - 350))
+					)
 				)
 			) {
 				_log((char*) "_heiz-automatisch>AnWeilGenug");
@@ -627,7 +623,6 @@ namespace Local {
 			}
 
 			// TODO Schaltkorridore grafisch festlegen - als Kurve, so dass einSchalten auch WW bei seeeehr viel zu Viel schon bei wenigen % passiert
-			// TODO: die benoetigte Ladung nutzen um was kleines/ueberladen zu deaktivieren wen dadurch was groesseres passt
 			if(_auto_schalte_solarstatus_automatisch(verbraucher)) {
 				return;
 			}
