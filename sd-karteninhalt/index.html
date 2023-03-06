@@ -114,6 +114,8 @@
 			
 			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : 'off';
 			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : 'off';
+			document.getElementById('roller_laden_an').className = daten['roller_laden_an'] ? 'on' : 'off';
+			document.getElementById('auto_laden_an').className = daten['auto_laden_an'] ? 'on' : 'off';
 		
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
@@ -375,10 +377,9 @@
 			text-align: center;
 		}
 			.zusatzinfo>span {
-				padding-right: 0.8rem;
+				padding-right: 0.4rem;
 			}
 			.zusatzinfo .on {
-				text-decoration: underline;
 			}
 			.zusatzinfo .off {
 				color: #666;
@@ -443,8 +444,10 @@
 <div class="zusatzinfo">
 	<span class="info">NO <span id="solaranteil_in_prozent_string1"></span>%</span>
 	<span class="info">SW <span id="solaranteil_in_prozent_string2"></span>%</span>
-	<span id="wasser_ueberladen">WASSER</span>
-	<span id="heizung_ueberladen">HEIZUNG</span>
+	<span id="auto_laden_an">AUTO</span>
+	<span id="roller_laden_an">ROLL</span>
+	<span id="wasser_ueberladen">WASS</span>
+	<span id="heizung_ueberladen">HEIZ</span>
 </div>
 
 <table class="wetter" id="solarstrahlung"></table>
