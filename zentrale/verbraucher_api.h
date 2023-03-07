@@ -184,10 +184,19 @@ namespace Local {
 			return false;
 		}
 
-		bool _wasser_schalte_ueberladen_automatisch(Local::Verbraucher& verbraucher) {
-			bool wasser_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.wasser_relay_zustand_seit >= cfg->wasser_min_schaltzeit_in_min * 60;
-			if(!wasser_schalt_mindestdauer_ist_erreicht) {
-				_log((char*) "_wasser-automatisch>SchaltdauerNichtErreicht");
+		template<typename F>
+		bool _schalte_ueberladen_automatisch(
+			char* log_key,
+			Local::Verbraucher& verbraucher,
+			int relay_zustand_seit,
+			int min_schaltzeit_in_min,
+			int benoetigte_leistung_in_w,
+			bool relay_ist_an,
+			F && schalt_func
+		) {
+			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
+			if(!schalt_mindestdauer_ist_erreicht) {
+				_log(log_key, (char*) "-automatisch>SchaltdauerNichtErreicht");
 				return false;
 			}
 
@@ -195,9 +204,9 @@ namespace Local {
 			float noetiges_max_leistungsverhaetnis =
 				_gib_listen_maximum(verbraucher.ueberschuss_log_in_w)
 				/
-				cfg->wasser_benoetigte_leistung_in_w;
+				benoetigte_leistung_in_w;
 			if(
-				verbraucher.wasser_relay_ist_an
+				relay_ist_an
 				&& (
 					(
 						akku <= 350
@@ -206,17 +215,17 @@ namespace Local {
 					)
 				)
 			) {
-				_log((char*) "_wasser-automatisch>AusWeilZuWenig");
-				_schalte_wasser_relay(false);
+				_log(log_key, (char*) "-automatisch>AusWeilZuWenig");
+				schalt_func(false);
 				return true;
 			}
 
 			float noetiges_min_leistungsverhaetnis =
 				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w)
 				/
-				cfg->wasser_benoetigte_leistung_in_w;
+				benoetigte_leistung_in_w;
 			if(
-				!verbraucher.wasser_relay_ist_an
+				!relay_ist_an
 				&& (
 					(
 						akku > 900
@@ -231,62 +240,8 @@ namespace Local {
 					)
 				)
 			) {
-				_log((char*) "_wasser-automatisch>AnWeilGenug");
-				_schalte_wasser_relay(true);
-				return true;
-			}
-			return false;
-		}
-
-		bool _heizung_schalte_ueberladen_automatisch(Local::Verbraucher& verbraucher) {
-			bool heizung_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.heizung_relay_zustand_seit >= cfg->heizung_min_schaltzeit_in_min * 60;
-			if(!heizung_schalt_mindestdauer_ist_erreicht) {
-				_log((char*) "_heiz-automatisch>SchaltdauerNichtErreicht");
-				return false;
-			}
-
-			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
-			float noetiges_max_leistungsverhaetnis =
-				_gib_listen_maximum(verbraucher.ueberschuss_log_in_w)
-				/
-				cfg->heizung_benoetigte_leistung_in_w;
-			if(
-				verbraucher.heizung_relay_ist_an
-				&& (
-					(
-						akku <= 350
-					) || (
-						noetiges_max_leistungsverhaetnis < 1.6 - (0.2 / 50 * (akku - 350))
-					)
-				)
-			) {
-				_log((char*) "_heiz-automatisch>AusWeilZuWenig");
-				_schalte_heizung_relay(false);
-				return true;
-			}
-
-			float noetiges_min_leistungsverhaetnis =
-				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w)
-				/
-				cfg->heizung_benoetigte_leistung_in_w;
-			if(
-				!verbraucher.heizung_relay_ist_an
-				&& (
-					(
-						akku > 900
-						&& noetiges_min_leistungsverhaetnis > 0.9 - (0.4 / 50 * (akku - 900))
-					) || (
-						akku > 550
-						&& akku <= 900
-						&& noetiges_min_leistungsverhaetnis > 1.6 - (0.1 / 50 * (akku - 550))
-					) || (
-						akku >= 350
-						&& noetiges_min_leistungsverhaetnis > 2.6 - (0.2 / 50 * (akku - 350))
-					)
-				)
-			) {
-				_log((char*) "_heiz-automatisch>AnWeilGenug");
-				_schalte_heizung_relay(true);
+				_log(log_key, (char*) "-automatisch>AnWeilGenug");
+				schalt_func(true);
 				return true;
 			}
 			return false;
@@ -599,10 +554,26 @@ namespace Local {
 			)) {
 				return;
 			}
-			if(_wasser_schalte_ueberladen_automatisch(verbraucher)) {
+			if(_schalte_ueberladen_automatisch(
+				(char*) "wasser",
+				verbraucher,
+				verbraucher.wasser_relay_zustand_seit,
+				cfg->wasser_min_schaltzeit_in_min,
+				cfg->wasser_benoetigte_leistung_in_w,
+				verbraucher.wasser_relay_ist_an,
+				[&](bool ein) { _schalte_wasser_relay(ein); }
+			)) {
 				return;
 			}
-			if(_heizung_schalte_ueberladen_automatisch(verbraucher)) {
+			if(_schalte_ueberladen_automatisch(
+				(char*) "heizung",
+				verbraucher,
+				verbraucher.heizung_relay_zustand_seit,
+				cfg->heizung_min_schaltzeit_in_min,
+				cfg->heizung_benoetigte_leistung_in_w,
+				verbraucher.heizung_relay_ist_an,
+				[&](bool ein) { _schalte_heizung_relay(ein); }
+			)) {
 				return;
 			}
 		}
