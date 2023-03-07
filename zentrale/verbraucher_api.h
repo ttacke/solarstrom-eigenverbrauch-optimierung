@@ -40,6 +40,18 @@ namespace Local {
 			}
 		}
 
+		void _log(char* key, char* msg) {
+			if(persistenz->open_file_to_append(log_filename)) {
+				sprintf(persistenz->buffer, "%d:", timestamp);
+				persistenz->print_buffer_to_file();
+
+				sprintf(persistenz->buffer, "%s>%s\n", key, msg);
+				persistenz->print_buffer_to_file();
+
+				persistenz->close_file();
+			}
+		}
+
 		int _gib_listen_maximum(int* liste) {
 			int max = liste[0];
 			for(int i = 1; i < 5; i++) {
@@ -60,64 +72,40 @@ namespace Local {
 			return min;
 		}
 
-		bool _auto_laden_ist_beendet(Local::Verbraucher& verbraucher) {
-			bool auto_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.auto_relay_zustand_seit >= cfg->auto_min_schaltzeit_in_min * 60;
-			if(!auto_schalt_mindestdauer_ist_erreicht) {
-				_log((char*) "_auto_laden_ist_beendet>schaltdauerNichtErreicht");
+		bool _laden_ist_beendet(
+			char* log_key,
+			int relay_zustand_seit,
+			int min_schaltzeit_in_min,
+			Local::Verbraucher::Ladestatus& ladestatus,
+			bool relay_ist_an,
+			int* ladeleistung_log_in_w,
+			int benoetigte_ladeleistung_in_w
+		) {
+			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
+			if(!schalt_mindestdauer_ist_erreicht) {
+				_log(log_key, (char*) "_laden_ist_beendet>schaltdauerNichtErreicht");
 				return false;
 			}
 
 			if(
 				(
-					verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::off
-					&& verbraucher.auto_relay_ist_an
+					ladestatus == Local::Verbraucher::Ladestatus::off
+					&& relay_ist_an
 				) || (
-					verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
-					&& !verbraucher.auto_relay_ist_an
+					ladestatus == Local::Verbraucher::Ladestatus::force
+					&& !relay_ist_an
 				)
 			) {
-				_log((char*) "_auto_laden_ist_beendet>StatusFehlerKorrigiert");
+				_log(log_key, (char*) "_laden_ist_beendet>StatusFehlerKorrigiert");
 				return true;
 			}
-			if(verbraucher.auto_relay_ist_an) {
+			if(relay_ist_an) {
 				if(
-					_gib_listen_maximum(verbraucher.auto_ladeleistung_log_in_w)
+					_gib_listen_maximum(ladeleistung_log_in_w)
 					<
-					verbraucher.auto_benoetigte_ladeleistung_in_w * 0.7
+					benoetigte_ladeleistung_in_w * 0.7
 				) {
-					_log((char*) "_auto_laden_ist_beendet>AusWeilBeendet");
-					return true;
-				}
-			}
-			return false;
-		}
-
-		bool _roller_laden_ist_beendet(Local::Verbraucher& verbraucher) {
-			bool roller_schalt_mindestdauer_ist_erreicht = timestamp - verbraucher.roller_relay_zustand_seit >= cfg->roller_min_schaltzeit_in_min * 60;
-			if(!roller_schalt_mindestdauer_ist_erreicht) {
-				_log((char*) "_roller_laden_ist_beendet>schaltdauerNichtErreicht");
-				return false;
-			}
-
-			if(
-				(
-					verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::off
-					&& verbraucher.roller_relay_ist_an
-				) || (
-					verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::force
-					&& !verbraucher.roller_relay_ist_an
-				)
-			) {
-				_log((char*) "_roller_laden_ist_beendet>StatusFehlerKorrigiert");
-				return true;
-			}
-			if(verbraucher.roller_relay_ist_an) {
-				if(
-					_gib_listen_maximum(verbraucher.roller_ladeleistung_log_in_w)
-					<
-					verbraucher.roller_benoetigte_ladeleistung_in_w * 0.7
-				) {
-					_log((char*) "_roller_laden_ist_beendet>AusWeilBeendet");
+					_log(log_key, (char*) "_laden_ist_beendet>AusWeilBeendet");
 					return true;
 				}
 			}
@@ -602,11 +590,28 @@ namespace Local {
 		}
 
 		void fuehre_schaltautomat_aus(Local::Verbraucher& verbraucher) {
-			if(_roller_laden_ist_beendet(verbraucher)) {
+			if(_laden_ist_beendet(
+				(char*) "roller",
+				verbraucher.roller_relay_zustand_seit,
+				cfg->roller_min_schaltzeit_in_min,
+				verbraucher.roller_ladestatus,
+				verbraucher.roller_relay_ist_an,
+				verbraucher.roller_ladeleistung_log_in_w,
+				verbraucher.roller_benoetigte_ladeleistung_in_w
+			)) {
 				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::off);
 				return;
 			}
-			if(_auto_laden_ist_beendet(verbraucher)) {
+
+			if(_laden_ist_beendet(
+				(char*) "auto",
+				verbraucher.auto_relay_zustand_seit,
+				cfg->auto_min_schaltzeit_in_min,
+				verbraucher.auto_ladestatus,
+				verbraucher.auto_relay_ist_an,
+				verbraucher.auto_ladeleistung_log_in_w,
+				verbraucher.auto_benoetigte_ladeleistung_in_w
+			)) {
 				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
 				return;
 			}
