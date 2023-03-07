@@ -134,14 +134,18 @@ namespace Local {
 			}
 
 			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
+			int max_ueberschuss = _gib_listen_maximum(verbraucher.ueberschuss_log_in_w);
 			float noetiges_max_leistungsverhaetnis =
-				_gib_listen_maximum(verbraucher.ueberschuss_log_in_w)
+				max_ueberschuss
 				/
 				benoetigte_ladeleistung_in_w;
 			if(
 				relay_ist_an
 				&& (
 					(
+						max_ueberschuss <= 50
+						&& verbraucher.strahlungsvorhersage_der_aktuellen_stunde <= 50
+					) || (
 						akku <= 200
 					) || (
 						akku <= 700
@@ -155,6 +159,13 @@ namespace Local {
 				_log(log_key, (char*) "-automatisch>AusWeilZuWenig");
 				schalt_func(false);
 				return true;
+			}
+
+			if(
+				max_ueberschuss <= 50
+				&& verbraucher.strahlungsvorhersage_der_aktuellen_stunde <= 50
+			) {
+				return false;
 			}
 
 			float noetiges_min_leistungsverhaetnis =
@@ -201,14 +212,20 @@ namespace Local {
 			}
 
 			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
+			int max_ueberschuss = _gib_listen_maximum(verbraucher.ueberschuss_log_in_w);
 			float noetiges_max_leistungsverhaetnis =
-				_gib_listen_maximum(verbraucher.ueberschuss_log_in_w)
+				max_ueberschuss
 				/
 				benoetigte_leistung_in_w;
 			if(
 				relay_ist_an
 				&& (
 					(
+						max_ueberschuss <= 50
+						&& verbraucher.strahlungsvorhersage_der_aktuellen_stunde <= 50
+					) || (
+						verbraucher.strahlungsvorhersage_der_aktuellen_stunde < 50
+					) || (
 						akku <= 350
 					) || (
 						noetiges_max_leistungsverhaetnis < 1.6 - (0.2 / 50 * (akku - 350))
@@ -218,6 +235,13 @@ namespace Local {
 				_log(log_key, (char*) "-automatisch>AusWeilZuWenig");
 				schalt_func(false);
 				return true;
+			}
+
+			if(
+				max_ueberschuss <= 50
+				&& verbraucher.strahlungsvorhersage_der_aktuellen_stunde <= 50
+			) {
+				return false;
 			}
 
 			float noetiges_min_leistungsverhaetnis =
@@ -487,6 +511,7 @@ namespace Local {
 			_schreibe_verbraucher_log(verbraucher.ueberschuss_log_in_w, verbraucher.aktueller_ueberschuss_in_w, ueberschuss_leistung_log_filename);
 
 			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
+			verbraucher.strahlungsvorhersage_der_aktuellen_stunde = wetter.gib_strahlungsvorhersage_der_aktuellen_stunde();
 
 			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
 			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);

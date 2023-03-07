@@ -28,6 +28,7 @@ namespace Local {
 		int aktueller_ueberschuss_in_w = 0;
 		int ueberschuss_log_in_w[5];
 		int aktueller_akku_ladenstand_in_promille = 0;
+		int strahlungsvorhersage_der_aktuellen_stunde = 0;
 
 		void set_log_data_a(char* buffer) {
 			sprintf(
