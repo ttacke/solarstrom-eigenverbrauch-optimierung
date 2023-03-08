@@ -114,98 +114,7 @@ namespace Local {
 			return false;
 		}
 
-		template<typename F>
-		bool _schalte_solarstatus_automatisch(
-			char* log_key,
-			Local::Verbraucher& verbraucher,
-			Local::Verbraucher::Ladestatus& ladestatus,
-			int relay_zustand_seit,
-			int min_schaltzeit_in_min,
-			int benoetigte_ladeleistung_in_w,
-			bool relay_ist_an,
-			F && schalt_func
-		) {
-			if(ladestatus != Local::Verbraucher::Ladestatus::solar) {
-				return false;
-			}
-
-			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
-			if(!schalt_mindestdauer_ist_erreicht) {
-				_log(log_key, (char*) "-automatisch>SchaltdauerNichtErreicht");
-				return false;
-			}
-
-			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
-			int max_ueberschuss = _gib_listen_maximum(verbraucher.ueberschuss_log_in_w);
-			float noetiges_max_leistungsverhaetnis =
-				max_ueberschuss
-				/
-				benoetigte_ladeleistung_in_w;
-			bool ausschaltschwelle_ist_erreicht = false;
-			if(
-				(
-					!verbraucher.solarerzeugung_ist_aktiv()
-				) || (
-					akku <= 200
-				) || (
-					akku <= 700
-					&& noetiges_max_leistungsverhaetnis < 0 - (0.1 / 50 * (akku - 200))
-				) || (
-					akku > 700
-					&& noetiges_max_leistungsverhaetnis < -1.0
-				)
-			) {
-				ausschaltschwelle_ist_erreicht = true;
-			}
-
-			float noetiges_min_leistungsverhaetnis =
-				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w)
-				/
-				benoetigte_ladeleistung_in_w;
-			bool einschaltschwelle_ist_erreicht = false;
-			if(
-				(
-					akku > 800
-					&& noetiges_min_leistungsverhaetnis > 0.1
-				) || (
-					akku > 350
-					&& akku <= 800
-					&& noetiges_min_leistungsverhaetnis > 1.0 - (0.1 / 50 * (akku - 350))
-				) || (
-					akku >= 200
-					&& noetiges_min_leistungsverhaetnis > 1.9 - (0.3 / 50 * (akku - 200))
-				)
-			) {
-				einschaltschwelle_ist_erreicht = true;
-			}
-
-			if(relay_ist_an && ausschaltschwelle_ist_erreicht) {
-				_log(log_key, (char*) "-automatisch>AusWeilZuWenig");
-				sprintf(temp_log_val, "%f", noetiges_max_leistungsverhaetnis);
-				_log(log_key, (char*) temp_log_val);
-				_log(log_key, (char*) akku);
-				schalt_func(false);
-				return true;
-			}
-
-			if(!verbraucher.solarerzeugung_ist_aktiv()) {
-				return false;
-			}
-
-			if(!relay_ist_an && einschaltschwelle_ist_erreicht && !ausschaltschwelle_ist_erreicht) {
-				_log(log_key, (char*) "-automatisch>AnWeilGenug");
-				sprintf(temp_log_val, "%f", noetiges_min_leistungsverhaetnis);
-				_log(log_key, (char*) temp_log_val);
-				sprintf(temp_log_val, "%f", noetiges_max_leistungsverhaetnis);
-				_log(log_key, (char*) temp_log_val);
-				_log(log_key, (char*) akku);
-				schalt_func(true);
-				return true;
-			}
-			return false;
-		}
-
-		float _gib_geforrderte_leistung_anhand_der_ladekurve(int akku, int x_offset, int y_offset, float min_val) {
+		float _gib_geforrderte_leistung_anhand_der_ladekurve(int akku, int x_offset, float y_offset, float min_val) {
 			int x = akku + x_offset;
 			float geforrdert = 0;
 			if(x > 900) {
@@ -223,13 +132,15 @@ namespace Local {
 		}
 
 		template<typename F>
-		bool _schalte_ueberladen_automatisch(
+		bool _schalte_automatisch(
 			char* log_key,
 			Local::Verbraucher& verbraucher,
 			int relay_zustand_seit,
 			int min_schaltzeit_in_min,
 			int benoetigte_leistung_in_w,
 			bool relay_ist_an,
+			int x_offset,
+			float y_offset,
 			F && schalt_func
 		) {
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
@@ -245,12 +156,12 @@ namespace Local {
 			float min_bereitgestellte_leistung
 				= _gib_listen_minimum(verbraucher.ueberschuss_log_in_w) / benoetigte_leistung_in_w;
 
-
-			// TODO auch bei Solar
 			// TODO Wenn X h vor Sonnenuntergang -> dann beides: 3h=+0.1, 2h=+0.3, 1h=+0.5, 0h=+0.7
 			// TODO FORMELWERT += (Xh >= 3 ? 0.7 - Xh * 0.2 : 0)
 
-			float geforrderte_leistung_fuer_einschalten = _gib_geforrderte_leistung_anhand_der_ladekurve(akku, 0, 0, 0);
+			float geforrderte_leistung_fuer_einschalten = _gib_geforrderte_leistung_anhand_der_ladekurve(
+				akku, x_offset, y_offset, 0
+			);
 			if(
 				!relay_ist_an
 				&& verbraucher.solarerzeugung_ist_aktiv()
@@ -263,7 +174,9 @@ namespace Local {
 				return true;
 			}
 
-			float geforrderte_leistung_fuer_ausschalten = _gib_geforrderte_leistung_anhand_der_ladekurve(akku, -100, 0, -0.1);
+			float geforrderte_leistung_fuer_ausschalten = _gib_geforrderte_leistung_anhand_der_ladekurve(
+				akku, x_offset - 100, y_offset, -0.1
+			);
 			if(
 				relay_ist_an && (
 					!verbraucher.solarerzeugung_ist_aktiv()
@@ -564,48 +477,56 @@ namespace Local {
 				return;
 			}
 
-			if(_schalte_solarstatus_automatisch(
-				(char*) "auto",
-				verbraucher,
-				verbraucher.auto_ladestatus,
-				verbraucher.auto_relay_zustand_seit,
-				cfg->auto_min_schaltzeit_in_min,
-				verbraucher.auto_benoetigte_ladeleistung_in_w,
-				verbraucher.auto_relay_ist_an,
-				[&](bool ein) { _schalte_auto_relay(ein); }
-			)) {
+			if(
+				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::solar
+				&& _schalte_automatisch(
+					(char*) "auto",
+					verbraucher,
+					verbraucher.auto_relay_zustand_seit,
+					cfg->auto_min_schaltzeit_in_min,
+					verbraucher.auto_benoetigte_ladeleistung_in_w,
+					verbraucher.auto_relay_ist_an,
+					-100, -1.0,
+					[&](bool ein) { _schalte_auto_relay(ein); }
+				)
+			) {
 				return;
 			}
-			if(_schalte_solarstatus_automatisch(
-				(char*) "roller",
-				verbraucher,
-				verbraucher.roller_ladestatus,
-				verbraucher.roller_relay_zustand_seit,
-				cfg->roller_min_schaltzeit_in_min,
-				verbraucher.roller_benoetigte_ladeleistung_in_w,
-				verbraucher.roller_relay_ist_an,
-				[&](bool ein) { _schalte_roller_relay(ein); }
-			)) {
+			if(
+				verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::solar
+				&& _schalte_automatisch(
+					(char*) "roller",
+					verbraucher,
+					verbraucher.roller_relay_zustand_seit,
+					cfg->roller_min_schaltzeit_in_min,
+					verbraucher.roller_benoetigte_ladeleistung_in_w,
+					verbraucher.roller_relay_ist_an,
+					-100, -1.0,
+					[&](bool ein) { _schalte_roller_relay(ein); }
+				)
+			) {
 				return;
 			}
-			if(_schalte_ueberladen_automatisch(
+			if(_schalte_automatisch(
 				(char*) "wasser",
 				verbraucher,
 				verbraucher.wasser_relay_zustand_seit,
 				cfg->wasser_min_schaltzeit_in_min,
 				cfg->wasser_benoetigte_leistung_in_w,
 				verbraucher.wasser_relay_ist_an,
+				0, 0,
 				[&](bool ein) { _schalte_wasser_relay(ein); }
 			)) {
 				return;
 			}
-			if(_schalte_ueberladen_automatisch(
+			if(_schalte_automatisch(
 				(char*) "heizung",
 				verbraucher,
 				verbraucher.heizung_relay_zustand_seit,
 				cfg->heizung_min_schaltzeit_in_min,
 				cfg->heizung_benoetigte_leistung_in_w,
 				verbraucher.heizung_relay_ist_an,
+				0, 0,
 				[&](bool ein) { _schalte_heizung_relay(ein); }
 			)) {
 				return;
