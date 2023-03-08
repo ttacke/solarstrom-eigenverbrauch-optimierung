@@ -156,6 +156,10 @@ namespace Local {
 				)
 			) {
 				_log(log_key, (char*) "-automatisch>AusWeilZuWenig");
+				char log_val[10];
+				sprintf(log_val, "%f", noetiges_max_leistungsverhaetnis);
+				_log(log_key, (char*) log_val);
+				_log(log_key, (char*) akku);
 				schalt_func(false);
 				return true;
 			}
@@ -185,6 +189,10 @@ namespace Local {
 				)
 			) {
 				_log(log_key, (char*) "-automatisch>AnWeilGenug");
+				char log_val[10];
+				sprintf(log_val, "%f", noetiges_max_leistungsverhaetnis);
+				_log(log_key, (char*) log_val);
+				_log(log_key, (char*) akku);
 				schalt_func(true);
 				return true;
 			}
@@ -226,6 +234,10 @@ namespace Local {
 				)
 			) {
 				_log(log_key, (char*) "-automatisch>AusWeilZuWenig");
+				char log_val[10];
+				sprintf(log_val, "%f", noetiges_max_leistungsverhaetnis);
+				_log(log_key, (char*) log_val);
+				_log(log_key, (char*) akku);
 				schalt_func(false);
 				return true;
 			}
@@ -255,6 +267,10 @@ namespace Local {
 				)
 			) {
 				_log(log_key, (char*) "-automatisch>AnWeilGenug");
+				char log_val[10];
+				sprintf(log_val, "%f", noetiges_max_leistungsverhaetnis);
+				_log(log_key, (char*) log_val);
+				_log(log_key, (char*) akku);
 				schalt_func(true);
 				return true;
 			}
