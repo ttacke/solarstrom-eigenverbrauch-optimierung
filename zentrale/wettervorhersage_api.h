@@ -19,6 +19,7 @@ namespace Local {
 		char request_uri[128];
 
 		int zeitpunkt_tage_liste[5];
+		int zeitpunkt_sonnenuntergang;
 		int solarstrahlung_tage_liste[5];
 		int tage_anzahl = 5;
 		int zeitpunkt_stunden_liste[12];
@@ -104,7 +105,14 @@ namespace Local {
 			std::uint8_t findings = 0b0000'0011;
 			int letzte_gefundene_zeit = 0;
 			int now_date = _timestamp_to_date(now_timestamp);
+			zeitpunkt_sonnenuntergang = 0;
 			while(persistenz.read_next_block_to_buffer() && i < tage_anzahl) {
+				if(
+					zeitpunkt_sonnenuntergang == 0
+					&& persistenz.find_in_buffer((char*) "\"EpochSet\":([0-9]+)},\"Moon\"")
+				) {
+					zeitpunkt_sonnenuntergang = atoi(persistenz.finding_buffer);
+				}
 				if(persistenz.find_in_buffer((char*) "\"EpochDate\":([0-9]+)[,}]")) {
 					int zeitpunkt = atoi(persistenz.finding_buffer);
 					if(
@@ -235,6 +243,7 @@ namespace Local {
 			_reset(zeitpunkt_tage_liste, tage_anzahl);
 			_reset(solarstrahlung_tage_liste, tage_anzahl);
 			wetter.tagesvorhersage_startzeitpunkt = 0;
+			wetter.zeitpunkt_sonnenuntergang = 0;
 			for(int i = 0; i < tage_anzahl; i++) {
 				wetter.setze_tagesvorhersage_solarstrahlung(i, 0);
 			}
@@ -242,6 +251,7 @@ namespace Local {
 			_lese_tagescache_und_setze_ein(persistenz, now_timestamp);
 			_lese_tagesdaten_und_setze_ein(persistenz, now_timestamp);
 			wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_tage_liste[0];
+			wetter.zeitpunkt_sonnenuntergang = zeitpunkt_sonnenuntergang;
 			for(int i = 0; i < tage_anzahl; i++) {
 				wetter.setze_tagesvorhersage_solarstrahlung(i, solarstrahlung_tage_liste[i]);
 			}

@@ -12,6 +12,7 @@ namespace Local {
 	public:
 		int stundenvorhersage_startzeitpunkt;
 		int tagesvorhersage_startzeitpunkt;
+		int zeitpunkt_sonnenuntergang = 0;
 
 		void setze_stundenvorhersage_solarstrahlung(int index, int val) {
 			stundenvorhersage_solarstrahlung_liste[index] = val;
@@ -32,9 +33,10 @@ namespace Local {
 		void set_log_data(char* buffer) {
 			sprintf(
 				buffer,
-				"w1,%d,%d",
+				"w2,%d,%d,%d",
 				stundenvorhersage_solarstrahlung_liste[0],
-				tagesvorhersage_solarstrahlung_liste[0]
+				tagesvorhersage_solarstrahlung_liste[0],
+				zeitpunkt_sonnenuntergang
 			);
 		}
 	};
