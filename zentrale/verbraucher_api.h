@@ -139,22 +139,45 @@ namespace Local {
 				max_ueberschuss
 				/
 				benoetigte_ladeleistung_in_w;
+			bool ausschaltschwelle_ist_erreicht = false;
 			if(
-				relay_ist_an
-				&& (
-					(
-						!verbraucher.solarerzeugung_ist_aktiv()
-					) || (
-						akku <= 200
-					) || (
-						akku <= 700
-						&& noetiges_max_leistungsverhaetnis < 0 - (0.1 / 50 * (akku - 200))
-					) || (
-						akku > 700
-						&& noetiges_max_leistungsverhaetnis < -1.0
-					)
+				(
+					!verbraucher.solarerzeugung_ist_aktiv()
+				) || (
+					akku <= 200
+				) || (
+					akku <= 700
+					&& noetiges_max_leistungsverhaetnis < 0 - (0.1 / 50 * (akku - 200))
+				) || (
+					akku > 700
+					&& noetiges_max_leistungsverhaetnis < -1.0
 				)
 			) {
+				ausschaltschwelle_ist_erreicht = true;
+			}
+
+			float noetiges_min_leistungsverhaetnis =
+				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w)
+				/
+				benoetigte_ladeleistung_in_w;
+			bool einschaltschwelle_ist_erreicht = false;
+			if(
+				(
+					akku > 800
+					&& noetiges_min_leistungsverhaetnis > 0.1
+				) || (
+					akku > 350
+					&& akku <= 800
+					&& noetiges_min_leistungsverhaetnis > 1.0 - (0.1 / 50 * (akku - 350))
+				) || (
+					akku >= 200
+					&& noetiges_min_leistungsverhaetnis > 1.9 - (0.3 / 50 * (akku - 200))
+				)
+			) {
+				einschaltschwelle_ist_erreicht = true;
+			}
+
+			if(relay_ist_an && ausschaltschwelle_ist_erreicht) {
 				_log(log_key, (char*) "-automatisch>AusWeilZuWenig");
 				char log_val[10];
 				sprintf(log_val, "%f", noetiges_max_leistungsverhaetnis);
@@ -168,28 +191,11 @@ namespace Local {
 				return false;
 			}
 
-			float noetiges_min_leistungsverhaetnis =
-				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w)
-				/
-				benoetigte_ladeleistung_in_w;
-			if(
-				!relay_ist_an
-				&& (
-					(
-						akku > 800
-						&& noetiges_min_leistungsverhaetnis > 0.1
-					) || (
-						akku > 350
-						&& akku <= 800
-						&& noetiges_min_leistungsverhaetnis > 1.0 - (0.1 / 50 * (akku - 350))
-					) || (
-						akku >= 200
-						&& noetiges_min_leistungsverhaetnis > 1.9 - (0.3 / 50 * (akku - 200))
-					)
-				)
-			) {
+			if(!relay_ist_an && einschaltschwelle_ist_erreicht && !ausschaltschwelle_ist_erreicht) {
 				_log(log_key, (char*) "-automatisch>AnWeilGenug");
 				char log_val[10];
+				sprintf(log_val, "%f", noetiges_min_leistungsverhaetnis);
+				_log(log_key, (char*) log_val);
 				sprintf(log_val, "%f", noetiges_max_leistungsverhaetnis);
 				_log(log_key, (char*) log_val);
 				_log(log_key, (char*) akku);
@@ -221,18 +227,41 @@ namespace Local {
 				max_ueberschuss
 				/
 				benoetigte_leistung_in_w;
+			bool ausschaltschwelle_ist_erreicht = false;
 			if(
-				relay_ist_an
-				&& (
-					(
-						!verbraucher.solarerzeugung_ist_aktiv()
-					) || (
-						akku <= 350
-					) || (
-						noetiges_max_leistungsverhaetnis < 1.6 - (0.2 / 50 * (akku - 350))
-					)
+				(
+					!verbraucher.solarerzeugung_ist_aktiv()
+				) || (
+					akku <= 350
+				) || (
+					noetiges_max_leistungsverhaetnis < 1.6 - (0.2 / 50 * (akku - 350))
 				)
 			) {
+				ausschaltschwelle_ist_erreicht = true;
+			}
+
+			float noetiges_min_leistungsverhaetnis =
+				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w)
+				/
+				benoetigte_leistung_in_w;
+			bool einschaltschwelle_ist_erreicht = false;
+			if(
+				(
+					akku > 900
+					&& noetiges_min_leistungsverhaetnis > 0.9 - (0.4 / 50 * (akku - 900))
+				) || (
+					akku > 550
+					&& akku <= 900
+					&& noetiges_min_leistungsverhaetnis > 1.6 - (0.1 / 50 * (akku - 550))
+				) || (
+					akku >= 350
+					&& noetiges_min_leistungsverhaetnis > 2.6 - (0.2 / 50 * (akku - 350))
+				)
+			) {
+				einschaltschwelle_ist_erreicht = true;
+			}
+
+			if(relay_ist_an && ausschaltschwelle_ist_erreicht) {
 				_log(log_key, (char*) "-automatisch>AusWeilZuWenig");
 				char log_val[10];
 				sprintf(log_val, "%f", noetiges_max_leistungsverhaetnis);
@@ -246,28 +275,11 @@ namespace Local {
 				return false;
 			}
 
-			float noetiges_min_leistungsverhaetnis =
-				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w)
-				/
-				benoetigte_leistung_in_w;
-			if(
-				!relay_ist_an
-				&& (
-					(
-						akku > 900
-						&& noetiges_min_leistungsverhaetnis > 0.9 - (0.4 / 50 * (akku - 900))
-					) || (
-						akku > 550
-						&& akku <= 900
-						&& noetiges_min_leistungsverhaetnis > 1.6 - (0.1 / 50 * (akku - 550))
-					) || (
-						akku >= 350
-						&& noetiges_min_leistungsverhaetnis > 2.6 - (0.2 / 50 * (akku - 350))
-					)
-				)
-			) {
+			if(!relay_ist_an && einschaltschwelle_ist_erreicht && !ausschaltschwelle_ist_erreicht) {
 				_log(log_key, (char*) "-automatisch>AnWeilGenug");
 				char log_val[10];
+				sprintf(log_val, "%f", noetiges_min_leistungsverhaetnis);
+				_log(log_key, (char*) log_val);
 				sprintf(log_val, "%f", noetiges_max_leistungsverhaetnis);
 				_log(log_key, (char*) log_val);
 				_log(log_key, (char*) akku);
