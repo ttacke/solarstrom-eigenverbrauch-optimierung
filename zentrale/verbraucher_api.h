@@ -529,7 +529,7 @@ namespace Local {
 			_schreibe_verbraucher_log(verbraucher.ueberschuss_log_in_w, verbraucher.aktueller_ueberschuss_in_w, ueberschuss_leistung_log_filename);
 
 			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
-			verbraucher.solarerzeugung_in_w = elektroanlage.solarerzeugung_in_w > 30 ? true : false;
+			verbraucher.solarerzeugung_in_w = elektroanlage.solarerzeugung_in_w;
 
 			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
 			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);

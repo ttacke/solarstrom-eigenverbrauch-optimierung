@@ -116,6 +116,7 @@
 			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : 'off';
 			document.getElementById('roller_laden_an').className = daten['roller_laden_an'] ? 'on' : 'off';
 			document.getElementById('auto_laden_an').className = daten['auto_laden_an'] ? 'on' : 'off';
+			document.getElementById('solarerzeugung_ist_aktiv').className = daten['solarerzeugung_ist_aktiv'] ? 'on' : 'off';
 		
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
@@ -377,16 +378,16 @@
 			text-align: center;
 		}
 			.zusatzinfo>span {
-				padding-right: 0.4rem;
+				padding-right: 0.3rem;
+				color: #666;
+			}
+			.zusatzinfo>span:last-child {
+				padding-right: 0;
 			}
 			.zusatzinfo .on {
+				color: #000;
 			}
 			.zusatzinfo .off {
-				color: #666;
-			}
-			.zusatzinfo .info,
-			.zusatzinfo .info span {
-				color: #666;
 			}
 		
 		.schalter {
@@ -442,8 +443,7 @@
 </div>
 
 <div class="zusatzinfo">
-	<span class="info">NO <span id="solaranteil_in_prozent_string1"></span>%</span>
-	<span class="info">SW <span id="solaranteil_in_prozent_string2"></span>%</span>
+	<span id="solarerzeugung_ist_aktiv">N%<span id="solaranteil_in_prozent_string1"></span>/S%<span id="solaranteil_in_prozent_string2"></span></span>
 	<span id="auto_laden_an">AUTO</span>
 	<span id="roller_laden_an">ROLL</span>
 	<span id="wasser_ueberladen">WASS</span>

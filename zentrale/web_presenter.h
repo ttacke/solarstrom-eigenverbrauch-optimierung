@@ -366,6 +366,10 @@ namespace Local {
 
 				_print_char_to_web((char*) "\"roller_benoetigte_ladeleistung_in_w\":");
 					_print_int_to_web(verbraucher.roller_benoetigte_ladeleistung_in_w);
+					_print_char_to_web((char*) ",");
+
+				_print_char_to_web((char*) "\"solarerzeugung_ist_aktiv\":");
+					_print_char_to_web((char*) (verbraucher.solarerzeugung_ist_aktiv() ? "true" : "false"));
 
 			_print_char_to_web((char*) "}");
 		}
