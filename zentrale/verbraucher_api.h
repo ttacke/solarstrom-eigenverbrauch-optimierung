@@ -156,9 +156,6 @@ namespace Local {
 			float min_bereitgestellte_leistung
 				= _gib_listen_minimum(verbraucher.ueberschuss_log_in_w) / benoetigte_leistung_in_w;
 
-			// TODO Wenn X h vor Sonnenuntergang -> dann beides: 3h=+0.1, 2h=+0.3, 1h=+0.5, 0h=+0.7
-			// TODO FORMELWERT += (Xh >= 3 ? 0.7 - Xh * 0.2 : 0)
-
 			float geforrderte_leistung_fuer_einschalten = _gib_geforrderte_leistung_anhand_der_ladekurve(
 				akku, x_offset, y_offset, 0
 			);

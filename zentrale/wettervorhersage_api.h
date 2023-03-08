@@ -18,8 +18,8 @@ namespace Local {
 		const char* dayly_request_uri = "/forecasts/v1/daily/5day/%d?apikey=%s&language=de-de&details=true&metric=true";
 		char request_uri[128];
 
+		int zeitpunkt_sonnenuntergang = 0;
 		int zeitpunkt_tage_liste[5];
-		int zeitpunkt_sonnenuntergang;
 		int solarstrahlung_tage_liste[5];
 		int tage_anzahl = 5;
 		int zeitpunkt_stunden_liste[12];
@@ -111,7 +111,10 @@ namespace Local {
 					zeitpunkt_sonnenuntergang == 0
 					&& persistenz.find_in_buffer((char*) "\"EpochSet\":([0-9]+)},\"Moon\"")
 				) {
-					zeitpunkt_sonnenuntergang = atoi(persistenz.finding_buffer);
+					int zeitpunkt = atoi(persistenz.finding_buffer);
+					if(zeitpunkt > now_timestamp) {
+						zeitpunkt_sonnenuntergang = zeitpunkt;
+					}
 				}
 				if(persistenz.find_in_buffer((char*) "\"EpochDate\":([0-9]+)[,}]")) {
 					int zeitpunkt = atoi(persistenz.finding_buffer);
