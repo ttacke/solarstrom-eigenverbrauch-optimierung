@@ -29,10 +29,6 @@ namespace Local {
 			return round(tagesvorhersage_solarstrahlung_liste[index] * 100 / cfg.maximale_solarstrahlung_pro_tag_in_w_pro_m2);
 		}
 
-		int gib_strahlungsvorhersage_der_aktuellen_stunde() {
-			return stundenvorhersage_solarstrahlung_liste[0];
-		}
-
 		void set_log_data(char* buffer) {
 			sprintf(
 				buffer,
