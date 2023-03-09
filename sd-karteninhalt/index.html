@@ -96,7 +96,7 @@
 				'change?key=' + key + '&val=' + val + '&time=' + Math.floor(new Date().getTime() / 1000),
 				true
 			);
-			xhr.timeout = 30 * 1000;
+			xhr.timeout = 20 * 1000;
 			xhr.send();
 		}
 		function _setze_daten_ein(daten) {
@@ -229,7 +229,7 @@
 				'daten.json?time=' + Math.floor(new Date().getTime() / 1000),
 				true
 			);
-			xhr.timeout = 30 * 1000;
+			xhr.timeout = 15 * 1000;
 			xhr.send();
 		}
 		function _erstelle_wettertabelle(id, cols) {
