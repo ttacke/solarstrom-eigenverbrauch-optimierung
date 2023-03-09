@@ -157,29 +157,34 @@ namespace Local {
 
 			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
 
-			float max_bereitgestellte_leistung
-				= _gib_listen_maximum(verbraucher.ueberschuss_log_in_w) / benoetigte_leistung_in_w;
 			float min_bereitgestellte_leistung
 				= _gib_listen_minimum(verbraucher.ueberschuss_log_in_w) / benoetigte_leistung_in_w;
-
 			float geforderte_leistung_fuer_einschalten = _gib_geforderte_leistung_anhand_der_ladekurve(
 				akku, x_offset, y_offset, 0, ladekurven_faktor
 			);
+			float geforderte_leistung_fuer_ausschalten = _gib_geforderte_leistung_anhand_der_ladekurve(
+				akku, x_offset - 100, y_offset, -0.1, ladekurven_faktor
+			);
+
+			_log(log_key, (char*) "-automatisch>Daten");
+			sprintf(
+				temp_log_val,
+				"IST:%f on:%f off:%f",
+				min_bereitgestellte_leistung,
+				geforderte_leistung_fuer_einschalten,
+				geforderte_leistung_fuer_ausschalten
+			);
+			_log(log_key, (char*) temp_log_val);
+
 			if(
 				!relay_ist_an
 				&& verbraucher.solarerzeugung_ist_aktiv()
 				&& min_bereitgestellte_leistung > geforderte_leistung_fuer_einschalten
 			) {
 				_log(log_key, (char*) "-automatisch>AnWeilGenug");
-				sprintf(temp_log_val, "%f > %f", min_bereitgestellte_leistung, geforderte_leistung_fuer_einschalten);
-				_log(log_key, (char*) temp_log_val);
 				schalt_func(true);
 				return true;
 			}
-
-			float geforderte_leistung_fuer_ausschalten = _gib_geforderte_leistung_anhand_der_ladekurve(
-				akku, x_offset - 100, y_offset, -0.1, ladekurven_faktor
-			);
 			if(
 				relay_ist_an && (
 					!verbraucher.solarerzeugung_ist_aktiv()
@@ -187,9 +192,6 @@ namespace Local {
 				)
 			) {
 				_log(log_key, (char*) "-automatisch>AusWeilZuWenig");
-				sprintf(temp_log_val, "%f > %f", min_bereitgestellte_leistung, geforderte_leistung_fuer_ausschalten);
-				_log(log_key, (char*) temp_log_val);
-				_log(log_key, (char*) akku);
 				schalt_func(false);
 				return true;
 			}
