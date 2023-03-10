@@ -162,7 +162,7 @@ namespace Local {
 				akku, x_offset, y_offset, 0, ladekurven_faktor
 			);
 			float geforderte_leistung_fuer_ausschalten = _gib_geforderte_leistung_anhand_der_ladekurve(
-				akku, x_offset - 100, y_offset, -0.1, ladekurven_faktor
+				akku, x_offset + 100, y_offset, -0.1, ladekurven_faktor
 			);
 
 			_log(log_key, (char*) "-automatisch>Daten");
@@ -504,7 +504,7 @@ namespace Local {
 					cfg->auto_min_schaltzeit_in_min,
 					verbraucher.auto_benoetigte_ladeleistung_in_w,
 					verbraucher.auto_relay_ist_an,
-					-100, -1.0, 1.0,
+					+100, -1.0, 1.0,
 					[&](bool ein) { _schalte_auto_relay(ein); }
 				)
 			) {
@@ -519,7 +519,7 @@ namespace Local {
 					cfg->roller_min_schaltzeit_in_min,
 					verbraucher.roller_benoetigte_ladeleistung_in_w,
 					verbraucher.roller_relay_ist_an,
-					-100, -1.0, 1.0,
+					+100, -1.0, 1.0,
 					[&](bool ein) { _schalte_roller_relay(ein); }
 				)
 			) {
