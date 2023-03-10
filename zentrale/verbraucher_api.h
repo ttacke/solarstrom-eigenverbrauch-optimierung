@@ -122,7 +122,7 @@ namespace Local {
 			if(x > 900) {
 				gefordert = 1.0 - (0.01 * (x - 900));
 			} else if(akku > 350) {
-				gefordert = 2.1 - (0.002 * (x - 550));
+				gefordert = 2.1 - (0.002 * (x - 350));
 			} else {
 				gefordert = 5.6 - (0.01 * x);
 			}
