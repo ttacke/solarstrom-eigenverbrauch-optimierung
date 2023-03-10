@@ -175,6 +175,20 @@ namespace Local {
 				geforderte_leistung_fuer_ausschalten
 			);
 			_log(log_key, (char*) temp_log_val);
+			sprintf(
+				temp_log_val,
+				"min:%f, ben:%d, akku:%d",
+				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w),
+				benoetigte_leistung_in_w,
+				akku
+			);
+			_log(log_key, (char*) temp_log_val);
+			sprintf(
+				temp_log_val,
+				"x:%f y:%f, f:%f",
+				x_offset, y_offset, ladekurven_faktor
+			);
+			_log(log_key, (char*) temp_log_val);
 
 			if(
 				!relay_ist_an
