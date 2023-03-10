@@ -12,8 +12,6 @@ sub _hole_daten {
     # TODO Ermitteln (Pro Monat?/Tagesstunde?/Alles zusammen?) wie viel Strahlungsvorhersage den Grundverbrauch überschreitet
     # -> erst ab diesem Balken (Bei Stunde/Tag) schwarz markieren. Sonst nur dunkelgrau.
 
-    # TODO BUG? 9.3. 11:14: Akku > 30%, Ü > 1.100W, Roller=Solar (Auto auch) -> wieso schaltet er nicht an?
-
     while(my $line = <$fh>) {
         chomp($line);
 
