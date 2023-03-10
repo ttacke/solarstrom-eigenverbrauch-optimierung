@@ -105,7 +105,7 @@ namespace Local {
 				if(
 					_gib_listen_maximum(ladeleistung_log_in_w)
 					<
-					benoetigte_ladeleistung_in_w * 0.7
+					(float) benoetigte_ladeleistung_in_w * 0.7
 				) {
 					_log(log_key, (char*) "_laden_ist_beendet>AusWeilBeendet");
 					return true;
@@ -156,9 +156,8 @@ namespace Local {
 			}
 
 			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
-
 			float min_bereitgestellte_leistung
-				= _gib_listen_minimum(verbraucher.ueberschuss_log_in_w) / benoetigte_leistung_in_w;
+				= (float) _gib_listen_minimum(verbraucher.ueberschuss_log_in_w) / (float) benoetigte_leistung_in_w;
 			float geforderte_leistung_fuer_einschalten = _gib_geforderte_leistung_anhand_der_ladekurve(
 				akku, x_offset, y_offset, 0, ladekurven_faktor
 			);
@@ -173,20 +172,6 @@ namespace Local {
 				min_bereitgestellte_leistung,
 				geforderte_leistung_fuer_einschalten,
 				geforderte_leistung_fuer_ausschalten
-			);
-			_log(log_key, (char*) temp_log_val);
-			sprintf(
-				temp_log_val,
-				"min:%f, ben:%d, akku:%d",
-				_gib_listen_minimum(verbraucher.ueberschuss_log_in_w),
-				benoetigte_leistung_in_w,
-				akku
-			);
-			_log(log_key, (char*) temp_log_val);
-			sprintf(
-				temp_log_val,
-				"x:%f y:%f, f:%f",
-				x_offset, y_offset, ladekurven_faktor
 			);
 			_log(log_key, (char*) temp_log_val);
 
@@ -436,7 +421,7 @@ namespace Local {
 			_ermittle_relay_zustaende(verbraucher);
 
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(
-				(elektroanlage.l3_strom_ma + elektroanlage.l3_solarstrom_ma) / 1000 * 230
+				(float) (elektroanlage.l3_strom_ma + elektroanlage.l3_solarstrom_ma) / 1000 * 230
 			);
 			_lies_verbraucher_log(verbraucher.auto_ladeleistung_log_in_w, auto_leistung_log_filename);
 			_schreibe_verbraucher_log(verbraucher.auto_ladeleistung_log_in_w, verbraucher.aktuelle_auto_ladeleistung_in_w, auto_leistung_log_filename);

@@ -24,7 +24,7 @@ namespace Local {
 			if(!leistungsanteil_pv1 && !leistungsanteil_pv2) {
 				return 0;
 			}
-			return round(leistungsanteil_pv1 * 100 / (leistungsanteil_pv2 + leistungsanteil_pv1));
+			return round((float) leistungsanteil_pv1 * 100 / (float) (leistungsanteil_pv2 + leistungsanteil_pv1));
 		}
 
 		void set_log_data(char* buffer) {
