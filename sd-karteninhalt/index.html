@@ -113,9 +113,13 @@
 			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
 			
 			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : 'off';
+			document.getElementById('wasser_ueberladen').getElementsByClassName('soll_ist_leistung')[0].innerHTML = daten['wasser_soll_ist_leistung'];
 			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : 'off';
+			document.getElementById('heizung_ueberladen').getElementsByClassName('soll_ist_leistung')[0].innerHTML = daten['heizung_soll_ist_leistung'];
 			document.getElementById('roller_laden_an').className = daten['roller_laden_an'] ? 'on' : 'off';
+			document.getElementById('roller_laden_an').getElementsByClassName('soll_ist_leistung')[0].innerHTML = daten['roller_soll_ist_leistung'];
 			document.getElementById('auto_laden_an').className = daten['auto_laden_an'] ? 'on' : 'off';
+			document.getElementById('auto_laden_an').getElementsByClassName('soll_ist_leistung')[0].innerHTML = daten['auto_soll_ist_leistung'];
 			document.getElementById('solarerzeugung_ist_aktiv').className = daten['solarerzeugung_ist_aktiv'] ? 'on' : 'off';
 		
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
@@ -378,22 +382,36 @@
 			text-align: center;
 		}
 			.zusatzinfo>span {
-				padding-right: 0.3rem;
+				padding-right: 0.15rem;
+				padding-left: 0.15rem;
+				margin-right: 0.1rem;
+				display:inline-block;
+				border: solid 1px #CCC;
+				border-radius: 0.5rem;
+				background-color: #CCC;
+				margin: 0;
+			}
+			.zusatzinfo * {
 				color: #666;
 			}
-			.zusatzinfo>span:last-child {
-				padding-right: 0;
+			.zusatzinfo .on,
+			.zusatzinfo .on * {
+				color: #FFF;
+				background-color: #000;
 			}
-			.zusatzinfo .on {
-				color: #000;
+			.zusatzinfo .off,
+			.zusatzinfo .off * {
 			}
-			.zusatzinfo .off {
+			.zusatzinfo .soll_ist_leistung {
+				display: inline-block;
+				font-size: 0.8rem;
+				padding-top: 0.4rem;
 			}
 		
 		.schalter {
 			vertical-align: bottom;
 			text-align: right;
-			margin-top: 1.5rem;
+			margin-top: 0.5rem;
 			position: relative;
 		}
 			.schalter span {
@@ -443,11 +461,26 @@
 </div>
 
 <div class="zusatzinfo">
-	<span id="solarerzeugung_ist_aktiv">N<span id="solaranteil_in_prozent_string1"></span>%S<span id="solaranteil_in_prozent_string2"></span></span>
-	<span id="auto_laden_an">AUTO</span>
-	<span id="roller_laden_an">ROLL</span>
-	<span id="wasser_ueberladen">WASS</span>
-	<span id="heizung_ueberladen">HEIZ</span>
+	<span id="solarerzeugung_ist_aktiv">
+		N<span id="solaranteil_in_prozent_string1"></span>%
+		<br>S<span id="solaranteil_in_prozent_string2"></span>%
+	</span>
+	<span id="auto_laden_an">
+		AUTO
+		<br><span class="soll_ist_leistung">-</span>
+	</span>
+	<span id="roller_laden_an">
+		ROLLER
+		<br><span class="soll_ist_leistung">-</span>
+	</span>
+	<span id="wasser_ueberladen">
+		WASSER
+		<br><span class="soll_ist_leistung">-</span>
+	</span>
+	<span id="heizung_ueberladen">
+		HEIZUNG
+		<br><span class="soll_ist_leistung">-</span>
+	</span>
 </div>
 
 <table class="wetter" id="solarstrahlung"></table>
