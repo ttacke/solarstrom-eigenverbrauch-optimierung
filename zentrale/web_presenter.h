@@ -28,6 +28,7 @@ namespace Local {
 		Local::Verbraucher verbraucher;
 
 		char int_as_char[16];
+		char output_buffer[32];
 		// TODO configwerte als SD_File ablegen? dann können komlpexere Dinge außerhalb laufen
 		// z.b. die Grundlast und die Monatlichen/Stündlichen Anpassungen für Strahlungswerte
 		const char* system_status_filename = "system_status.csv";
@@ -367,6 +368,26 @@ namespace Local {
 				_print_char_to_web((char*) "\"roller_benoetigte_ladeleistung_in_w\":");
 					_print_int_to_web(verbraucher.roller_benoetigte_ladeleistung_in_w);
 					_print_char_to_web((char*) ",");
+
+				_print_char_to_web((char*) "\"auto_soll_ist_leistung\":\"");
+					verbraucher.set_auto_soll_ist_leistung(output_buffer);
+					_print_char_to_web(output_buffer);
+					_print_char_to_web((char*) "\",");
+
+				_print_char_to_web((char*) "\"roller_soll_ist_leistung\":\"");
+					verbraucher.set_roller_soll_ist_leistung(output_buffer);
+					_print_char_to_web(output_buffer);
+					_print_char_to_web((char*) "\",");
+
+				_print_char_to_web((char*) "\"wasser_soll_ist_leistung\":\"");
+					verbraucher.set_wasser_soll_ist_leistung(output_buffer);
+					_print_char_to_web(output_buffer);
+					_print_char_to_web((char*) "\",");
+
+				_print_char_to_web((char*) "\"heizung_soll_ist_leistung\":\"");
+					verbraucher.set_heizung_soll_ist_leistung(output_buffer);
+					_print_char_to_web(output_buffer);
+					_print_char_to_web((char*) "\",");
 
 				_print_char_to_web((char*) "\"solarerzeugung_ist_aktiv\":");
 					_print_char_to_web((char*) (verbraucher.solarerzeugung_ist_aktiv() ? "true" : "false"));

@@ -136,7 +136,7 @@ namespace Local {
 			return gefordert;
 		}
 
-		template<typename F>
+		template<typename F1, typename F2>
 		bool _schalte_automatisch(
 			char* log_key,
 			Local::Verbraucher& verbraucher,
@@ -147,7 +147,8 @@ namespace Local {
 			int x_offset,
 			float y_offset,
 			float ladekurven_faktor,
-			F && schalt_func
+			F1 && log_func,
+			F2 && schalt_func
 		) {
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			if(!schalt_mindestdauer_ist_erreicht) {
@@ -175,24 +176,26 @@ namespace Local {
 			);
 			_log(log_key, (char*) temp_log_val);
 
-			if(
-				!relay_ist_an
-				&& verbraucher.solarerzeugung_ist_aktiv()
-				&& min_bereitgestellte_leistung > geforderte_leistung_fuer_einschalten
-			) {
-				_log(log_key, (char*) "-automatisch>AnWeilGenug");
-				schalt_func(true);
-				return true;
-			}
-			if(
-				relay_ist_an && (
+			if(!relay_ist_an) {
+				log_func(min_bereitgestellte_leistung, geforderte_leistung_fuer_einschalten);
+				if(
+					verbraucher.solarerzeugung_ist_aktiv()
+					&& min_bereitgestellte_leistung > geforderte_leistung_fuer_einschalten
+				) {
+					_log(log_key, (char*) "-automatisch>AnWeilGenug");
+					schalt_func(true);
+					return true;
+				}
+			} else {
+				log_func(min_bereitgestellte_leistung, (geforderte_leistung_fuer_ausschalten - 1.0));
+				if(
 					!verbraucher.solarerzeugung_ist_aktiv()
 					|| min_bereitgestellte_leistung < (geforderte_leistung_fuer_ausschalten - 1.0)
-				)
-			) {
-				_log(log_key, (char*) "-automatisch>AusWeilZuWenig");
-				schalt_func(false);
-				return true;
+				) {
+					_log(log_key, (char*) "-automatisch>AusWeilZuWenig");
+					schalt_func(false);
+					return true;
+				}
 			}
 			return false;
 		}
@@ -495,6 +498,10 @@ namespace Local {
 					verbraucher.auto_benoetigte_ladeleistung_in_w,
 					verbraucher.auto_relay_ist_an,
 					-50, -1.0, ladekurven_faktor,
+					[&](float ist, float soll) {
+						verbraucher.auto_leistung_ist = ist;
+						verbraucher.auto_leistung_soll = soll;
+					},
 					[&](bool ein) { _schalte_auto_relay(ein); }
 				)
 			) {
@@ -510,7 +517,11 @@ namespace Local {
 					verbraucher.roller_benoetigte_ladeleistung_in_w,
 					verbraucher.roller_relay_ist_an,
 					-50, -1.0, ladekurven_faktor,
-					[&](bool ein) { _schalte_roller_relay(ein); }
+					[&](float ist, float soll) {
+						verbraucher.roller_leistung_ist = ist;
+						verbraucher.roller_leistung_soll = soll;
+					},
+					[&](bool ein) { _schalte_auto_relay(ein); }
 				)
 			) {
 				return;
@@ -523,7 +534,11 @@ namespace Local {
 				cfg->wasser_benoetigte_leistung_in_w,
 				verbraucher.wasser_relay_ist_an,
 				0, 0, ueberladen_ladekurven_faktor,
-				[&](bool ein) { _schalte_wasser_relay(ein); }
+				[&](float ist, float soll) {
+					verbraucher.wasser_leistung_ist = ist;
+					verbraucher.wasser_leistung_soll = soll;
+				},
+				[&](bool ein) { _schalte_auto_relay(ein); }
 			)) {
 				return;
 			}
@@ -535,7 +550,11 @@ namespace Local {
 				cfg->heizung_benoetigte_leistung_in_w,
 				verbraucher.heizung_relay_ist_an,
 				0, 0, ueberladen_ladekurven_faktor,
-				[&](bool ein) { _schalte_heizung_relay(ein); }
+				[&](float ist, float soll) {
+					verbraucher.heizung_leistung_ist = ist;
+					verbraucher.heizung_leistung_soll = soll;
+				},
+				[&](bool ein) { _schalte_auto_relay(ein); }
 			)) {
 				return;
 			}

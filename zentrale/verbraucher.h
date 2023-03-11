@@ -7,9 +7,13 @@ namespace Local {
 
 		bool wasser_relay_ist_an = false;
 		int wasser_relay_zustand_seit = 0;
+		float wasser_leistung_ist = 0;
+		float wasser_leistung_soll = 0;
 
 		bool heizung_relay_ist_an = false;
 		int heizung_relay_zustand_seit = 0;
+		float heizung_leistung_ist = 0;
+		float heizung_leistung_soll = 0;
 
 		Ladestatus auto_ladestatus = Local::Verbraucher::Ladestatus::off;
 		int auto_benoetigte_ladeleistung_in_w = 0;
@@ -17,6 +21,8 @@ namespace Local {
 		int auto_ladeleistung_log_in_w[5];
 		bool auto_relay_ist_an = false;
 		int auto_relay_zustand_seit = 0;
+		float auto_leistung_ist = 0;
+		float auto_leistung_soll = 0;
 
 		Ladestatus roller_ladestatus = Local::Verbraucher::Ladestatus::off;
 		int roller_benoetigte_ladeleistung_in_w = 0;
@@ -24,12 +30,38 @@ namespace Local {
 		int roller_ladeleistung_log_in_w[5];
 		bool roller_relay_ist_an = false;
 		int roller_relay_zustand_seit = 0;
+		float roller_leistung_ist = 0;
+		float roller_leistung_soll = 0;
 
 		int aktueller_ueberschuss_in_w = 0;
 		int ueberschuss_log_in_w[5];
 		int aktueller_akku_ladenstand_in_promille = 0;
 		int solarerzeugung_in_w = 0;
 		int zeitpunkt_sonnenuntergang = 0;
+
+		void set_auto_soll_ist_leistung(char* buffer) {
+			if(auto_ladestatus == Local::Verbraucher::Ladestatus::solar) {
+				sprintf(buffer, "%.1f/%.1f", auto_leistung_soll, auto_leistung_ist);
+			} else {
+				sprintf(buffer, "-");
+			}
+		}
+
+		void set_roller_soll_ist_leistung(char* buffer) {
+			if(roller_ladestatus == Local::Verbraucher::Ladestatus::solar) {
+				sprintf(buffer, "%.1f/%.1f", roller_leistung_soll, roller_leistung_ist);
+			} else {
+				sprintf(buffer, "-");
+			}
+		}
+
+		void set_wasser_soll_ist_leistung(char* buffer) {
+			sprintf(buffer, "%.1f/%.1f", wasser_leistung_soll, wasser_leistung_ist);
+		}
+
+		void set_heizung_soll_ist_leistung(char* buffer) {
+			sprintf(buffer, "%.1f/%.1f", heizung_leistung_soll, heizung_leistung_ist);
+		}
 
 		bool solarerzeugung_ist_aktiv() {
 			return solarerzeugung_in_w > 20;
