@@ -438,6 +438,7 @@ namespace Local {
 
 			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
 			verbraucher.solarerzeugung_in_w = elektroanlage.solarerzeugung_in_w;
+			verbraucher.zeitpunkt_sonnenuntergang = wetter.zeitpunkt_sonnenuntergang;
 
 			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
 			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);
@@ -481,19 +482,8 @@ namespace Local {
 				return;
 			}
 
-			float ueberladen_ladekurven_faktor = 1;
-			if(
-				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::solar
-				&& !verbraucher.auto_relay_ist_an
-			) {
-				ueberladen_ladekurven_faktor += 3;
-			}
-			if(
-				verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::solar
-				&& !verbraucher.roller_relay_ist_an
-			) {
-				ueberladen_ladekurven_faktor += 1.5;
-			}
+			float ladekurven_faktor = _ermittle_ladekurvenfaktor(verbraucher);
+			float ueberladen_ladekurven_faktor = _ermittle_ueberladen_ladekurvenfaktor(verbraucher, ladekurven_faktor);
 
 			if(
 				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::solar
@@ -504,7 +494,7 @@ namespace Local {
 					cfg->auto_min_schaltzeit_in_min,
 					verbraucher.auto_benoetigte_ladeleistung_in_w,
 					verbraucher.auto_relay_ist_an,
-					+100, -1.0, 1.0,
+					-50, -1.0, ladekurven_faktor,
 					[&](bool ein) { _schalte_auto_relay(ein); }
 				)
 			) {
@@ -519,7 +509,7 @@ namespace Local {
 					cfg->roller_min_schaltzeit_in_min,
 					verbraucher.roller_benoetigte_ladeleistung_in_w,
 					verbraucher.roller_relay_ist_an,
-					+100, -1.0, 1.0,
+					-50, -1.0, ladekurven_faktor,
 					[&](bool ein) { _schalte_roller_relay(ein); }
 				)
 			) {
@@ -549,6 +539,41 @@ namespace Local {
 			)) {
 				return;
 			}
+		}
+
+		float _ermittle_ladekurvenfaktor(Local::Verbraucher& verbraucher) {
+			float ladekurven_faktor = 1.0;
+			if(verbraucher.zeitpunkt_sonnenuntergang > 0) {
+				int sonnenuntergang_abstand_in_s = verbraucher.zeitpunkt_sonnenuntergang - timestamp;
+				if(sonnenuntergang_abstand_in_s < 0) {
+					sonnenuntergang_abstand_in_s = 0;
+				}
+				if(sonnenuntergang_abstand_in_s < 1 * 3600) {// 1.5 .. 4
+					ladekurven_faktor *= 1.5 + (2.5 / (1 * 3600)) * (1 * 3600 - sonnenuntergang_abstand_in_s);
+				} else if(sonnenuntergang_abstand_in_s < 2 * 3600) {// 0.5 .. 1.5
+					ladekurven_faktor *= 0.5 + (1.0 / (1 * 3600)) * (2 * 3600 - sonnenuntergang_abstand_in_s);
+				} else if(sonnenuntergang_abstand_in_s < 3 * 3600) {// 0 .. 0.5
+					ladekurven_faktor += 0 + (0.5 / (1 * 3600)) * (3 * 3600 - sonnenuntergang_abstand_in_s);
+				}
+			}
+			return ladekurven_faktor;
+		}
+
+		float _ermittle_ueberladen_ladekurvenfaktor(Local::Verbraucher& verbraucher, float ladekurven_faktor) {
+			float ueberladen_ladekurven_faktor = ladekurven_faktor;
+			if(
+				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::solar
+				&& !verbraucher.auto_relay_ist_an
+			) {
+				ueberladen_ladekurven_faktor += 3.0;
+			}
+			if(
+				verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::solar
+				&& !verbraucher.roller_relay_ist_an
+			) {
+				ueberladen_ladekurven_faktor += 1.5;
+			}
+			return ueberladen_ladekurven_faktor;
 		}
 
 		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {

@@ -29,6 +29,7 @@ namespace Local {
 		int ueberschuss_log_in_w[5];
 		int aktueller_akku_ladenstand_in_promille = 0;
 		int solarerzeugung_in_w = 0;
+		int zeitpunkt_sonnenuntergang = 0;
 
 		bool solarerzeugung_ist_aktiv() {
 			return solarerzeugung_in_w > 20;

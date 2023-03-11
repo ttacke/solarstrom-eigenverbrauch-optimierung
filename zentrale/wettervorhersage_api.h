@@ -112,7 +112,7 @@ namespace Local {
 					&& persistenz.find_in_buffer((char*) "\"EpochSet\":([0-9]+)},\"Moon\"")
 				) {
 					int zeitpunkt = atoi(persistenz.finding_buffer);
-					if(zeitpunkt > now_timestamp) {
+					if(zeitpunkt >= now_timestamp || zeitpunkt > now_timestamp - 4 * 3600) {
 						zeitpunkt_sonnenuntergang = zeitpunkt;
 					}
 				}
