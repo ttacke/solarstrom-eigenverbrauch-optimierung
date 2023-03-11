@@ -38,3 +38,10 @@ foreach my $filename (qw/
         print "FEHLER\n";
     }
 }
+
+print "daten.json...";
+if(system("wget -q 'http://$ARGV[0]/daten.json?time=" . time() . "' -O ../sd-karteninhalt/daten.json") == 0) {
+    print "ok\n";
+} else {
+    print "FEHLER\n";
+}
