@@ -526,38 +526,61 @@ namespace Local {
 			) {
 				return;
 			}
-			if(_schalte_automatisch(
-				(char*) "wasser",
-				verbraucher,
-				verbraucher.wasser_relay_zustand_seit,
-				cfg->wasser_min_schaltzeit_in_min,
-				cfg->wasser_benoetigte_leistung_in_w,
-				verbraucher.wasser_relay_ist_an,
-				0, 0, ueberladen_ladekurven_faktor,
-				[&](float ist, float soll) {
-					verbraucher.wasser_leistung_ist = ist;
-					verbraucher.wasser_leistung_soll = soll;
-				},
-				[&](bool ein) { _schalte_wasser_relay(ein); }
-			)) {
-				return;
-			}
-			if(_schalte_automatisch(
-				(char*) "heizung",
-				verbraucher,
-				verbraucher.heizung_relay_zustand_seit,
-				cfg->heizung_min_schaltzeit_in_min,
-				cfg->heizung_benoetigte_leistung_in_w,
-				verbraucher.heizung_relay_ist_an,
-				0, 0, ueberladen_ladekurven_faktor,
-				[&](float ist, float soll) {
-					verbraucher.heizung_leistung_ist = ist;
-					verbraucher.heizung_leistung_soll = soll;
-				},
-				[&](bool ein) { _schalte_heizung_relay(ein); }
-			)) {
-				return;
-			}
+			// TODO deaktiviert, weil so nicht sinnvoll
+//			if(_schalte_automatisch(
+//				(char*) "wasser",
+//				verbraucher,
+//				verbraucher.wasser_relay_zustand_seit,
+//				cfg->wasser_min_schaltzeit_in_min,
+//				cfg->wasser_benoetigte_leistung_in_w,
+//				verbraucher.wasser_relay_ist_an,
+//				0, 0, ueberladen_ladekurven_faktor,
+//				[&](float ist, float soll) {
+//					verbraucher.wasser_leistung_ist = ist;
+//					verbraucher.wasser_leistung_soll = soll;
+//				},
+//				[&](bool ein) { _schalte_wasser_relay(ein); }
+//			)) {
+//				return;
+//			}
+
+
+			// TODO
+/*
+
+Ueberschuss-Log
+- 30 einträge lang machen, weil die Schwankungen sonst zu groß sind
+- Nicht min/max, sondern median nutzen!
+
+
+
+
+			 Ueberladen von der Vorhersage / Überschuss abhängig machen
+			 nur wenn mehr als 3?? Balken auch in der Zukunft sind, dann starten
+			 sonst nur bei >80%
+
+			 Laden nur als 2Stufige Linie? Oder nur eine Stufe?
+			 < 35% nie
+			 < 80% immer (wenn+ und sonnenuntergang > Xh und auch mehr weiterhin Strahlungsvorhersage nicht unter Real Null sinkt)
+*/
+
+			// TODO deaktiviert, weil so nicht sinnvoll
+//			if(_schalte_automatisch(
+//				(char*) "heizung",
+//				verbraucher,
+//				verbraucher.heizung_relay_zustand_seit,
+//				cfg->heizung_min_schaltzeit_in_min,
+//				cfg->heizung_benoetigte_leistung_in_w,
+//				verbraucher.heizung_relay_ist_an,
+//				0, 0, ueberladen_ladekurven_faktor,
+//				[&](float ist, float soll) {
+//					verbraucher.heizung_leistung_ist = ist;
+//					verbraucher.heizung_leistung_soll = soll;
+//				},
+//				[&](bool ein) { _schalte_heizung_relay(ein); }
+//			)) {
+//				return;
+//			}
 		}
 
 		float _ermittle_ladekurvenfaktor(Local::Verbraucher& verbraucher) {
