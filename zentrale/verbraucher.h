@@ -2,6 +2,17 @@
 
 namespace Local {
 	class Verbraucher {
+	protected:
+		int _gib_listen_maximum(int* liste, int length) {
+			int max = liste[0];
+			for(int i = 1; i < length; i++) {
+				if(liste[i] > max) {
+					max = liste[i];
+				}
+			}
+			return max;
+		}
+
 	public:
 		enum class Ladestatus {force, solar, off};
 
@@ -67,10 +78,18 @@ namespace Local {
 			return solarerzeugung_in_w > 20;
 		}
 
+		int gib_genutzte_auto_ladeleistung_in_w() {
+			return _gib_listen_maximum(auto_ladeleistung_log_in_w, 5);
+		}
+
+		int gib_genutzte_roller_ladeleistung_in_w() {
+			return _gib_listen_maximum(roller_ladeleistung_log_in_w, 5);
+		}
+
 		void set_log_data_a(char* buffer) {
 			sprintf(
 				buffer,
-				"va1,%s,%s,%d,%d,%d,%d,%d,%d,%d,%s",
+				"va2,%s,%s,%d,%d,%d,%d,%d,%d,%d,%s",
 				(
 					auto_ladestatus == Local::Verbraucher::Ladestatus::force
 					? "force"
@@ -80,11 +99,7 @@ namespace Local {
 				auto_relay_ist_an ? "an" : "aus",
 				auto_benoetigte_ladeleistung_in_w,
 				aktuelle_auto_ladeleistung_in_w,
-				auto_ladeleistung_log_in_w[4],
-				auto_ladeleistung_log_in_w[3],
-				auto_ladeleistung_log_in_w[2],
-				auto_ladeleistung_log_in_w[1],
-				auto_ladeleistung_log_in_w[0],
+				gib_genutzte_auto_ladeleistung_in_w(),
 				wasser_relay_ist_an ? "an" : "aus"
 			);
 		}
@@ -92,7 +107,7 @@ namespace Local {
 		void set_log_data_b(char* buffer) {
 			sprintf(
 				buffer,
-				"vb1,%s,%s,%d,%d,%d,%d,%d,%d,%d,%s",
+				"vb2,%s,%s,%d,%d,%d,%d,%d,%d,%d,%s",
 				(
 					roller_ladestatus == Local::Verbraucher::Ladestatus::force
 					? "force"
@@ -102,11 +117,7 @@ namespace Local {
 				roller_relay_ist_an ? "an" : "aus",
 				roller_benoetigte_ladeleistung_in_w,
 				aktuelle_roller_ladeleistung_in_w,
-				roller_ladeleistung_log_in_w[4],
-				roller_ladeleistung_log_in_w[3],
-				roller_ladeleistung_log_in_w[2],
-				roller_ladeleistung_log_in_w[1],
-				roller_ladeleistung_log_in_w[0],
+				gib_genutzte_roller_ladeleistung_in_w(),
 				heizung_relay_ist_an ? "an" : "aus"
 			);
 		}
