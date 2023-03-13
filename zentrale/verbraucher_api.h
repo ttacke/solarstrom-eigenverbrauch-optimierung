@@ -54,16 +54,6 @@ namespace Local {
 			}
 		}
 
-		int _gib_listen_maximum(int* liste) {
-			int max = liste[0];
-			for(int i = 1; i < 5; i++) {
-				if(liste[i] > max) {
-					max = liste[i];
-				}
-			}
-			return max;
-		}
-
 		int _gib_listen_minimum(int* liste) {
 			int min = liste[0];
 			for(int i = 1; i < 5; i++) {
@@ -80,7 +70,7 @@ namespace Local {
 			int min_schaltzeit_in_min,
 			Local::Verbraucher::Ladestatus& ladestatus,
 			bool relay_ist_an,
-			int* ladeleistung_log_in_w,
+			int genutzte_ladeleistung_in_w,
 			int benoetigte_ladeleistung_in_w
 		) {
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
@@ -102,11 +92,7 @@ namespace Local {
 				return true;
 			}
 			if(relay_ist_an) {
-				if(
-					_gib_listen_maximum(ladeleistung_log_in_w)
-					<
-					(float) benoetigte_ladeleistung_in_w * 0.7
-				) {
+				if(genutzte_ladeleistung_in_w < (float) benoetigte_ladeleistung_in_w * 0.7) {
 					_log(log_key, (char*) "_laden_ist_beendet>AusWeilBeendet");
 					return true;
 				}
@@ -454,7 +440,7 @@ namespace Local {
 				cfg->roller_min_schaltzeit_in_min,
 				verbraucher.roller_ladestatus,
 				verbraucher.roller_relay_ist_an,
-				verbraucher.roller_ladeleistung_log_in_w,
+				verbraucher.gib_genutzte_roller_ladeleistung_in_w(),
 				verbraucher.roller_benoetigte_ladeleistung_in_w
 			)) {
 				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::off);
@@ -467,7 +453,7 @@ namespace Local {
 				cfg->auto_min_schaltzeit_in_min,
 				verbraucher.auto_ladestatus,
 				verbraucher.auto_relay_ist_an,
-				verbraucher.auto_ladeleistung_log_in_w,
+				verbraucher.gib_genutzte_auto_ladeleistung_in_w(),
 				verbraucher.auto_benoetigte_ladeleistung_in_w
 			)) {
 				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
