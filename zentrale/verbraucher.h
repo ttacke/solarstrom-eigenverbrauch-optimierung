@@ -88,12 +88,19 @@ namespace Local {
 			return _gib_listen_maximum(roller_ladeleistung_log_in_w, 5);
 		}
 
-		int gib_beruhigte_erzeugungsleistung_in_w() {
-			int leistung = aktuelle_erzeugung_in_w;
+		int gib_beruhigten_ueberschuss_in_w() {
+			int erzeugung = aktuelle_erzeugung_in_w;
 			for(int i = 0; i < 30; i++) {
-				leistung += erzeugung_log_in_w[i];
+				erzeugung += erzeugung_log_in_w[i];
 			}
-			return round(leistung / 31);
+
+			int max_verbrauch = aktueller_verbrauch_in_w;
+			for(int i = 0; i < 5; i++) {
+				if(max_verbrauch < verbrauch_log_in_w[i]) {
+					max_verbrauch = verbrauch_log_in_w[i];
+				}
+			}
+			return round((erzeugung / 31) - max_verbrauch);
 		}
 
 		void set_log_data_a(char* buffer) {

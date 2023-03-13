@@ -135,7 +135,7 @@ namespace Local {
 
 			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
 			float min_bereitgestellte_leistung =
-				(float) verbraucher.gib_beruhigte_erzeugungsleistung_in_w()
+				(float) verbraucher.gib_beruhigten_ueberschuss_in_w()
 				/
 				(float) benoetigte_leistung_in_w
 			;
