@@ -521,7 +521,7 @@ namespace Local {
 						verbraucher.roller_leistung_ist = ist;
 						verbraucher.roller_leistung_soll = soll;
 					},
-					[&](bool ein) { _schalte_auto_relay(ein); }
+					[&](bool ein) { _schalte_roller_relay(ein); }
 				)
 			) {
 				return;
@@ -538,7 +538,7 @@ namespace Local {
 					verbraucher.wasser_leistung_ist = ist;
 					verbraucher.wasser_leistung_soll = soll;
 				},
-				[&](bool ein) { _schalte_auto_relay(ein); }
+				[&](bool ein) { _schalte_wasser_relay(ein); }
 			)) {
 				return;
 			}
@@ -554,7 +554,7 @@ namespace Local {
 					verbraucher.heizung_leistung_ist = ist;
 					verbraucher.heizung_leistung_soll = soll;
 				},
-				[&](bool ein) { _schalte_auto_relay(ein); }
+				[&](bool ein) { _schalte_heizung_relay(ein); }
 			)) {
 				return;
 			}
