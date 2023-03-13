@@ -17,7 +17,7 @@ namespace Local {
 		int leistungsanteil_pv2 = 0;
 
 		int gib_ueberschuss_in_w() {
-			return (netzbezug_in_w * -1) - solarakku_zuschuss_in_w;
+			return solarerzeugung_in_w - stromverbrauch_in_w;
 		}
 
 		int gib_anteil_pv1_in_prozent() {

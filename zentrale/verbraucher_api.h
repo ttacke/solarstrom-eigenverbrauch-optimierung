@@ -24,7 +24,8 @@ namespace Local {
 		const char* auto_leistung_filename = "auto_leistung.status";
 		const char* auto_leistung_log_filename = "auto_leistung.log";
 
-		const char* ueberschuss_leistung_log_filename = "ueberschuss_leistung.log";
+		const char* verbrauch_leistung_log_filename = "verbrauch_leistung.log";
+		const char* erzeugung_leistung_log_filename = "erzeugung_leistung.log";
 
 		const char* log_filename = "verbraucher_automatisierung.log";
 
@@ -52,16 +53,6 @@ namespace Local {
 
 				persistenz->close_file();
 			}
-		}
-
-		int _gib_listen_minimum(int* liste) {
-			int min = liste[0];
-			for(int i = 1; i < 5; i++) {
-				if(liste[i] < min) {
-					min = liste[i];
-				}
-			}
-			return min;
 		}
 
 		bool _laden_ist_beendet(
@@ -143,8 +134,11 @@ namespace Local {
 			}
 
 			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
-			float min_bereitgestellte_leistung
-				= (float) _gib_listen_minimum(verbraucher.ueberschuss_log_in_w) / (float) benoetigte_leistung_in_w;
+			float min_bereitgestellte_leistung =
+				(float) verbraucher.gib_beruhigte_erzeugungsleistung_in_w()
+				/
+				(float) benoetigte_leistung_in_w
+			;
 			float geforderte_leistung_fuer_einschalten = _gib_geforderte_leistung_anhand_der_ladekurve(
 				akku, x_offset, y_offset, 0, ladekurven_faktor
 			);
@@ -343,14 +337,14 @@ namespace Local {
 			return leistung;
 		}
 
-		void _lies_verbraucher_log(int* liste, const char* log_filename) {
-			for(int i = 0; i < 5; i++) {
+		void _lies_verbraucher_log(int* liste, const char* log_filename, int length) {
+			for(int i = 0; i < length; i++) {
 				liste[i] = 0;
 			}
 			if(persistenz->open_file_to_read(log_filename)) {
 				while(persistenz->read_next_block_to_buffer()) {
 					char suche[16] = "";
-					for(int i = 0; i < 5; i++) {
+					for(int i = 0; i < length; i++) {
 						sprintf(suche, ">%d=([-0-9]+)<", i);
 						if(persistenz->find_in_buffer((char*) suche)) {
 							liste[i] = atoi(persistenz->finding_buffer);
@@ -361,14 +355,16 @@ namespace Local {
 			}
 		}
 
-		void _schreibe_verbraucher_log(int* liste, int aktuell, const char* log_filename) {
-			for(int i = 1; i < 5; i++) {
+		void _schreibe_verbraucher_log(
+			int* liste, int aktuell, const char* log_filename, int length
+		) {
+			for(int i = 1; i < length; i++) {
 				liste[i - 1] = liste[i];
 			}
-			liste[4] = aktuell;
+			liste[length - 1] = aktuell;
 
 			if(persistenz->open_file_to_overwrite(log_filename)) {
-				for(int i = 0; i < 5; i++) {
+				for(int i = 0; i < length; i++) {
 					sprintf(persistenz->buffer, ">%d=%d<", i, liste[i]);
 					persistenz->print_buffer_to_file();
 				}
@@ -412,18 +408,57 @@ namespace Local {
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(
 				(float) (elektroanlage.l3_strom_ma + elektroanlage.l3_solarstrom_ma) / 1000 * 230
 			);
-			_lies_verbraucher_log(verbraucher.auto_ladeleistung_log_in_w, auto_leistung_log_filename);
-			_schreibe_verbraucher_log(verbraucher.auto_ladeleistung_log_in_w, verbraucher.aktuelle_auto_ladeleistung_in_w, auto_leistung_log_filename);
+			_lies_verbraucher_log(
+				verbraucher.auto_ladeleistung_log_in_w,
+				auto_leistung_log_filename,
+				5
+			);
+			_schreibe_verbraucher_log(
+				verbraucher.auto_ladeleistung_log_in_w,
+				verbraucher.aktuelle_auto_ladeleistung_in_w,
+				auto_leistung_log_filename,
+				5
+			);
 			verbraucher.auto_benoetigte_ladeleistung_in_w = _gib_auto_benoetigte_ladeleistung_in_w();
 
 			verbraucher.aktuelle_roller_ladeleistung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_relay_host, cfg->roller_relay_port);
-			_lies_verbraucher_log(verbraucher.roller_ladeleistung_log_in_w, roller_leistung_log_filename);
-			_schreibe_verbraucher_log(verbraucher.roller_ladeleistung_log_in_w, verbraucher.aktuelle_roller_ladeleistung_in_w, roller_leistung_log_filename);
+			_lies_verbraucher_log(
+				verbraucher.roller_ladeleistung_log_in_w,
+				roller_leistung_log_filename,
+				5
+			);
+			_schreibe_verbraucher_log(
+				verbraucher.roller_ladeleistung_log_in_w,
+				verbraucher.aktuelle_roller_ladeleistung_in_w,
+				roller_leistung_log_filename,
+				5
+			);
 			verbraucher.roller_benoetigte_ladeleistung_in_w = _gib_roller_benoetigte_ladeleistung_in_w();
 
-			verbraucher.aktueller_ueberschuss_in_w = elektroanlage.gib_ueberschuss_in_w();
-			_lies_verbraucher_log(verbraucher.ueberschuss_log_in_w, ueberschuss_leistung_log_filename);
-			_schreibe_verbraucher_log(verbraucher.ueberschuss_log_in_w, verbraucher.aktueller_ueberschuss_in_w, ueberschuss_leistung_log_filename);
+			verbraucher.aktueller_verbrauch_in_w = elektroanlage.stromverbrauch_in_w;
+			_lies_verbraucher_log(
+				verbraucher.verbrauch_log_in_w,
+				verbrauch_leistung_log_filename,
+				5
+			);
+			_schreibe_verbraucher_log(
+				verbraucher.verbrauch_log_in_w,
+				verbraucher.aktueller_verbrauch_in_w,
+				verbrauch_leistung_log_filename,
+				5
+			);
+			verbraucher.aktuelle_erzeugung_in_w = elektroanlage.solarerzeugung_in_w;
+			_lies_verbraucher_log(
+				verbraucher.erzeugung_log_in_w,
+				erzeugung_leistung_log_filename,
+				30
+			);
+			_schreibe_verbraucher_log(
+				verbraucher.erzeugung_log_in_w,
+				verbraucher.aktuelle_erzeugung_in_w,
+				erzeugung_leistung_log_filename,
+				30
+			);
 
 			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
 			verbraucher.solarerzeugung_in_w = elektroanlage.solarerzeugung_in_w;

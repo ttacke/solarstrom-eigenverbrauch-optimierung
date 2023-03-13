@@ -44,8 +44,10 @@ namespace Local {
 		float roller_leistung_ist = 0;
 		float roller_leistung_soll = 0;
 
-		int aktueller_ueberschuss_in_w = 0;
-		int ueberschuss_log_in_w[5];
+		int aktueller_verbrauch_in_w = 0;
+		int verbrauch_log_in_w[5];
+		int aktuelle_erzeugung_in_w = 0;
+		int erzeugung_log_in_w[30];
 		int aktueller_akku_ladenstand_in_promille = 0;
 		int solarerzeugung_in_w = 0;
 		int zeitpunkt_sonnenuntergang = 0;
@@ -84,6 +86,14 @@ namespace Local {
 
 		int gib_genutzte_roller_ladeleistung_in_w() {
 			return _gib_listen_maximum(roller_ladeleistung_log_in_w, 5);
+		}
+
+		int gib_beruhigte_erzeugungsleistung_in_w() {
+			int leistung = aktuelle_erzeugung_in_w;
+			for(int i = 0; i < 30; i++) {
+				leistung += erzeugung_log_in_w[i];
+			}
+			return round(leistung / 31);
 		}
 
 		void set_log_data_a(char* buffer) {

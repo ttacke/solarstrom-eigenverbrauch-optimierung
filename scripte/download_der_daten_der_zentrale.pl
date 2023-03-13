@@ -28,7 +28,8 @@ foreach my $filename (qw/
     auto.ladestatus
     auto_leistung.status
     auto_leistung.log
-    ueberschuss_leistung.log
+    verbrauch_leistung.log
+    erzeugung_leistung.log
     verbraucher_automatisierung.log
 /) {
     print "$filename...";
