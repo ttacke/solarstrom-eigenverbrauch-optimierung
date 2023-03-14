@@ -368,7 +368,13 @@
 				border: none;
 			}
 		.balkentabelle tbody td.on {
-			background-color: #000 !important;
+			background-color: #000;
+		}
+		.balkentabelle tbody tr:nth-child(n + 4) td:nth-child(-n + 12).on {
+			background-color: #666;
+		}
+		.balkentabelle tbody tr:nth-child(1n + 7) td:nth-child(-n + 12).on {
+			background-color: #999;
 		}
 		.balkentabelle tfoot td {
 			border-top: solid 0.1rem black;
