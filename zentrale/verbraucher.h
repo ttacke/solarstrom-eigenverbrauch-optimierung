@@ -49,6 +49,7 @@ namespace Local {
 		int aktuelle_erzeugung_in_w = 0;
 		int erzeugung_log_in_w[30];
 		int aktueller_akku_ladenstand_in_promille = 0;
+		int akku_ladestandsvorhersage_in_promille[12];
 		int solarerzeugung_in_w = 0;
 		int zeitpunkt_sonnenuntergang = 0;
 

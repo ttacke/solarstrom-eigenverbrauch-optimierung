@@ -6,10 +6,10 @@ namespace Local {
 	protected:
 		// Hinweis: index0 = ist immer "jetzt" bei Stunde und Tag
 		// Stunde: gilt von 30min vor bis 30min nach
-		int stundenvorhersage_solarstrahlung_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 		int tagesvorhersage_solarstrahlung_liste[5] = {0,0,0,0,0};
 
 	public:
+		int stundenvorhersage_solarstrahlung_liste[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 		int stundenvorhersage_startzeitpunkt;
 		int tagesvorhersage_startzeitpunkt;
 		int zeitpunkt_sonnenuntergang = 0;

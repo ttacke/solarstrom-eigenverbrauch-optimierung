@@ -389,6 +389,31 @@ namespace Local {
 			}
 		}
 
+		void _fuelle_akkuladestands_vorhersage(
+			Local::Verbraucher& verbraucher,
+			Local::Wetter& wetter
+		) {
+			int verbleibender_platz_im_akku_in_promille = round(
+				(float) (1000 - verbraucher.aktueller_akku_ladenstand_in_promille)
+				*
+				((float) cfg->akku_groesse_in_wh / 1000)
+			);
+			for(int i = 0; i < 12; i++) {
+				int akku_veraenderung_in_promille = round(
+					(
+						(float) wetter.stundenvorhersage_solarstrahlung_liste[i]
+						*
+						cfg->solarstrahlungs_vorhersage_umrechnungsfaktor
+						- cfg->grundverbrauch_in_w_pro_h
+					) / (
+						(float) cfg->akku_groesse_in_wh / 1000
+					)
+				);
+				verbraucher.akku_ladestandsvorhersage_in_promille[i] =
+					verbleibender_platz_im_akku_in_promille + akku_veraenderung_in_promille;
+			}
+		}
+
 	public:
 		VerbraucherAPI(
 			Local::Config& cfg,
@@ -401,7 +426,7 @@ namespace Local {
 		void daten_holen_und_einsetzen(
 			Local::Verbraucher& verbraucher,
 			Local::ElektroAnlage& elektroanlage,
-			Local::Wetter wetter
+			Local::Wetter& wetter
 		) {
 			_ermittle_relay_zustaende(verbraucher);
 
@@ -466,6 +491,7 @@ namespace Local {
 
 			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
 			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);
+			_fuelle_akkuladestands_vorhersage(verbraucher, wetter);
 		}
 
 		void fuehre_schaltautomat_aus(Local::Verbraucher& verbraucher) {
