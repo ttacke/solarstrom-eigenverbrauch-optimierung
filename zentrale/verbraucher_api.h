@@ -537,9 +537,17 @@ namespace Local {
 				return;
 			}
 
-			float ladekurven_faktor = _ermittle_ladekurvenfaktor(verbraucher);
-			float ueberladen_ladekurven_faktor = _ermittle_ueberladen_ladekurvenfaktor(verbraucher, ladekurven_faktor);
 
+// TODO hier weiter
+/*
+Ziel-Akkustand = 80% -> schauen, ob der erreicht wird (im Vorhersagearray irgendwann > 800)
+Wenn ja && sonnenuntergang_abstand_in_s > 0.5 * 3600:
+	float gefordert = 1.1 - (0.011 * (aktueller_akku_stand_in_promille - 500));
+	AN akku > 20% && > 1.1 || AN- akku > 50%-60% && > gefordert
+
+	AUS-akku < 40% || Akkustand von 80% wird nicht mehr erreicht
+*/
+			float ladekurven_faktor = _ermittle_ladekurvenfaktor(verbraucher);
 			if(
 				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::solar
 				&& _schalte_automatisch(
@@ -628,10 +636,20 @@ namespace Local {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
 			bool akku_laeuft_potentiell_ueber = verbraucher.akku_laeuft_potentiell_ueber();
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
+			bool unerfuellter_ladewunsch = _es_besteht_ein_unerfuellter_ladewunsch(verbraucher);
+			float log = 0.0;
+			// TODO verbessern?
+			if(unerfuellter_ladewunsch) {
+				log += 10.0;
+			}
+			if(akku_laeuft_potentiell_ueber) {
+				log += 1.0;
+			}
+			if(schalt_mindestdauer_ist_erreicht) {
+				log += 0.1;
+			}
 			log_func(
-				(akku_laeuft_potentiell_ueber ? 1.0 : (
-					schalt_mindestdauer_ist_erreicht ? 0.0 : -1.0
-				)),
+				log,
 				min_bereitgestellte_leistung
 			);
 			if(!schalt_mindestdauer_ist_erreicht) {
@@ -645,6 +663,7 @@ namespace Local {
 			}
 			if(
 				!relay_ist_an
+				&& !unerfuellter_ladewunsch
 				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
 				&& (
 					(
@@ -662,6 +681,11 @@ namespace Local {
 				return true;
 			}
 			if(relay_ist_an) {
+				if(unerfuellter_ladewunsch) {
+					_log(log_key, (char*) "-ueberladen>AusWeilLadewunsch");
+					schalt_func(false);
+					return true;
+				}
 				if(!akku_laeuft_potentiell_ueber) {
 					_log(log_key, (char*) "-ueberladen>AusWeilAkkuVorhersage");
 					schalt_func(false);
@@ -694,21 +718,20 @@ namespace Local {
 			return ladekurven_faktor;
 		}
 
-		float _ermittle_ueberladen_ladekurvenfaktor(Local::Verbraucher& verbraucher, float ladekurven_faktor) {
-			float ueberladen_ladekurven_faktor = ladekurven_faktor;
+		bool _es_besteht_ein_unerfuellter_ladewunsch(Local::Verbraucher& verbraucher) {
 			if(
 				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::solar
 				&& !verbraucher.auto_relay_ist_an
 			) {
-				ueberladen_ladekurven_faktor += 3.0;
+				return true;
 			}
 			if(
 				verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::solar
 				&& !verbraucher.roller_relay_ist_an
 			) {
-				ueberladen_ladekurven_faktor += 1.5;
+				return true;
 			}
-			return ueberladen_ladekurven_faktor;
+			return false;
 		}
 
 		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {
