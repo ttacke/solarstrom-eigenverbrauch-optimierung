@@ -53,6 +53,15 @@ namespace Local {
 		int solarerzeugung_in_w = 0;
 		int zeitpunkt_sonnenuntergang = 0;
 
+		bool akku_lauft_potentiell_ueber() {
+			for(int i = 0; i < 12; i++) {
+				if(akku_ladestandsvorhersage_in_promille[i] > 1000) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		void set_auto_soll_ist_leistung(char* buffer) {
 			if(auto_ladestatus == Local::Verbraucher::Ladestatus::solar) {
 				sprintf(buffer, "%.1f/%.1f", auto_leistung_soll, auto_leistung_ist);
