@@ -4,48 +4,50 @@ use warnings;
 
 sub _hole_daten {
     my $daten = [];
-    open(my $fh, '<', './anlagen_log.csv') or die "Bitte erst 'lade_aktuelle_logdatei.pl [ESP-IP]' ausfuehren\n";
-    $/ = "\n";
-    my $alt = {};
-    # TODO 3f Problem reparieren
-    # TODO Max-Solarvorhersage ermitteln und damit die Anzeige optimieren
-    # TODO Ermitteln (Pro Monat?/Tagesstunde?/Alles zusammen?) wie viel Strahlungsvorhersage den Grundverbrauch überschreitet
-    # -> erst ab diesem Balken (Bei Stunde/Tag) schwarz markieren. Sonst nur dunkelgrau.
-
-    while(my $line = <$fh>) {
-        chomp($line);
-
-        my @e = $line =~ m/^(\d+),e1,([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),w1,(\d+),(\d+)$/;
-        next if(!scalar(@e));
-
-        my @d = gmtime($e[0]);
-        my $neu = {
-            zeitpunkt => $e[0],
-            datum => ($d[5] + 1900) . '-' . ($d[4] + 1) . '-' . $d[3],
-            stunde => $d[2],
-            monat => $d[4] + 1,
-            netzbezug_in_w => $e[1],
-            solarakku_zuschuss_in_w => $e[2],
-            solarerzeugung_in_w => $e[3],
-            stromverbrauch_in_w => $e[4],
-            solarakku_ladestand_in_promille => $e[5],
-            l1_strom_ma => $e[6],
-            l2_strom_ma => $e[7],
-            l3_strom_ma => $e[8],
-            gib_anteil_pv1_in_prozent => $e[9],
-            stunden_solarstrahlung => $e[10],
-            tages_solarstrahlung => $e[11],
-        };
-        if(exists($alt->{zeitpunkt})) {
-            my $zeit_in_h = ($neu->{zeitpunkt} - $alt->{zeitpunkt}) / 3600;
-            $neu->{solarenergie_in_wh} = $neu->{solarerzeugung_in_w} * $zeit_in_h;
-        } else {
-            $neu->{solarenergie_in_wh} = 0;
+    foreach my $filename (qw/
+        anlage_log.csv.2023-03-03
+        anlage_log.csv
+    /) {
+        my $fh;
+        if(!open($fh, '<', "../sd-karteninhalt/$filename")) {
+            if($filename eq 'anlage_log.csv') {
+                die "Bitte erst 'download_der_daten_der_zentrale.pl [IP]' ausfuehren\n";
+            } else {
+                next;
+            }
         }
-        push(@$daten, $neu);
-        $alt = $neu;
+        $/ = "\n";
+        my $alt = {};
+
+        while(my $line = <$fh>) {
+            chomp($line);
+
+            my @e = $line =~ m/^(\d+),e1,([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),w[12],(\d+),(\d+)/;
+            next if(!scalar(@e));
+
+            my @d = gmtime($e[0]);
+            my $neu = {
+                zeitpunkt => $e[0],
+                datum => sprintf("%04d-%02d-%02d", $d[5] + 1900, $d[4] + 1, $d[3]),
+                stunde => $d[2],
+                monat => $d[4] + 1,
+                netzbezug_in_w => $e[1],
+                solarakku_zuschuss_in_w => $e[2],
+                solarerzeugung_in_w => $e[3],
+                stromverbrauch_in_w => $e[4],
+                solarakku_ladestand_in_promille => $e[5],
+                l1_strom_ma => $e[6],
+                l2_strom_ma => $e[7],
+                l3_strom_ma => $e[8],
+                gib_anteil_pv1_in_prozent => $e[9],
+                stunden_solarstrahlung => $e[10],
+                tages_solarstrahlung => $e[11],
+            };
+            push(@$daten, $neu);
+            $alt = $neu;
+        }
+        close($fh);
     }
-    close($fh);
     return $daten;
 }
 my $daten = _hole_daten();
@@ -92,34 +94,54 @@ foreach my $e (@$daten) {
 print "Vollzyklen des Akkus: " . sprintf("%.2f", $akku_ladezyklen_in_promille / 1000) . "\n";
 my $prognose_akku_haltbar_in_tagen = $prognostizierte_vollzyklen / ($akku_ladezyklen_in_promille / 1000) * $logdaten_in_tagen;
 print "Haltbarkeit des Akkus(gesamt; bei max. $prognostizierte_vollzyklen Vollzyklen): " . sprintf("%.1f", $prognose_akku_haltbar_in_tagen / 365) . " Jahre\n";
+# TODO 20-80% ist weniger schlimm, 40-60 am wenigsten. Das hier mit einem zusätzlichen Wert angeben
 
-# my $stundenstrahlung_verhaeltnisse = [];
-my $daten_nach_stunden = {};
+my $tmp_strahlungsdaten = {};
 foreach my $e (@$daten) {
-    # TODO Die TAge so auftrennen, dass pro Stunde eineListe entsteht, aus der die MEridiane gebildet werden koennens
     my $key = $e->{datum} . ':' . $e->{stunde};
-    $daten_nach_stunden->{$key} ||= {
-        solarenergie_in_wh     => 0,
-        stahlungs_vorhersage => 0,
+    $tmp_strahlungsdaten->{$key} ||= {
+        solarerzeugung_in_w   => [],
+        stunden_solarstrahlung => $e->{stunden_solarstrahlung},
+        leistung_in_w        => 0,
+        stunde               => $e->{stunde},
+        monat                => $e->{monat},
     };
-    $daten_nach_stunden->{$key}->{stahlungs_vorhersage} = $e->{stunden_solarstrahlung};
-    $daten_nach_stunden->{$key}->{solarenergie_in_wh} += $e->{solarenergie_in_wh};
-    # TODO jeden Tag grupieren, dann median bilden, bei beiden werten.
+    push(@{$tmp_strahlungsdaten->{$key}->{solarerzeugung_in_w}}, $e->{solarerzeugung_in_w});
 }
-use Data::Dumper;
-die Dumper($daten_nach_stunden);
-# foreach my $e (@{$daten_nach_stunden->{12}}) {
-#     print $e->{solarenergie_in_wh}."\n";
-# }
-#     # solarerzeugung_in_w
-#     #stunden_solarstrahlung
-#     #tages_solarstrahlung
-#     push(
-#         @$stundenstrahlung_verhaeltnisse,
-#         ($e->{solarerzeugung_in_w} > 0 ? $e->{stunden_solarstrahlung} * 1000 / $e->{solarerzeugung_in_w} : 0)
-#     );
-#     warn "$e->{stunden_solarstrahlung} / $e->{solarerzeugung_in_w} = " . ($e->{stunden_solarstrahlung} * 1000 / $e->{solarerzeugung_in_w});
-# }
-# print "Stundenvorhersage 1 W Strahlung ergibt (via Median): " . (sort(@$stundenstrahlung_verhaeltnisse))[int(scalar(@$stundenstrahlung_verhaeltnisse) / 2)] . " W Strom\n";
+
+my $vorhersage_verhaeltnisse = {};
+foreach my $key (keys(%$tmp_strahlungsdaten)) {
+    my $e = $tmp_strahlungsdaten->{$key};
+    next if(!$e->{stunden_solarstrahlung});
+
+    my $erzeugung_in_w_median = (sort(@{$e->{solarerzeugung_in_w}}))[int(scalar(@{$e->{solarerzeugung_in_w}}) / 2)];
+    next if(!$erzeugung_in_w_median);
+
+    $vorhersage_verhaeltnisse->{$e->{monat}} ||= {};
+    $vorhersage_verhaeltnisse->{$e->{monat}}->{$e->{stunde}} ||= [];
+    my $liste = $vorhersage_verhaeltnisse->{$e->{monat}}->{$e->{stunde}};
+    print "int($erzeugung_in_w_median * 1000 / $e->{stunden_solarstrahlung})\n";
+    print int($erzeugung_in_w_median * 1000 / $e->{stunden_solarstrahlung}) . "\n";
+    push(@$liste, int($erzeugung_in_w_median * 1000 / $e->{stunden_solarstrahlung}));
+
+# TODO ist nicht linear? GGf besser nicht in Stunden, sondern in
+#StrahlungsBlöcke teilen? ISt 0-100 ein halbwegs gleichbleibender Wert?
+#und 100-200? 200-300 etc?
+# Hohe Strahlungswerte haben sehr hohe leistungen, kleine Werte aber sehr kleine Leistungen
+}
+
+print "Ist-Leistung in kW / Vorhersage in w/m2:\n";
+foreach my $monat (1..12) {
+    my $line = sprintf(" %02d: ", $monat);
+    foreach my $stunde (0..23) {
+        my $liste = $vorhersage_verhaeltnisse->{$monat}->{$stunde};
+        my $median_verhaeltnis = '-';
+        if($liste) {
+            $median_verhaeltnis = (sort(@{$liste}))[int(scalar(@{$liste}) / 2)];
+        }
+        $line .= sprintf("%02d: %s ", $stunde, $median_verhaeltnis);
+    }
+    print "$line\n";
+}
 
 print "\n";
