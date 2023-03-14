@@ -21,7 +21,7 @@
 		function refresh(action, key, val) {// DefaultValues kann Kindle nicht
 			if(!ist_initialisiert) {
 				warte_auf_daten = false;
-				_erstelle_wettertabelle('solarstrahlung', 18);
+				_erstelle_balkentabelle('balkenanzeige', 18);
 				setInterval(function() { refresh('', '', ''); }, 1000 * 60);
 				ist_initialisiert = true;
 			}
@@ -100,10 +100,10 @@
 			xhr.send();
 		}
 		function _setze_daten_ein(daten) {
-			_setze_wetter_stunden_label('solarstrahlung', 0, 12, daten);
-			_setze_wetter_daten(daten['solarstrahlung_stunden_in_prozent'], 'solarstrahlung', 0, 12);
-			_setze_wetter_tage_label('solarstrahlung', 13, 5, daten);
-			_setze_wetter_daten(daten['solarstrahlung_tage_in_prozent'], 'solarstrahlung', 13, 5);
+			_setze_balkentabelle_stunden_label('balkenanzeige', 0, 12, daten);
+			_setze_balkentabelle_daten(daten['stunden_balkenanzeige'], 'balkenanzeige', 0, 12);
+			_setze_balkentabelle_tage_label('balkenanzeige', 13, 5, daten);
+			_setze_balkentabelle_daten(daten['tage_balkenanzeige'], 'balkenanzeige', 13, 5);
 			_setze_elektrische_daten(daten);
 			
 			_setze_ladestatus('auto_laden', daten['auto_laden']);
@@ -151,13 +151,13 @@
 				zeit_des_ersten_fehlers = null;
 			}
 		}
-		function _setze_wetter_stunden_label(id, offset, length, daten) {
+		function _setze_balkentabelle_stunden_label(id, offset, length, daten) {
 			var table = document.getElementById(id);
 			// "let" funktioniert im KindleBrowser nicht
-			var t = new Date(daten['solarstrahlung_stunden_startzeit'] * 1000);
+			var t = new Date(daten['stunden_balkenanzeige_startzeit'] * 1000);
 			var footer_cell = table.getElementsByTagName('tfoot')[0].getElementsByTagName('td');
 			for(var i = offset; i < offset + length; i++) {
-				if(daten['solarstrahlung_stunden_startzeit'] > 0) {
+				if(daten['stunden_balkenanzeige_startzeit'] > 0) {
 					footer_cell[i].innerHTML = t.getHours();
 					t.setHours(t.getHours() + 1);
 				} else {
@@ -165,12 +165,12 @@
 				}
 			}
 		}
-		function _setze_wetter_tage_label(id, offset, length, daten) {
+		function _setze_balkentabelle_tage_label(id, offset, length, daten) {
 			var table = document.getElementById(id);
-			var t = new Date(daten['solarstrahlung_tage_startzeit'] * 1000);
+			var t = new Date(daten['tage_balkenanzeige_startzeit'] * 1000);
 			var footer_cell = table.getElementsByTagName('tfoot')[0].getElementsByTagName('td');
 			for(var i = offset; i < offset + length; i++) {
-				if(daten['solarstrahlung_tage_startzeit'] > 0) {
+				if(daten['tage_balkenanzeige_startzeit'] > 0) {
 					footer_cell[i].innerHTML = wochentage[t.getDay()];
 					t.setDate(t.getDate() + 1);
 				} else {
@@ -178,7 +178,7 @@
 				}
 			}
 		}
-		function _setze_wetter_daten(vorhersagedaten, id, offset, length) {
+		function _setze_balkentabelle_daten(vorhersagedaten, id, offset, length) {
 			var table = document.getElementById(id);
 			var body_tr = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
 			for(var zeile_nr = 0; zeile_nr < body_tr.length; zeile_nr++) {
@@ -236,7 +236,7 @@
 			xhr.timeout = 15 * 1000;
 			xhr.send();
 		}
-		function _erstelle_wettertabelle(id, cols) {
+		function _erstelle_balkentabelle(id, cols) {
 			var tabelle = document.getElementById(id);
 			var children = [
 				{el:document.createElement('thead'), rows:1, width:true},
@@ -344,33 +344,33 @@
 		}
 
 
-		.wetter {
+		.balkentabelle {
 			width: 100%;
 			border-collapse: separate;
 			border-spacing: 0.1rem 0.1rem;
 			margin-top: 0.3rem;
 		}
-		.wetter thead td {
+		.balkentabelle thead td {
 			border-bottom: solid 0.1rem black;
 		}
-		.wetter tfoot td {
+		.balkentabelle tfoot td {
 			border-top: solid 0.1rem black;
 		}
-		.wetter tbody td {
+		.balkentabelle tbody td {
 			height: 0.5rem;
 			background-color: #CCC;
 		}
-			.wetter#solarstrahlung thead td {
+			.balkentabelle#balkenanzeige thead td {
 				width: 5.55%;
 			}
-			.wetter#solarstrahlung tr td:nth-child(13) {
+			.balkentabelle#balkenanzeige tr td:nth-child(13) {
 				background-color: inherit;
 				border: none;
 			}
-		.wetter tbody td.on {
+		.balkentabelle tbody td.on {
 			background-color: #000 !important;
 		}
-		.wetter tfoot td {
+		.balkentabelle tfoot td {
 			border-top: solid 0.1rem black;
 			font-size: 1rem;
 			font-weight: normal;
@@ -483,7 +483,7 @@
 	</span>
 </div>
 
-<table class="wetter" id="solarstrahlung"></table>
+<table class="balkentabelle" id="balkenanzeige"></table>
 
 <div class="schalter" id="auto_laden">
 	<span onclick="secure_action('change', 'auto', 'change_power')">Auto<br>

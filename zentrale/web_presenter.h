@@ -299,24 +299,26 @@ namespace Local {
 					_print_int_to_web(100 - anteil_pv1_in_prozent);
 					_print_char_to_web((char*) ",");
 
-				_print_char_to_web((char*) "\"solarstrahlung_stunden_startzeit\":");
+				_print_char_to_web((char*) "\"stunden_balkenanzeige_startzeit\":");
 					_print_int_to_web(wetter.stundenvorhersage_startzeitpunkt);
 					_print_char_to_web((char*) ",");
 
-				_print_char_to_web((char*) "\"solarstrahlung_stunden_in_prozent\":[");
+				_print_char_to_web((char*) "\"stunden_balkenanzeige\":[");
 					for(int i = 0; i < 12; i++) {
-						_print_int_to_web(wetter.gib_stundenvorhersage_solarstrahlung_in_prozent(i, *cfg));
+// TODO DEPRECATED
+//						_print_int_to_web(wetter.gib_stundenvorhersage_solarstrahlung_in_prozent(i, *cfg));
+						_print_int_to_web(verbraucher.gib_stundenvorhersage_akku_ladestand_als_fibonacci(i));
 						if(i != 11) {
 							_print_char_to_web((char*) ",");
 						}
 					}
 				_print_char_to_web((char*) "],");
 
-				_print_char_to_web((char*) "\"solarstrahlung_tage_startzeit\":");
+				_print_char_to_web((char*) "\"tage_balkenanzeige_startzeit\":");
 					_print_int_to_web(wetter.tagesvorhersage_startzeitpunkt);
 					_print_char_to_web((char*) ",");
 
-				_print_char_to_web((char*) "\"solarstrahlung_tage_in_prozent\":[");
+				_print_char_to_web((char*) "\"tage_balkenanzeige\":[");
 					for(int i = 0; i < 5; i++) {
 						_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung_in_prozent(i, *cfg));
 						if(i != 4) {

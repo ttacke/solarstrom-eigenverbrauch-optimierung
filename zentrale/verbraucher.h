@@ -53,6 +53,22 @@ namespace Local {
 		int solarerzeugung_in_w = 0;
 		int zeitpunkt_sonnenuntergang = 0;
 
+		int gib_stundenvorhersage_akku_ladestand_als_fibonacci(int index) {
+			int prozent = round((float) akku_ladestandsvorhersage_in_promille[index] / 10);
+			int a = 0;
+			int b = 5;
+			int tmp;
+			for(int i = 0; i < 10; i++) {
+				if(prozent <= a + b) {
+					return i;
+				}
+				tmp = b;
+				b = a + b;
+				a = tmp;
+			}
+			return 100;
+		}
+
 		bool akku_erreicht_ladestand_in_promille(int ladestand_in_promille) {
 			for(int i = 0; i < 12; i++) {
 				if(akku_ladestandsvorhersage_in_promille[i] >= ladestand_in_promille) {
