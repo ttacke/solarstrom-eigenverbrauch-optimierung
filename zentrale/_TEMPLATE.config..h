@@ -45,6 +45,7 @@ namespace Local {
 
 // TODO DEPRECATED
 //		const int maximale_solarstrahlung_in_w_pro_m2 = 1000;// Quelle https://www.weltderphysik.de/gebiet/technik/energie/solarenergie/sonnenenergie/
-		const int maximale_solarstrahlung_pro_tag_in_w_pro_m2 = 7000;
+// TODO DEPRECATED
+//		const int maximale_solarstrahlung_pro_tag_in_w_pro_m2 = 7000;
 	};
 }

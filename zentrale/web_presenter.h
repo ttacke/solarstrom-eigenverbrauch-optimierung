@@ -320,7 +320,9 @@ namespace Local {
 
 				_print_char_to_web((char*) "\"tage_balkenanzeige\":[");
 					for(int i = 0; i < 5; i++) {
-						_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung_in_prozent(i, *cfg));
+// TODO DEPRECATED
+//						_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung_in_prozent(i, *cfg));
+						_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung_als_fibonacci(i));
 						if(i != 4) {
 							_print_char_to_web((char*) ",");
 						}

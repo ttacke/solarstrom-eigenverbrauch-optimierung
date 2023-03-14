@@ -27,8 +27,25 @@ namespace Local {
 			tagesvorhersage_solarstrahlung_liste[index] = val;
 		}
 
-		int gib_tagesvorhersage_solarstrahlung_in_prozent(int index, Local::Config& cfg) {
-			return round((float) tagesvorhersage_solarstrahlung_liste[index] * 100 / (float) cfg.maximale_solarstrahlung_pro_tag_in_w_pro_m2);
+// TODO DEPRECATED
+//		int gib_tagesvorhersage_solarstrahlung_in_prozent(int index, Local::Config& cfg) {
+//			return round((float) tagesvorhersage_solarstrahlung_liste[index] * 100 / (float) cfg.maximale_solarstrahlung_pro_tag_in_w_pro_m2);
+//		}
+
+		int gib_tagesvorhersage_solarstrahlung_als_fibonacci(int index) {
+			int strahlung = tagesvorhersage_solarstrahlung_liste[index];
+			int a = 100;
+			int b = 100;
+			int tmp;
+			for(int i = 0; i < 10; i++) {
+				if(strahlung <= b) {
+					return i * 10;
+				}
+				tmp = b;
+				b = a + b;
+				a = tmp;
+			}
+			return 100;
 		}
 
 		void set_log_data(char* buffer) {
