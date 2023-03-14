@@ -2,6 +2,15 @@
 use strict;
 use warnings;
 
+sub _gib_duchschnitt {
+    my ($liste) = @_;
+    #return (sort(@$liste))[int(scalar(@$liste) / 2)];
+    my $x = 0;
+    foreach(@$liste) {
+        $x += $_;
+    }
+    return sprintf("%d", $x / scalar($#$liste));
+}
 sub _hole_daten {
     my $daten = [];
     foreach my $filename (qw/
@@ -96,52 +105,47 @@ my $prognose_akku_haltbar_in_tagen = $prognostizierte_vollzyklen / ($akku_ladezy
 print "Haltbarkeit des Akkus(gesamt; bei max. $prognostizierte_vollzyklen Vollzyklen): " . sprintf("%.1f", $prognose_akku_haltbar_in_tagen / 365) . " Jahre\n";
 # TODO 20-80% ist weniger schlimm, 40-60 am wenigsten. Das hier mit einem zusätzlichen Wert angeben
 
-my $tmp_strahlungsdaten = {};
-foreach my $e (@$daten) {
-    my $key = $e->{datum} . ':' . $e->{stunde};
-    $tmp_strahlungsdaten->{$key} ||= {
-        solarerzeugung_in_w   => [],
-        stunden_solarstrahlung => $e->{stunden_solarstrahlung},
-        leistung_in_w        => 0,
-        stunde               => $e->{stunde},
-        monat                => $e->{monat},
-    };
-    push(@{$tmp_strahlungsdaten->{$key}->{solarerzeugung_in_w}}, $e->{solarerzeugung_in_w});
-}
-
-my $vorhersage_verhaeltnisse = {};
-foreach my $key (keys(%$tmp_strahlungsdaten)) {
-    my $e = $tmp_strahlungsdaten->{$key};
-    next if(!$e->{stunden_solarstrahlung});
-
-    my $erzeugung_in_w_median = (sort(@{$e->{solarerzeugung_in_w}}))[int(scalar(@{$e->{solarerzeugung_in_w}}) / 2)];
-    next if(!$erzeugung_in_w_median);
-
-    $vorhersage_verhaeltnisse->{$e->{monat}} ||= {};
-    $vorhersage_verhaeltnisse->{$e->{monat}}->{$e->{stunde}} ||= [];
-    my $liste = $vorhersage_verhaeltnisse->{$e->{monat}}->{$e->{stunde}};
-    print "int($erzeugung_in_w_median * 1000 / $e->{stunden_solarstrahlung})\n";
-    print int($erzeugung_in_w_median * 1000 / $e->{stunden_solarstrahlung}) . "\n";
-    push(@$liste, int($erzeugung_in_w_median * 1000 / $e->{stunden_solarstrahlung}));
-
-# TODO ist nicht linear? GGf besser nicht in Stunden, sondern in
-#StrahlungsBlöcke teilen? ISt 0-100 ein halbwegs gleichbleibender Wert?
-#und 100-200? 200-300 etc?
-# Hohe Strahlungswerte haben sehr hohe leistungen, kleine Werte aber sehr kleine Leistungen
-}
-
-print "Ist-Leistung in kW / Vorhersage in w/m2:\n";
+my $strahlungsdaten = {};
 foreach my $monat (1..12) {
-    my $line = sprintf(" %02d: ", $monat);
-    foreach my $stunde (0..23) {
-        my $liste = $vorhersage_verhaeltnisse->{$monat}->{$stunde};
-        my $median_verhaeltnis = '-';
-        if($liste) {
-            $median_verhaeltnis = (sort(@{$liste}))[int(scalar(@{$liste}) / 2)];
+    $strahlungsdaten->{$monat} ||= {};
+    my $tmp_strahlungsdaten = $strahlungsdaten->{$monat};
+    foreach my $e (@$daten) {
+        next if($e->{monat} != $monat);
+
+        my $key = $e->{stunden_solarstrahlung};
+        $tmp_strahlungsdaten->{$key} ||= {
+            solarerzeugung_in_w   => [],
+            stunden_solarstrahlung => [],
+        };
+        push(@{$tmp_strahlungsdaten->{$key}->{stunden_solarstrahlung}}, $e->{stunden_solarstrahlung});
+        if(
+            !$e->{stunden_solarstrahlung}
+            || $e->{solarerzeugung_in_w} / $e->{stunden_solarstrahlung} > 100
+        ) {
+            next;
         }
-        $line .= sprintf("%02d: %s ", $stunde, $median_verhaeltnis);
+        push(@{$tmp_strahlungsdaten->{$key}->{solarerzeugung_in_w}}, $e->{solarerzeugung_in_w});
     }
-    print "$line\n";
 }
+
+print "Umrechnungsfakrot Solarstrahlung pro h -> Leistung in W (Monatsweise):\n";
+my $globaler_faktor = [];
+foreach my $monat (1..12) {
+    my $faktor_liste = [];
+    my $tmp_strahlungsdaten = $strahlungsdaten->{$monat};
+    foreach my $key (sort { int($a) <=> int($b) } keys(%$tmp_strahlungsdaten)) {
+        my $e = $tmp_strahlungsdaten->{$key};
+        my $stunden_solarstrahlung = _gib_duchschnitt($e->{stunden_solarstrahlung});
+        next if(!$stunden_solarstrahlung);
+
+        my $erzeugung_in_w = _gib_duchschnitt($e->{solarerzeugung_in_w});
+        next if(!$erzeugung_in_w);
+
+        push(@$faktor_liste, $erzeugung_in_w / $stunden_solarstrahlung * 100);
+        push(@$globaler_faktor, $faktor_liste->[$#$faktor_liste]);
+    }
+    printf(" $monat: %.2f\n", _gib_duchschnitt($faktor_liste) / 100);
+}
+printf("Gesamt: %.2f\n", _gib_duchschnitt($globaler_faktor) / 100);
 
 print "\n";
