@@ -380,13 +380,9 @@ namespace Local {
 
 		void _fuelle_akkuladestands_vorhersage(
 			Local::Verbraucher& verbraucher,
-			Local::Wetter& wetter
+			Local::Wetter wetter
 		) {
-			int verbleibender_platz_im_akku_in_promille = round(
-				(float) (1000 - verbraucher.aktueller_akku_ladenstand_in_promille)
-				*
-				((float) cfg->akku_groesse_in_wh / 1000)
-			);
+			int akku_ladestand_in_promille = verbraucher.aktueller_akku_ladenstand_in_promille;
 			for(int i = 0; i < 12; i++) {
 				int akku_veraenderung_in_promille = round(
 					(
@@ -398,8 +394,11 @@ namespace Local {
 						(float) cfg->akku_groesse_in_wh / 1000
 					)
 				);
-				verbraucher.akku_ladestandsvorhersage_in_promille[i] =
-					verbleibender_platz_im_akku_in_promille + akku_veraenderung_in_promille;
+				akku_ladestand_in_promille += akku_veraenderung_in_promille;
+				if(akku_ladestand_in_promille < 50) {// Min SOC
+					akku_ladestand_in_promille = 50;
+				}
+				verbraucher.akku_ladestandsvorhersage_in_promille[i] = akku_ladestand_in_promille;
 			}
 		}
 
