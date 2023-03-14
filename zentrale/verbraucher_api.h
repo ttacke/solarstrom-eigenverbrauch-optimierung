@@ -415,7 +415,7 @@ namespace Local {
 		void daten_holen_und_einsetzen(
 			Local::Verbraucher& verbraucher,
 			Local::ElektroAnlage& elektroanlage,
-			Local::Wetter& wetter
+			Local::Wetter wetter
 		) {
 			_ermittle_relay_zustaende(verbraucher);
 

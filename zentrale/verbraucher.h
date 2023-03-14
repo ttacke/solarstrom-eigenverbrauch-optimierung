@@ -132,7 +132,7 @@ namespace Local {
 		void set_log_data_a(char* buffer) {
 			sprintf(
 				buffer,
-				"va2,%s,%s,%d,%d,%d,%d,%d,%d,%d,%s",
+				"va2,%s,%s,%d,%d,%d,%s",
 				(
 					auto_ladestatus == Local::Verbraucher::Ladestatus::force
 					? "force"
@@ -150,7 +150,7 @@ namespace Local {
 		void set_log_data_b(char* buffer) {
 			sprintf(
 				buffer,
-				"vb2,%s,%s,%d,%d,%d,%d,%d,%d,%d,%s",
+				"vb2,%s,%s,%d,%d,%d,%s",
 				(
 					roller_ladestatus == Local::Verbraucher::Ladestatus::force
 					? "force"
