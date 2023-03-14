@@ -579,79 +579,24 @@ namespace Local {
 				return;
 			}
 
-// TODO auslagern, als ueberladen generalisieren
-// _schalte_ueberladen_automatisch(
-//				(char*) "wasser",
-//				verbraucher,
-//				verbraucher.wasser_relay_zustand_seit,
-//				cfg->wasser_min_schaltzeit_in_min,
-//				cfg->wasser_benoetigte_leistung_in_w,
-//				verbraucher.wasser_relay_ist_an,
-//				0, 0, ueberladen_ladekurven_faktor,
-//				[&](float ist, float soll) {
-//					verbraucher.wasser_leistung_ist = ist;
-//					verbraucher.wasser_leistung_soll = soll;
-//				},
-//				[&](bool ein) { _schalte_wasser_relay(ein); }
-
-
-
-			int sonnenuntergang_abstand_in_s = 0;
-			if(verbraucher.zeitpunkt_sonnenuntergang > 0) {
-				sonnenuntergang_abstand_in_s = verbraucher.zeitpunkt_sonnenuntergang - timestamp;
-			}
-			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, cfg->wasser_benoetigte_leistung_in_w);
-			if(
-				!verbraucher.wasser_relay_ist_an
-				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
-				&& (
-					(
-						verbraucher.akku_lauft_potentiell_ueber()
-						&& verbraucher.aktueller_akku_ladenstand_in_promille > 250
-						&& min_bereitgestellte_leistung > 0.1
-					) || (
-						verbraucher.aktueller_akku_ladenstand_in_promille > 950
-						&& min_bereitgestellte_leistung > 0.5
-					)
-				)
-			) {
-				// TODO Log
-//				verbraucher.wasser_leistung_ist = ist;
-//				verbraucher.wasser_leistung_soll = soll;
-				_schalte_wasser_relay(true);
+// TODO unnoetiges aufraeumen
+			if(_schalte_ueberladen_automatisch(
+				(char*) "wasser",
+				verbraucher,
+				verbraucher.wasser_relay_zustand_seit,
+				cfg->wasser_min_schaltzeit_in_min,
+				cfg->wasser_benoetigte_leistung_in_w,
+				verbraucher.wasser_relay_ist_an,
+				0, 0, ueberladen_ladekurven_faktor,
+				[&](float ueberlauf, float produktion) {
+					// TODO noch sinnvoll anpassen!
+					verbraucher.wasser_leistung_ist = ueberlauf;
+					verbraucher.wasser_leistung_soll = produktion;
+				},
+				[&](bool ein) { _schalte_wasser_relay(ein); }
+			)) {
 				return;
 			}
-			if(
-				verbraucher.wasser_relay_ist_an
-				&& (
-					!verbraucher.akku_lauft_potentiell_ueber()
-					|| min_bereitgestellte_leistung + 1.0 < -0.8
-				)
-			) {
-				// TODO Log
-//				verbraucher.wasser_leistung_ist = ist;
-//				verbraucher.wasser_leistung_soll = soll;
-				_schalte_wasser_relay(false);
-				return;
-			}
-
-			// TODO deaktiviert, weil so nicht sinnvoll
-//			if(_schalte_automatisch(
-//				(char*) "wasser",
-//				verbraucher,
-//				verbraucher.wasser_relay_zustand_seit,
-//				cfg->wasser_min_schaltzeit_in_min,
-//				cfg->wasser_benoetigte_leistung_in_w,
-//				verbraucher.wasser_relay_ist_an,
-//				0, 0, ueberladen_ladekurven_faktor,
-//				[&](float ist, float soll) {
-//					verbraucher.wasser_leistung_ist = ist;
-//					verbraucher.wasser_leistung_soll = soll;
-//				},
-//				[&](bool ein) { _schalte_wasser_relay(ein); }
-//			)) {
-//				return;
-//			}
 
 
 			// TODO
@@ -690,6 +635,71 @@ Ueberschuss-Log
 //			)) {
 //				return;
 //			}
+		}
+
+		template<typename F1, typename F2>
+		bool _schalte_ueberladen_automatisch(
+			char* log_key,
+			Local::Verbraucher& verbraucher,
+			int relay_zustand_seit,
+			int min_schaltzeit_in_min,
+			int benoetigte_leistung_in_w,
+			bool relay_ist_an,
+			int x_offset,
+			float y_offset,
+			float ladekurven_faktor,
+			F1 && log_func,
+			F2 && schalt_func
+		) {
+			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
+			bool akku_laeuft_potentiell_ueber = verbraucher.akku_laeuft_potentiell_ueber();
+			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
+			log_func(
+				(akku_laeuft_potentiell_ueber ? 1.0 : (
+					schalt_mindestdauer_ist_erreicht ? 0.0 : -1.0
+				)),
+				min_bereitgestellte_leistung
+			);
+			if(!schalt_mindestdauer_ist_erreicht) {
+				_log(log_key, (char*) "-ueberladen>SchaltdauerNichtErreicht");
+				return false;
+			}
+
+			int sonnenuntergang_abstand_in_s = 0;
+			if(verbraucher.zeitpunkt_sonnenuntergang > 0) {
+				sonnenuntergang_abstand_in_s = verbraucher.zeitpunkt_sonnenuntergang - timestamp;
+			}
+			if(
+				!relay_ist_an
+				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
+				&& (
+					(
+						akku_laeuft_potentiell_ueber
+						&& verbraucher.aktueller_akku_ladenstand_in_promille > 250
+						&& min_bereitgestellte_leistung > 0.1
+					) || (
+						verbraucher.aktueller_akku_ladenstand_in_promille > 950
+						&& min_bereitgestellte_leistung > 0.5
+					)
+				)
+			) {
+				_log(log_key, (char*) "-ueberladen>AnWeilGenug");
+				schalt_func(true);
+				return true;
+			}
+			if(relay_ist_an) {
+				if(!akku_laeuft_potentiell_ueber) {
+					_log(log_key, (char*) "-ueberladen>AusWeilAkkuVorhersage");
+					schalt_func(false);
+					return true;
+				}
+				if(min_bereitgestellte_leistung + 1.0 < -0.8) {
+					_log(log_key, (char*) "-ueberladen>AusWeilZuWenigLeistung");
+					schalt_func(false);
+					return true;
+				}
+			}
+			return false;
 		}
 
 		float _ermittle_ladekurvenfaktor(Local::Verbraucher& verbraucher) {

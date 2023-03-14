@@ -53,7 +53,7 @@ namespace Local {
 		int solarerzeugung_in_w = 0;
 		int zeitpunkt_sonnenuntergang = 0;
 
-		bool akku_lauft_potentiell_ueber() {
+		bool akku_laeuft_potentiell_ueber() {
 			for(int i = 0; i < 12; i++) {
 				if(akku_ladestandsvorhersage_in_promille[i] > 1000) {
 					return true;
