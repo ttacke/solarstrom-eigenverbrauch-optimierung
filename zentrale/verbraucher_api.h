@@ -127,21 +127,17 @@ namespace Local {
 			);
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			float einschaltschwelle = _ermittle_solarladen_einschaltschwelle(verbraucher.aktueller_akku_ladenstand_in_promille);
-			float log = 0.0;
-			// TODO verbessern?
+			float flags = 0;
 			if(min_bereitgestellte_leistung > einschaltschwelle) {
-				log += 10.0;
+				flags += 100;
 			}
 			if(akku_erreicht_zielladestand) {
-				log += 1.0;
+				flags += 10;
 			}
 			if(schalt_mindestdauer_ist_erreicht) {
-				log += 0.1;
+				flags += 1;
 			}
-			log_func(
-				log,
-				min_bereitgestellte_leistung
-			);
+			log_func(flags, min_bereitgestellte_leistung);
 			if(!schalt_mindestdauer_ist_erreicht) {
 				_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
 				return false;
@@ -535,10 +531,9 @@ namespace Local {
 					cfg->auto_min_schaltzeit_in_min,
 					verbraucher.auto_benoetigte_ladeleistung_in_w,
 					verbraucher.auto_relay_ist_an,
-					[&](float ueberlauf, float produktion) {
-						// TODO noch sinnvoll anpassen!
-						verbraucher.auto_leistung_ist = ueberlauf;
-						verbraucher.auto_leistung_soll = produktion;
+					[&](int flags, float ist_leistung) {
+						verbraucher.auto_leistung_ist = ist_leistung;
+						verbraucher.auto_schaltflags = flags;
 					},
 					[&](bool ein) { _schalte_auto_relay(ein); }
 				)
@@ -554,10 +549,9 @@ namespace Local {
 					cfg->roller_min_schaltzeit_in_min,
 					verbraucher.roller_benoetigte_ladeleistung_in_w,
 					verbraucher.roller_relay_ist_an,
-					[&](float ueberlauf, float produktion) {
-						// TODO noch sinnvoll anpassen!
-						verbraucher.roller_leistung_ist = ueberlauf;
-						verbraucher.roller_leistung_soll = produktion;
+					[&](int flags, float ist_leistung) {
+						verbraucher.roller_leistung_ist = ist_leistung;
+						verbraucher.roller_schaltflags = flags;
 					},
 					[&](bool ein) { _schalte_roller_relay(ein); }
 				)
@@ -572,10 +566,9 @@ namespace Local {
 				cfg->wasser_min_schaltzeit_in_min,
 				cfg->wasser_benoetigte_leistung_in_w,
 				verbraucher.wasser_relay_ist_an,
-				[&](float ueberlauf, float produktion) {
-					// TODO noch sinnvoll anpassen!
-					verbraucher.wasser_leistung_ist = ueberlauf;
-					verbraucher.wasser_leistung_soll = produktion;
+				[&](int flags, float ist_leistung) {
+					verbraucher.wasser_leistung_ist = ist_leistung;
+					verbraucher.wasser_schaltflags = flags;
 				},
 				[&](bool ein) { _schalte_wasser_relay(ein); }
 			)) {
@@ -589,10 +582,9 @@ namespace Local {
 				cfg->heizung_min_schaltzeit_in_min,
 				cfg->heizung_benoetigte_leistung_in_w,
 				verbraucher.heizung_relay_ist_an,
-				[&](float ueberlauf, float produktion) {
-					// TODO noch sinnvoll anpassen!
-					verbraucher.heizung_leistung_ist = ueberlauf;
-					verbraucher.heizung_leistung_soll = produktion;
+				[&](int flags, float ist_leistung) {
+					verbraucher.heizung_leistung_ist = ist_leistung;
+					verbraucher.heizung_schaltflags = flags;
 				},
 				[&](bool ein) { _schalte_heizung_relay(ein); }
 			)) {
@@ -615,21 +607,17 @@ namespace Local {
 			bool akku_laeuft_potentiell_ueber = verbraucher.akku_erreicht_ladestand_in_promille(1000);
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			bool unerfuellter_ladewunsch = _es_besteht_ein_unerfuellter_ladewunsch(verbraucher);
-			float log = 0.0;
-			// TODO verbessern?
+			float flags = 0;
 			if(unerfuellter_ladewunsch) {
-				log += 10.0;
+				flags += 100;
 			}
 			if(akku_laeuft_potentiell_ueber) {
-				log += 1.0;
+				flags += 10;
 			}
 			if(schalt_mindestdauer_ist_erreicht) {
-				log += 0.1;
+				flags += 1;
 			}
-			log_func(
-				log,
-				min_bereitgestellte_leistung
-			);
+			log_func(flags, min_bereitgestellte_leistung);
 			if(!schalt_mindestdauer_ist_erreicht) {
 				_log(log_key, (char*) "-ueberladen>SchaltdauerNichtErreicht");
 				return false;

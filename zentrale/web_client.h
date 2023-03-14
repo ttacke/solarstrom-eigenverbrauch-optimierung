@@ -13,6 +13,7 @@ namespace Local {
 		int content_length = 0;
 		char old_buffer[64];
 		bool first_body_part_exist = false;
+		char search_buffer[128];
 
 		bool _send_request(const char* host, const char* request_uri) {
 			wlan_client->print("GET ");
@@ -47,8 +48,6 @@ namespace Local {
 	public:
 		char finding_buffer[65];
 		char buffer[64];
-		// TODO!
-		char search_buffer[128];
 
 		WebClient(WiFiClient& wlan_client): wlan_client(&wlan_client) {
 		}

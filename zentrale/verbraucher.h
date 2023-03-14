@@ -19,12 +19,12 @@ namespace Local {
 		bool wasser_relay_ist_an = false;
 		int wasser_relay_zustand_seit = 0;
 		float wasser_leistung_ist = 0;
-		float wasser_leistung_soll = 0;
+		int wasser_schaltflags = 0;
 
 		bool heizung_relay_ist_an = false;
 		int heizung_relay_zustand_seit = 0;
 		float heizung_leistung_ist = 0;
-		float heizung_leistung_soll = 0;
+		int heizung_schaltflags = 0;
 
 		Ladestatus auto_ladestatus = Local::Verbraucher::Ladestatus::off;
 		int auto_benoetigte_ladeleistung_in_w = 0;
@@ -33,7 +33,7 @@ namespace Local {
 		bool auto_relay_ist_an = false;
 		int auto_relay_zustand_seit = 0;
 		float auto_leistung_ist = 0;
-		float auto_leistung_soll = 0;
+		int auto_schaltflags = 0;
 
 		Ladestatus roller_ladestatus = Local::Verbraucher::Ladestatus::off;
 		int roller_benoetigte_ladeleistung_in_w = 0;
@@ -42,7 +42,7 @@ namespace Local {
 		bool roller_relay_ist_an = false;
 		int roller_relay_zustand_seit = 0;
 		float roller_leistung_ist = 0;
-		float roller_leistung_soll = 0;
+		int roller_schaltflags = 0;
 
 		int aktueller_verbrauch_in_w = 0;
 		int verbrauch_log_in_w[5];
@@ -64,7 +64,7 @@ namespace Local {
 
 		void set_auto_soll_ist_leistung(char* buffer) {
 			if(auto_ladestatus == Local::Verbraucher::Ladestatus::solar) {
-				sprintf(buffer, "%.1f/%.1f", auto_leistung_soll, auto_leistung_ist);
+				sprintf(buffer, "%03d/%.1f", auto_schaltflags, auto_leistung_ist);
 			} else {
 				sprintf(buffer, "-");
 			}
@@ -72,18 +72,18 @@ namespace Local {
 
 		void set_roller_soll_ist_leistung(char* buffer) {
 			if(roller_ladestatus == Local::Verbraucher::Ladestatus::solar) {
-				sprintf(buffer, "%.1f/%.1f", roller_leistung_soll, roller_leistung_ist);
+				sprintf(buffer, "%03d/%.1f", roller_schaltflags, roller_leistung_ist);
 			} else {
 				sprintf(buffer, "-");
 			}
 		}
 
 		void set_wasser_soll_ist_leistung(char* buffer) {
-			sprintf(buffer, "%.1f/%.1f", wasser_leistung_soll, wasser_leistung_ist);
+			sprintf(buffer, "%03d/%.1f", wasser_schaltflags, wasser_leistung_ist);
 		}
 
 		void set_heizung_soll_ist_leistung(char* buffer) {
-			sprintf(buffer, "%.1f/%.1f", heizung_leistung_soll, heizung_leistung_ist);
+			sprintf(buffer, "%03d/%.1f", heizung_schaltflags, heizung_leistung_ist);
 		}
 
 		bool solarerzeugung_ist_aktiv() {
