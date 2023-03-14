@@ -29,8 +29,6 @@ namespace Local {
 
 		const char* log_filename = "verbraucher_automatisierung.log";
 
-		char temp_log_val[32] = "";
-
 		void _log(char* msg) {
 			if(persistenz->open_file_to_append(log_filename)) {
 				sprintf(persistenz->buffer, "%d:", timestamp);
@@ -91,34 +89,23 @@ namespace Local {
 			return false;
 		}
 
-		float _gib_geforderte_leistung_anhand_der_ladekurve(
-			int akku, int x_offset, float y_offset, float min_val, float ladekurven_faktor
-		) {
-			int x = akku + x_offset;
-			float gefordert = 0;
-			if(x > 900) {
-				gefordert = 1.0 - (0.01 * (x - 900));
-			} else if(akku > 350) {
-				gefordert = 2.1 - (0.002 * (x - 350));
-			} else {
-				gefordert = 5.6 - (0.01 * x);
-			}
-			gefordert += y_offset;
-			if(gefordert < min_val) {
-				return min_val;
-			}
-			if(gefordert > 0) {
-				gefordert *= ladekurven_faktor;
-			}
-			return gefordert;
-		}
-
 		float _gib_min_bereitgestellte_leistung(Local::Verbraucher& verbraucher, int benoetigte_leistung_in_w) {
 			return
 				(float) verbraucher.gib_beruhigten_ueberschuss_in_w()
 				/
 				(float) benoetigte_leistung_in_w
 			;
+		}
+
+		float _ermittle_solarladen_einschaltschwelle(int aktueller_akku_ladenstand_in_promille) {
+			if(aktueller_akku_ladenstand_in_promille < 400) {
+				return 99999;
+			}
+			float einschaltschwelle = 1.1 - (0.0055 * (aktueller_akku_ladenstand_in_promille - 400));
+			if(einschaltschwelle <= 0.01) {
+				einschaltschwelle = 0.01;
+			}
+			return einschaltschwelle;
 		}
 
 		template<typename F1, typename F2>
@@ -129,55 +116,56 @@ namespace Local {
 			int min_schaltzeit_in_min,
 			int benoetigte_leistung_in_w,
 			bool relay_ist_an,
-			int x_offset,
-			float y_offset,
-			float ladekurven_faktor,
 			F1 && log_func,
 			F2 && schalt_func
 		) {
+			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(
+				verbraucher, benoetigte_leistung_in_w
+			);
+			bool akku_erreicht_zielladestand = verbraucher.akku_erreicht_ladestand_in_promille(
+				cfg->akku_zielladestand_in_promille
+			);
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
+			float einschaltschwelle = _ermittle_solarladen_einschaltschwelle(verbraucher.aktueller_akku_ladenstand_in_promille);
+			float log = 0.0;
+			// TODO verbessern?
+			if(min_bereitgestellte_leistung > einschaltschwelle) {
+				log += 10.0;
+			}
+			if(akku_erreicht_zielladestand) {
+				log += 1.0;
+			}
+			if(schalt_mindestdauer_ist_erreicht) {
+				log += 0.1;
+			}
+			log_func(
+				log,
+				min_bereitgestellte_leistung
+			);
 			if(!schalt_mindestdauer_ist_erreicht) {
-				_log(log_key, (char*) "-automatisch>SchaltdauerNichtErreicht");
+				_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
 				return false;
 			}
 
-			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
-			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
+			int sonnenuntergang_abstand_in_s = 0;
+			if(verbraucher.zeitpunkt_sonnenuntergang > 0) {
+				sonnenuntergang_abstand_in_s = verbraucher.zeitpunkt_sonnenuntergang - timestamp;
+			}
 
-			float geforderte_leistung_fuer_einschalten = _gib_geforderte_leistung_anhand_der_ladekurve(
-				akku, x_offset, y_offset, 0, ladekurven_faktor
-			);
-			float geforderte_leistung_fuer_ausschalten = _gib_geforderte_leistung_anhand_der_ladekurve(
-				akku, x_offset + 100, y_offset, -0.1, ladekurven_faktor
-			);
-
-			_log(log_key, (char*) "-automatisch>Daten");
-			sprintf(
-				temp_log_val,
-				"IST:%f on:%f off:%f",
-				min_bereitgestellte_leistung,
-				geforderte_leistung_fuer_einschalten,
-				geforderte_leistung_fuer_ausschalten
-			);
-			_log(log_key, (char*) temp_log_val);
-
-			if(!relay_ist_an) {
-				log_func(min_bereitgestellte_leistung, geforderte_leistung_fuer_einschalten);
-				if(
-					verbraucher.solarerzeugung_ist_aktiv()
-					&& min_bereitgestellte_leistung > geforderte_leistung_fuer_einschalten
-				) {
-					_log(log_key, (char*) "-automatisch>AnWeilGenug");
-					schalt_func(true);
-					return true;
-				}
-			} else {
-				log_func(min_bereitgestellte_leistung, (geforderte_leistung_fuer_ausschalten - 1.0));
-				if(
-					!verbraucher.solarerzeugung_ist_aktiv()
-					|| min_bereitgestellte_leistung < (geforderte_leistung_fuer_ausschalten - 1.0)
-				) {
-					_log(log_key, (char*) "-automatisch>AusWeilZuWenig");
+			if(
+				!relay_ist_an
+				&& verbraucher.solarerzeugung_ist_aktiv()
+				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
+				&& akku_erreicht_zielladestand
+				&& min_bereitgestellte_leistung > einschaltschwelle
+			) {
+				_log(log_key, (char*) "-solar>AnWeilGenug");
+				schalt_func(true);
+				return true;
+			}
+			if(relay_ist_an) {
+				if(!akku_erreicht_zielladestand || !verbraucher.solarerzeugung_ist_aktiv()) {
+					_log(log_key, (char*) "-aus>AusWeilZuWenig");
 					schalt_func(false);
 					return true;
 				}
@@ -538,16 +526,6 @@ namespace Local {
 			}
 
 
-// TODO hier weiter
-/*
-Ziel-Akkustand = 80% -> schauen, ob der erreicht wird (im Vorhersagearray irgendwann > 800)
-Wenn ja && sonnenuntergang_abstand_in_s > 0.5 * 3600:
-	float gefordert = 1.1 - (0.011 * (aktueller_akku_stand_in_promille - 500));
-	AN akku > 20% && > 1.1 || AN- akku > 50%-60% && > gefordert
-
-	AUS-akku < 40% || Akkustand von 80% wird nicht mehr erreicht
-*/
-			float ladekurven_faktor = _ermittle_ladekurvenfaktor(verbraucher);
 			if(
 				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::solar
 				&& _schalte_automatisch(
@@ -557,10 +535,10 @@ Wenn ja && sonnenuntergang_abstand_in_s > 0.5 * 3600:
 					cfg->auto_min_schaltzeit_in_min,
 					verbraucher.auto_benoetigte_ladeleistung_in_w,
 					verbraucher.auto_relay_ist_an,
-					-50, -1.0, ladekurven_faktor,
-					[&](float ist, float soll) {
-						verbraucher.auto_leistung_ist = ist;
-						verbraucher.auto_leistung_soll = soll;
+					[&](float ueberlauf, float produktion) {
+						// TODO noch sinnvoll anpassen!
+						verbraucher.auto_leistung_ist = ueberlauf;
+						verbraucher.auto_leistung_soll = produktion;
 					},
 					[&](bool ein) { _schalte_auto_relay(ein); }
 				)
@@ -576,10 +554,10 @@ Wenn ja && sonnenuntergang_abstand_in_s > 0.5 * 3600:
 					cfg->roller_min_schaltzeit_in_min,
 					verbraucher.roller_benoetigte_ladeleistung_in_w,
 					verbraucher.roller_relay_ist_an,
-					-50, -1.0, ladekurven_faktor,
-					[&](float ist, float soll) {
-						verbraucher.roller_leistung_ist = ist;
-						verbraucher.roller_leistung_soll = soll;
+					[&](float ueberlauf, float produktion) {
+						// TODO noch sinnvoll anpassen!
+						verbraucher.roller_leistung_ist = ueberlauf;
+						verbraucher.roller_leistung_soll = produktion;
 					},
 					[&](bool ein) { _schalte_roller_relay(ein); }
 				)
@@ -634,7 +612,7 @@ Wenn ja && sonnenuntergang_abstand_in_s > 0.5 * 3600:
 			F2 && schalt_func
 		) {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
-			bool akku_laeuft_potentiell_ueber = verbraucher.akku_laeuft_potentiell_ueber();
+			bool akku_laeuft_potentiell_ueber = verbraucher.akku_erreicht_ladestand_in_promille(1000);
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			bool unerfuellter_ladewunsch = _es_besteht_ein_unerfuellter_ladewunsch(verbraucher);
 			float log = 0.0;
@@ -664,12 +642,12 @@ Wenn ja && sonnenuntergang_abstand_in_s > 0.5 * 3600:
 			if(
 				!relay_ist_an
 				&& !unerfuellter_ladewunsch
+				&& verbraucher.solarerzeugung_ist_aktiv()
 				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
 				&& (
 					(
 						akku_laeuft_potentiell_ueber
-						&& verbraucher.aktueller_akku_ladenstand_in_promille > 250
-						&& min_bereitgestellte_leistung > 0.1
+						&& verbraucher.aktueller_akku_ladenstand_in_promille > 400
 					) || (
 						verbraucher.aktueller_akku_ladenstand_in_promille > 950
 						&& min_bereitgestellte_leistung > 0.5
@@ -686,36 +664,13 @@ Wenn ja && sonnenuntergang_abstand_in_s > 0.5 * 3600:
 					schalt_func(false);
 					return true;
 				}
-				if(!akku_laeuft_potentiell_ueber) {
+				if(!akku_laeuft_potentiell_ueber || !verbraucher.solarerzeugung_ist_aktiv()) {
 					_log(log_key, (char*) "-ueberladen>AusWeilAkkuVorhersage");
-					schalt_func(false);
-					return true;
-				}
-				if(min_bereitgestellte_leistung + 1.0 < -0.8) {
-					_log(log_key, (char*) "-ueberladen>AusWeilZuWenigLeistung");
 					schalt_func(false);
 					return true;
 				}
 			}
 			return false;
-		}
-
-		float _ermittle_ladekurvenfaktor(Local::Verbraucher& verbraucher) {
-			float ladekurven_faktor = 1.0;
-			if(verbraucher.zeitpunkt_sonnenuntergang > 0) {
-				int sonnenuntergang_abstand_in_s = verbraucher.zeitpunkt_sonnenuntergang - timestamp;
-				if(sonnenuntergang_abstand_in_s < 0) {
-					sonnenuntergang_abstand_in_s = 0;
-				}
-				if(sonnenuntergang_abstand_in_s < 1 * 3600) {// 1.5 .. 4
-					ladekurven_faktor *= 1.5 + (2.5 / (1 * 3600)) * (1 * 3600 - sonnenuntergang_abstand_in_s);
-				} else if(sonnenuntergang_abstand_in_s < 2 * 3600) {// 0.5 .. 1.5
-					ladekurven_faktor *= 0.5 + (1.0 / (1 * 3600)) * (2 * 3600 - sonnenuntergang_abstand_in_s);
-				} else if(sonnenuntergang_abstand_in_s < 3 * 3600) {// 0 .. 0.5
-					ladekurven_faktor += 0 + (0.5 / (1 * 3600)) * (3 * 3600 - sonnenuntergang_abstand_in_s);
-				}
-			}
-			return ladekurven_faktor;
 		}
 
 		bool _es_besteht_ein_unerfuellter_ladewunsch(Local::Verbraucher& verbraucher) {

@@ -32,6 +32,7 @@ namespace Local {
 		int grundverbrauch_in_w_pro_h = 238;
 		float solarstrahlungs_vorhersage_umrechnungsfaktor = 4.65;
 		int akku_groesse_in_wh = 7680;
+		int akku_zielladestand_in_promille = 800;
 
 		const int webserver_port = 80;
 
