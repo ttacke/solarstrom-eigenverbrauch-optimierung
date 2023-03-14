@@ -113,6 +113,14 @@ namespace Local {
 			return gefordert;
 		}
 
+		float _gib_min_bereitgestellte_leistung(Local::Verbraucher& verbraucher, int benoetigte_leistung_in_w) {
+			return
+				(float) verbraucher.gib_beruhigten_ueberschuss_in_w()
+				/
+				(float) benoetigte_leistung_in_w
+			;
+		}
+
 		template<typename F1, typename F2>
 		bool _schalte_automatisch(
 			char* log_key,
@@ -134,11 +142,8 @@ namespace Local {
 			}
 
 			int akku = verbraucher.aktueller_akku_ladenstand_in_promille;
-			float min_bereitgestellte_leistung =
-				(float) verbraucher.gib_beruhigten_ueberschuss_in_w()
-				/
-				(float) benoetigte_leistung_in_w
-			;
+			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
+
 			float geforderte_leistung_fuer_einschalten = _gib_geforderte_leistung_anhand_der_ladekurve(
 				akku, x_offset, y_offset, 0, ladekurven_faktor
 			);
@@ -573,6 +578,63 @@ namespace Local {
 			) {
 				return;
 			}
+
+// TODO auslagern, als ueberladen generalisieren
+// _schalte_ueberladen_automatisch(
+//				(char*) "wasser",
+//				verbraucher,
+//				verbraucher.wasser_relay_zustand_seit,
+//				cfg->wasser_min_schaltzeit_in_min,
+//				cfg->wasser_benoetigte_leistung_in_w,
+//				verbraucher.wasser_relay_ist_an,
+//				0, 0, ueberladen_ladekurven_faktor,
+//				[&](float ist, float soll) {
+//					verbraucher.wasser_leistung_ist = ist;
+//					verbraucher.wasser_leistung_soll = soll;
+//				},
+//				[&](bool ein) { _schalte_wasser_relay(ein); }
+
+
+
+			int sonnenuntergang_abstand_in_s = 0;
+			if(verbraucher.zeitpunkt_sonnenuntergang > 0) {
+				sonnenuntergang_abstand_in_s = verbraucher.zeitpunkt_sonnenuntergang - timestamp;
+			}
+			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, cfg->wasser_benoetigte_leistung_in_w);
+			if(
+				!verbraucher.wasser_relay_ist_an
+				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
+				&& (
+					(
+						verbraucher.akku_lauft_potentiell_ueber()
+						&& verbraucher.aktueller_akku_ladenstand_in_promille > 250
+						&& min_bereitgestellte_leistung > 0.1
+					) || (
+						verbraucher.aktueller_akku_ladenstand_in_promille > 950
+						&& min_bereitgestellte_leistung > 0.5
+					)
+				)
+			) {
+				// TODO Log
+//				verbraucher.wasser_leistung_ist = ist;
+//				verbraucher.wasser_leistung_soll = soll;
+				_schalte_wasser_relay(true);
+				return;
+			}
+			if(
+				verbraucher.wasser_relay_ist_an
+				&& (
+					!verbraucher.akku_lauft_potentiell_ueber()
+					|| min_bereitgestellte_leistung + 1.0 < -0.8
+				)
+			) {
+				// TODO Log
+//				verbraucher.wasser_leistung_ist = ist;
+//				verbraucher.wasser_leistung_soll = soll;
+				_schalte_wasser_relay(false);
+				return;
+			}
+
 			// TODO deaktiviert, weil so nicht sinnvoll
 //			if(_schalte_automatisch(
 //				(char*) "wasser",
