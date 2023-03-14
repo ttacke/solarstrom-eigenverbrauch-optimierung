@@ -579,7 +579,6 @@ namespace Local {
 				return;
 			}
 
-// TODO unnoetiges aufraeumen
 			if(_schalte_ueberladen_automatisch(
 				(char*) "wasser",
 				verbraucher,
@@ -587,7 +586,6 @@ namespace Local {
 				cfg->wasser_min_schaltzeit_in_min,
 				cfg->wasser_benoetigte_leistung_in_w,
 				verbraucher.wasser_relay_ist_an,
-				0, 0, ueberladen_ladekurven_faktor,
 				[&](float ueberlauf, float produktion) {
 					// TODO noch sinnvoll anpassen!
 					verbraucher.wasser_leistung_ist = ueberlauf;
@@ -645,9 +643,6 @@ Ueberschuss-Log
 			int min_schaltzeit_in_min,
 			int benoetigte_leistung_in_w,
 			bool relay_ist_an,
-			int x_offset,
-			float y_offset,
-			float ladekurven_faktor,
 			F1 && log_func,
 			F2 && schalt_func
 		) {
