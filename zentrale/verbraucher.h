@@ -55,12 +55,12 @@ namespace Local {
 
 		int gib_stundenvorhersage_akku_ladestand_als_fibonacci(int index) {
 			int prozent = round((float) akku_ladestandsvorhersage_in_promille[index] / 10);
-			int a = 0;
+			int a = 5;
 			int b = 5;
 			int tmp;
 			for(int i = 0; i < 10; i++) {
-				if(prozent <= a + b) {
-					return i;
+				if(prozent <= b) {
+					return i * 10;
 				}
 				tmp = b;
 				b = a + b;
