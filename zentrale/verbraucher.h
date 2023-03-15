@@ -49,12 +49,16 @@ namespace Local {
 		int aktuelle_erzeugung_in_w = 0;
 		int erzeugung_log_in_w[30];
 		int aktueller_akku_ladenstand_in_promille = 0;
-		int akku_ladestandsvorhersage_in_promille[12];
+		int akku_ladestandsvorhersage_in_promille[48];
 		int solarerzeugung_in_w = 0;
 		int zeitpunkt_sonnenuntergang = 0;
 
 		int gib_stundenvorhersage_akku_ladestand_als_fibonacci(int index) {
-			int prozent = round((float) akku_ladestandsvorhersage_in_promille[index] / 10);
+			int promille = 0;
+			for(int i = 0; i < 4; i++) {
+				promille += akku_ladestandsvorhersage_in_promille[index * 4 + i];
+			}
+			int prozent = round((float) promille / 10);
 			int a = 5;
 			int b = 5;
 			int tmp;
@@ -70,7 +74,7 @@ namespace Local {
 		}
 
 		bool akku_erreicht_ladestand_in_promille(int ladestand_in_promille) {
-			for(int i = 0; i < 12; i++) {
+			for(int i = 0; i < 48; i++) {
 				if(akku_ladestandsvorhersage_in_promille[i] >= ladestand_in_promille) {
 					return true;
 				}
@@ -78,10 +82,10 @@ namespace Local {
 			return false;
 		}
 
-		int akku_erreicht_ladestand_in_stunden(int ladestand_in_promille) {
-			for(int i = 0; i < 12; i++) {
+		float akku_erreicht_ladestand_in_stunden(int ladestand_in_promille) {
+			for(int i = 0; i < 48; i++) {
 				if(akku_ladestandsvorhersage_in_promille[i] >= ladestand_in_promille) {
-					return i + 1;
+					return (float) i / 4;
 				}
 			}
 			return 999;

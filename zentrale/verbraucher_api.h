@@ -394,17 +394,20 @@ namespace Local {
 						(float) cfg->akku_groesse_in_wh / 1000
 					)
 				);
-				if(
-					wetter.stundenvorhersage_solarstrahlung_liste[i] < 30
-					&& akku_ladestand_in_promille > 1000
-				) {// Akku ohne Sonnenschein = max 100%
-					akku_ladestand_in_promille = 1000;
+
+				for(int ii = 0; ii < 4; ii++) {
+					akku_ladestand_in_promille += akku_veraenderung_in_promille / 4;
+					if(
+						wetter.stundenvorhersage_solarstrahlung_liste[i] < 30
+						&& akku_ladestand_in_promille > 1000
+					) {// Akku ohne Sonnenschein = Max SOC
+						akku_ladestand_in_promille = 1000;
+					}
+					if(akku_ladestand_in_promille < 50) {// Min SOC
+						akku_ladestand_in_promille = 50;
+					}
+					verbraucher.akku_ladestandsvorhersage_in_promille[i * 4 + ii] = akku_ladestand_in_promille;
 				}
-				akku_ladestand_in_promille += akku_veraenderung_in_promille;
-				if(akku_ladestand_in_promille < 50) {// Min SOC
-					akku_ladestand_in_promille = 50;
-				}
-				verbraucher.akku_ladestandsvorhersage_in_promille[i] = akku_ladestand_in_promille;
 			}
 		}
 
@@ -609,8 +612,7 @@ namespace Local {
 			F2 && schalt_func
 		) {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
-			int ueberlauf_in_stunden = verbraucher.akku_erreicht_ladestand_in_stunden(1000);
-			bool akku_laeuft_potentiell_in_3h_ueber = ueberlauf_in_stunden <= 3;
+			bool akku_laeuft_potentiell_in_3h_ueber = verbraucher.akku_erreicht_ladestand_in_stunden(1000) <= 3;
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			bool unerfuellter_ladewunsch = _es_besteht_ein_unerfuellter_ladewunsch(verbraucher);
 			float flags = 0;
