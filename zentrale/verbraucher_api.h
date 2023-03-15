@@ -603,14 +603,15 @@ namespace Local {
 			F2 && schalt_func
 		) {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
-			bool akku_laeuft_potentiell_ueber = verbraucher.akku_erreicht_ladestand_in_promille(1000);
+			int ueberlauf_in_stunden = verbraucher.akku_erreicht_ladestand_in_stunden(1000);
+			bool akku_laeuft_potentiell_in_3h_ueber = ueberlauf_in_stunden <= 3;
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			bool unerfuellter_ladewunsch = _es_besteht_ein_unerfuellter_ladewunsch(verbraucher);
 			float flags = 0;
 			if(unerfuellter_ladewunsch) {
 				flags += 100;
 			}
-			if(akku_laeuft_potentiell_ueber) {
+			if(akku_laeuft_potentiell_in_3h_ueber) {
 				flags += 10;
 			}
 			if(schalt_mindestdauer_ist_erreicht) {
@@ -633,7 +634,7 @@ namespace Local {
 				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
 				&& (
 					(
-						akku_laeuft_potentiell_ueber
+						akku_laeuft_potentiell_in_3h_ueber
 						&& verbraucher.aktueller_akku_ladenstand_in_promille > 400
 					) || (
 						verbraucher.aktueller_akku_ladenstand_in_promille > 950
@@ -651,7 +652,7 @@ namespace Local {
 					schalt_func(false);
 					return true;
 				}
-				if(!akku_laeuft_potentiell_ueber || !verbraucher.solarerzeugung_ist_aktiv()) {
+				if(!akku_laeuft_potentiell_in_3h_ueber || !verbraucher.solarerzeugung_ist_aktiv()) {
 					_log(log_key, (char*) "-ueberladen>AusWeilAkkuVorhersage");
 					schalt_func(false);
 					return true;

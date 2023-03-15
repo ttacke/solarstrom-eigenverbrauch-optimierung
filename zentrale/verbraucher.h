@@ -78,6 +78,15 @@ namespace Local {
 			return false;
 		}
 
+		int akku_erreicht_ladestand_in_stunden(int ladestand_in_promille) {
+			for(int i = 0; i < 12; i++) {
+				if(akku_ladestandsvorhersage_in_promille[i] >= ladestand_in_promille) {
+					return i + 1;
+				}
+			}
+			return 999;
+		}
+
 		void set_auto_soll_ist_leistung(char* buffer) {
 			if(auto_ladestatus == Local::Verbraucher::Ladestatus::solar) {
 				sprintf(buffer, "%03d/%.1f", auto_schaltflags, auto_leistung_ist);
