@@ -54,11 +54,14 @@ namespace Local {
 		int zeitpunkt_sonnenuntergang = 0;
 
 		int gib_stundenvorhersage_akku_ladestand_als_fibonacci(int index) {
-			int promille = 0;
+			int max_promille = 0;
 			for(int i = 0; i < 4; i++) {
-				promille += akku_ladestandsvorhersage_in_promille[index * 4 + i];
+				int promille = akku_ladestandsvorhersage_in_promille[index * 4 + i];
+				if(max_promille < promille) {
+					promille += promille;
+				}
 			}
-			int prozent = round((float) promille / 10);
+			int prozent = round((float) max_promille / 10);
 			int a = 5;
 			int b = 5;
 			int tmp;
