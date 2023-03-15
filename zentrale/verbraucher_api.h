@@ -394,6 +394,12 @@ namespace Local {
 						(float) cfg->akku_groesse_in_wh / 1000
 					)
 				);
+				if(
+					wetter.stundenvorhersage_solarstrahlung_liste[i] < 30
+					&& akku_ladestand_in_promille > 1000
+				) {// Akku ohne Sonnenschein = max 100%
+					akku_ladestand_in_promille = 1000;
+				}
 				akku_ladestand_in_promille += akku_veraenderung_in_promille;
 				if(akku_ladestand_in_promille < 50) {// Min SOC
 					akku_ladestand_in_promille = 50;
