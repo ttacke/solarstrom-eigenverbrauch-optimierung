@@ -382,6 +382,18 @@ namespace Local {
 			Local::Verbraucher& verbraucher,
 			Local::Wetter wetter
 		) {
+			int akkuzuwachs_unmoeglich_weil_vergangenheit = 0;
+			int zeit_unterschied = timestamp - wetter.stundenvorhersage_startzeitpunkt;
+			if(zeit_unterschied < -15 * 60) {
+				// DoNothing
+			} else if(zeit_unterschied < 0) {
+				akkuzuwachs_unmoeglich_weil_vergangenheit = 1;
+			} else if(zeit_unterschied > 15 * 60) {
+				akkuzuwachs_unmoeglich_weil_vergangenheit = 3;
+			} else {
+				akkuzuwachs_unmoeglich_weil_vergangenheit = 2;
+			}
+
 			int akku_ladestand_in_promille = verbraucher.aktueller_akku_ladenstand_in_promille;
 			for(int i = 0; i < 12; i++) {
 				int akku_veraenderung_in_promille = round(
@@ -394,9 +406,11 @@ namespace Local {
 						(float) cfg->akku_groesse_in_wh / 1000
 					)
 				);
-
 				for(int ii = 0; ii < 4; ii++) {
-					akku_ladestand_in_promille += akku_veraenderung_in_promille / 4;
+					int index = i * 4 + ii;
+					if(index > akkuzuwachs_unmoeglich_weil_vergangenheit) {
+						akku_ladestand_in_promille += akku_veraenderung_in_promille / 4;
+					}
 					if(
 						wetter.stundenvorhersage_solarstrahlung_liste[i] < 30
 						&& akku_ladestand_in_promille > 1000
@@ -406,7 +420,7 @@ namespace Local {
 					if(akku_ladestand_in_promille < 50) {// Min SOC
 						akku_ladestand_in_promille = 50;
 					}
-					verbraucher.akku_ladestandsvorhersage_in_promille[i * 4 + ii] = akku_ladestand_in_promille;
+					verbraucher.akku_ladestandsvorhersage_in_promille[index] = akku_ladestand_in_promille;
 				}
 			}
 		}
