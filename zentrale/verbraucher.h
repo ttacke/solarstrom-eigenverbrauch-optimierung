@@ -58,7 +58,7 @@ namespace Local {
 			for(int i = 0; i < 4; i++) {
 				int promille = akku_ladestandsvorhersage_in_promille[index * 4 + i];
 				if(max_promille < promille) {
-					promille += promille;
+					max_promille += promille;
 				}
 			}
 			int prozent = round((float) max_promille / 10);
