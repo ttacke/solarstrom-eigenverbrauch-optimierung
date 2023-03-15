@@ -14,7 +14,7 @@ Konkret:
 
 - Obere Zeile (v.l.n.r):
   - Überschuss-Leistung (Solarerzeugung abzüglich Hausverbrauch)
-    - Klick auf die Zahl erzwingt eine sofortige Aktualisierung der Daten
+    - Klick auf die Zahl erzwingt eine sofortige Aktualisierung der Daten (normal erfolgt 1x die Minute eine Aktualisierung)
   - Pufferakku-Ladestand
 - Zweite Zeile (v.l.n.r; schwarz=aktiv, grau=inaktiv):
   - Status Solarerzeugung incl relative Verteilung der Leistung der beiden Dachhälften
