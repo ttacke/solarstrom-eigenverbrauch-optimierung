@@ -305,8 +305,6 @@ namespace Local {
 
 				_print_char_to_web((char*) "\"stunden_balkenanzeige\":[");
 					for(int i = 0; i < 12; i++) {
-// TODO DEPRECATED
-//						_print_int_to_web(wetter.gib_stundenvorhersage_solarstrahlung_in_prozent(i, *cfg));
 						_print_int_to_web(verbraucher.gib_stundenvorhersage_akku_ladestand_als_fibonacci(i));
 						if(i != 11) {
 							_print_char_to_web((char*) ",");
@@ -320,8 +318,6 @@ namespace Local {
 
 				_print_char_to_web((char*) "\"tage_balkenanzeige\":[");
 					for(int i = 0; i < 5; i++) {
-// TODO DEPRECATED
-//						_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung_in_prozent(i, *cfg));
 						_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung_als_fibonacci(i));
 						if(i != 4) {
 							_print_char_to_web((char*) ",");
