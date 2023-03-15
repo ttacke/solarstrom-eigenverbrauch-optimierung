@@ -690,7 +690,6 @@ namespace Local {
 				strcpy(stat, "force");
 				_log((char*) "setze_roller_ladestatus>force");
 			} else if(status == Local::Verbraucher::Ladestatus::solar) {
-				_schalte_roller_relay(false);
 				strcpy(stat, "solar");
 				_log((char*) "setze_roller_ladestatus>solar");
 			} else {
@@ -715,7 +714,6 @@ namespace Local {
 				strcpy(stat, "force");
 				_log((char*) "setze_auto_ladestatus>force");
 			} else if(status == Local::Verbraucher::Ladestatus::solar) {
-				_schalte_auto_relay(false);
 				strcpy(stat, "solar");
 				_log((char*) "setze_auto_ladestatus>solar");
 			} else {
