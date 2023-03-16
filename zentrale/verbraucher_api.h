@@ -97,11 +97,14 @@ namespace Local {
 			;
 		}
 
-		float _ermittle_solarladen_einschaltschwelle(int aktueller_akku_ladenstand_in_promille) {
-			if(aktueller_akku_ladenstand_in_promille < 400) {
+		float _ermittle_solarladen_einschaltschwelle(
+			int aktueller_akku_ladenstand_in_promille,
+			int start_ladebereich
+		) {
+			if(aktueller_akku_ladenstand_in_promille < start_ladebereich) {
 				return 99999;
 			}
-			float einschaltschwelle = 1.1 - (0.0055 * (aktueller_akku_ladenstand_in_promille - 400));
+			float einschaltschwelle = 1.1 - (0.004 * (aktueller_akku_ladenstand_in_promille - start_ladebereich));
 			if(einschaltschwelle <= 0.01) {
 				einschaltschwelle = 0.01;
 			}
@@ -126,7 +129,11 @@ namespace Local {
 				cfg->akku_zielladestand_in_promille
 			);
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
-			float einschaltschwelle = _ermittle_solarladen_einschaltschwelle(verbraucher.aktueller_akku_ladenstand_in_promille);
+			float nicht_laden_unter_akkuladestand = 400;
+			float einschaltschwelle = _ermittle_solarladen_einschaltschwelle(
+				verbraucher.aktueller_akku_ladenstand_in_promille,
+				nicht_laden_unter_akkuladestand
+			);
 			float flags = 0;
 			if(min_bereitgestellte_leistung > einschaltschwelle) {
 				flags += 100;
@@ -161,7 +168,12 @@ namespace Local {
 			}
 			if(relay_ist_an) {
 				if(!akku_erreicht_zielladestand || !verbraucher.solarerzeugung_ist_aktiv()) {
-					_log(log_key, (char*) "-aus>AusWeilZuWenig");
+					_log(log_key, (char*) "-aus>AusWegenZielladestand");
+					schalt_func(false);
+					return true;
+				}
+				if(verbraucher.aktueller_akku_ladenstand_in_promille < nicht_laden_unter_akkuladestand) {
+					_log(log_key, (char*) "-aus>AusWegenZuWenigAkku");
 					schalt_func(false);
 					return true;
 				}
