@@ -24,8 +24,8 @@ namespace Local {
 
 		int gib_tagesvorhersage_solarstrahlung_als_fibonacci(int index) {
 			int strahlung = tagesvorhersage_solarstrahlung_liste[index];
-			int a = 100;
-			int b = 100;
+			int a = 80;
+			int b = 80;
 			int tmp;
 			for(int i = 0; i < 10; i++) {
 				if(strahlung <= b) {
