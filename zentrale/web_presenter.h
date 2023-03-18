@@ -41,12 +41,6 @@ namespace Local {
 			webserver.server.sendContent(c);
 		}
 
-		void _print_int_to_web(int i) {
-			char int_as_char[16];
-			itoa(i, int_as_char, 10);
-			webserver.server.sendContent((char*) int_as_char);
-		}
-
 		void _lese_systemstatus_daten() {
 			if(persistenz.open_file_to_read(system_status_filename)) {
 				while(persistenz.read_next_block_to_buffer()) {
@@ -128,8 +122,8 @@ namespace Local {
 			}
 		}
 
-		void download_file() {
-			if(persistenz.open_file_to_read((const char*) webserver.server.arg("name").c_str())) {
+		void download_file(const char* filename) {
+			if(persistenz.open_file_to_read(filename)) {
 				webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 				webserver.server.send(200, "text/plain", "");
 				while(persistenz.read_next_block_to_buffer()) {
@@ -210,7 +204,7 @@ namespace Local {
 			webserver.server.send(204, "text/plain", "");
 		}
 
-		void ermittle_daten(bool erneuere_daten_automatisch) {
+		void ermittle_daten(const char* data_filename) {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
 			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz);
 			int now_timestamp = verbraucher_api.timestamp;
@@ -233,142 +227,151 @@ namespace Local {
 			Local::WettervorhersageAPI wettervorhersage_api(*cfg, web_client);
 
 			_lese_systemstatus_daten();
-			if(erneuere_daten_automatisch) {
-				if(
-					!stunden_wettervorhersage_letzter_abruf
-					|| (
-						stunden_wettervorhersage_letzter_abruf < now_timestamp - 60*45// max alle 45min
-						&& minute(now_timestamp) < 20
-						&& minute(now_timestamp) >= 10
-					)
-				) {// Insgesamt also 1x die Stunde ca 10 nach um
-					Serial.println("Schreibe Stunden-Wettervorhersage");
-					wettervorhersage_api.stundendaten_holen_und_persistieren(persistenz);
-					stunden_wettervorhersage_letzter_abruf = now_timestamp;
-					_schreibe_systemstatus_daten();
-					yield();
-				}
+			if(
+				!stunden_wettervorhersage_letzter_abruf
+				|| (
+					stunden_wettervorhersage_letzter_abruf < now_timestamp - 60*45// max alle 45min
+					&& minute(now_timestamp) < 20
+					&& minute(now_timestamp) >= 10
+				)
+			) {// Insgesamt also 1x die Stunde ca 10 nach um
+				Serial.println("Schreibe Stunden-Wettervorhersage");
+				wettervorhersage_api.stundendaten_holen_und_persistieren(persistenz);
+				stunden_wettervorhersage_letzter_abruf = now_timestamp;
+				_schreibe_systemstatus_daten();
+				yield();
+			}
 
-				if(
-					!tages_wettervorhersage_letzter_abruf
-					|| (
-						tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*4)
-					)
-				) {// Insgesamt also 1x alle 4 Stunden
-					Serial.println("Schreibe Tages-Wettervorhersage");
-					wettervorhersage_api.tagesdaten_holen_und_persistieren(persistenz);
-					tages_wettervorhersage_letzter_abruf = now_timestamp;
-					_schreibe_systemstatus_daten();
-					yield();
-				}
+			if(
+				!tages_wettervorhersage_letzter_abruf
+				|| (
+					tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*4)
+				)
+			) {// Insgesamt also 1x alle 4 Stunden
+				Serial.println("Schreibe Tages-Wettervorhersage");
+				wettervorhersage_api.tagesdaten_holen_und_persistieren(persistenz);
+				tages_wettervorhersage_letzter_abruf = now_timestamp;
+				_schreibe_systemstatus_daten();
+				yield();
 			}
 			wettervorhersage_api.persistierte_daten_einsetzen(persistenz, wetter, now_timestamp);
 
 			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-			if(erneuere_daten_automatisch) {
-				verbraucher_api.fuehre_schaltautomat_aus(verbraucher);
-				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-			}
 
+			verbraucher_api.fuehre_schaltautomat_aus(verbraucher);
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			if(erneuere_daten_automatisch) {
-				_write_log_data(now_timestamp);
-			}
+			_write_log_data(now_timestamp);
 
-			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-			webserver.server.send(200, "application/json", "");
-			_print_char_to_web((char*) "{");
-
-				_print_char_to_web((char*) "\"ueberschuss_in_wh\":");
-					_print_int_to_web(elektroanlage.gib_ueberschuss_in_w());
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"solarakku_ist_an\":");
-					_print_char_to_web((char*) (elektroanlage.solarakku_ist_an ? "true" : "false"));
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"solarakku_ladestand_in_promille\":");
-					_print_int_to_web(elektroanlage.solarakku_ladestand_in_promille);
-					_print_char_to_web((char*) ",");
-
-				int anteil_pv1_in_prozent = elektroanlage.gib_anteil_pv1_in_prozent();
-				_print_char_to_web((char*) "\"solaranteil_in_prozent_string1\":");
-					_print_int_to_web(anteil_pv1_in_prozent);
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"solaranteil_in_prozent_string2\":");
-					_print_int_to_web(100 - anteil_pv1_in_prozent);
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"stunden_balkenanzeige_startzeit\":");
-					_print_int_to_web(wetter.stundenvorhersage_startzeitpunkt);
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"stunden_balkenanzeige\":[");
+			if(persistenz.open_file_to_overwrite(data_filename)) {
+					int anteil_pv1_in_prozent = elektroanlage.gib_anteil_pv1_in_prozent();
+					sprintf(persistenz.buffer,
+						"{\"ueberschuss_in_wh\":%i,\"solarakku_ist_an\":%s,",
+						elektroanlage.gib_ueberschuss_in_w(),
+						(elektroanlage.solarakku_ist_an ? "true" : "false")
+					);
+					persistenz.print_buffer_to_file();
+					sprintf(persistenz.buffer,
+						"\"solarakku_ladestand_in_promille\":%i,",
+						elektroanlage.solarakku_ladestand_in_promille
+					);
+					persistenz.print_buffer_to_file();
+					sprintf(persistenz.buffer,
+						"\"solaranteil_in_prozent_string1\":%i,",
+						anteil_pv1_in_prozent
+					);
+					persistenz.print_buffer_to_file();
+					sprintf(persistenz.buffer,
+						"\"solaranteil_in_prozent_string2\":%i,",
+						100 - anteil_pv1_in_prozent
+					);
+					persistenz.print_buffer_to_file();
+					sprintf(persistenz.buffer,
+						"\"stunden_balkenanzeige_startzeit\":%i,",
+						wetter.stundenvorhersage_startzeitpunkt
+					);
+					persistenz.print_buffer_to_file();
+					int stundenvorhersage[12];
 					for(int i = 0; i < 12; i++) {
-						_print_int_to_web(verbraucher.gib_stundenvorhersage_akku_ladestand_als_fibonacci(i));
-						if(i != 11) {
-							_print_char_to_web((char*) ",");
-						}
+						stundenvorhersage[i] = verbraucher.gib_stundenvorhersage_akku_ladestand_als_fibonacci(i);
 					}
-				_print_char_to_web((char*) "],");
-
-				_print_char_to_web((char*) "\"tage_balkenanzeige_startzeit\":");
-					_print_int_to_web(wetter.tagesvorhersage_startzeitpunkt);
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"tage_balkenanzeige\":[");
+					sprintf(persistenz.buffer,
+						"\"stunden_balkenanzeige\":"
+					);
+					persistenz.print_buffer_to_file();
+					sprintf(persistenz.buffer,
+						"[%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i],",
+						stundenvorhersage[0],
+						stundenvorhersage[1],
+						stundenvorhersage[2],
+						stundenvorhersage[3],
+						stundenvorhersage[4],
+						stundenvorhersage[5],
+						stundenvorhersage[6],
+						stundenvorhersage[7],
+						stundenvorhersage[8],
+						stundenvorhersage[9],
+						stundenvorhersage[10],
+						stundenvorhersage[11]
+					);
+					persistenz.print_buffer_to_file();
+					sprintf(persistenz.buffer,
+						"\"tage_balkenanzeige_startzeit\":%i,",
+						wetter.tagesvorhersage_startzeitpunkt
+					);
+					persistenz.print_buffer_to_file();
+					int tagesvorhersage[5];
 					for(int i = 0; i < 5; i++) {
-						_print_int_to_web(wetter.gib_tagesvorhersage_solarstrahlung_als_fibonacci(i));
-						if(i != 4) {
-							_print_char_to_web((char*) ",");
-						}
+						tagesvorhersage[i] = wetter.gib_tagesvorhersage_solarstrahlung_als_fibonacci(i);
 					}
-				_print_char_to_web((char*) "],");
-
-				_print_char_to_web((char*) "\"auto_laden_an\":");
-					_print_char_to_web((char*) (verbraucher.auto_laden_ist_an() ? "true" : "false"));
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"roller_laden_an\":");
-					_print_char_to_web((char*) (verbraucher.roller_laden_ist_an() ? "true" : "false"));
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"wasser_ueberladen\":");
-					_print_char_to_web((char*) (verbraucher.wasser_relay_ist_an ? "true" : "false"));
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"heizung_ueberladen\":");
-					_print_char_to_web((char*) (verbraucher.heizung_relay_ist_an ? "true" : "false"));
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"auto_laden\":");
-					_print_char_to_web((char*) (
+					sprintf(persistenz.buffer,
+						"\"tage_balkenanzeige\":[%i,%i,%i,%i,%i],",
+						tagesvorhersage[0],
+						tagesvorhersage[1],
+						tagesvorhersage[2],
+						tagesvorhersage[3],
+						tagesvorhersage[4]
+					);
+					persistenz.print_buffer_to_file();
+					sprintf(persistenz.buffer,
+						"\"auto_laden_an\":%s,\"roller_laden_an\":%s,",
+						verbraucher.auto_laden_ist_an() ? "true" : "false",
+						verbraucher.roller_laden_ist_an() ? "true" : "false"
+					);
+					persistenz.print_buffer_to_file();
+					sprintf(persistenz.buffer,
+						"\"wasser_ueberladen\":%s,\"heizung_ueberladen\":%s,",
+						verbraucher.wasser_relay_ist_an ? "true" : "false",
+						verbraucher.heizung_relay_ist_an ? "true" : "false"
+					);
+					persistenz.print_buffer_to_file();
+					sprintf(persistenz.buffer,
+						"\"auto_laden\":%s,\"roller_laden\":%s,",
 						verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
-						? "\"force\"" : "\"solar\""
-					));
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"auto_benoetigte_ladeleistung_in_w\":");
-					_print_int_to_web(verbraucher.auto_benoetigte_ladeleistung_in_w);
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"roller_laden\":");
-					_print_char_to_web((char*) (
+							? "\"force\"" : "\"solar\"",
 						verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::force
-						? "\"force\"" : "\"solar\""
-					));
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"roller_benoetigte_ladeleistung_in_w\":");
-					_print_int_to_web(verbraucher.roller_benoetigte_ladeleistung_in_w);
-					_print_char_to_web((char*) ",");
-
-				_print_char_to_web((char*) "\"solarerzeugung_ist_aktiv\":");
-					_print_char_to_web((char*) (verbraucher.solarerzeugung_ist_aktiv() ? "true" : "false"));
-
-			_print_char_to_web((char*) "}");
+							? "\"force\"" : "\"solar\""
+					);
+					persistenz.print_buffer_to_file();
+					sprintf(persistenz.buffer,
+						"\"auto_benoetigte_ladeleistung_in_w\":%i,",
+						verbraucher.auto_benoetigte_ladeleistung_in_w
+					);
+					persistenz.print_buffer_to_file();
+					sprintf(persistenz.buffer,
+						"\"roller_benoetigte_ladeleistung_in_w\":%i,",
+						verbraucher.roller_benoetigte_ladeleistung_in_w
+					);
+					persistenz.print_buffer_to_file();
+					sprintf(persistenz.buffer,
+						"\"solarerzeugung_ist_aktiv\":%s,\"timestamp\":%i}",
+						verbraucher.solarerzeugung_ist_aktiv() ? "true" : "false",
+						now_timestamp
+					);
+					persistenz.print_buffer_to_file();
+				persistenz.close_file();
+			}
 		}
 	};
 }

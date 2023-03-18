@@ -21,7 +21,9 @@ void setup(void) {
 		web_presenter.zeige_ui();
 	});
 	web_presenter.webserver.add_http_get_handler("/master/daten.json", []() {
-		web_presenter.ermittle_daten(true);
+		const char* filename = "daten.json";
+		web_presenter.ermittle_daten(filename);
+		web_presenter.download_file(filename);
 	});
 	web_presenter.webserver.add_http_get_handler("/master/change", []() {
 		web_presenter.aendere();
@@ -31,14 +33,14 @@ void setup(void) {
 		web_presenter.zeige_ui();
 	});
 	web_presenter.webserver.add_http_get_handler("/daten.json", []() {
-		web_presenter.ermittle_daten(false);
+		web_presenter.download_file((const char*) "daten.json");
 	});
 	web_presenter.webserver.add_http_get_handler("/change", []() {
 		web_presenter.webserver.server.send(403, "text/plain", "For master only!");
 	});
 
 	web_presenter.webserver.add_http_get_handler("/download_file", []() {
-		web_presenter.download_file();
+		web_presenter.download_file((const char*) web_presenter.webserver.server.arg("name").c_str());
 	});
 	web_presenter.webserver.add_http_post_fileupload_handler("/upload_file", []() {
 		web_presenter.upload_file();
