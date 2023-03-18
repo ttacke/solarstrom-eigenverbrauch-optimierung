@@ -83,10 +83,9 @@ Kommt noch:
 TODO- 
 - grundverbauch und solarumrechnung ermnittelt: nach ca 14 Tagen gibts schon erste, brauchbare werte
   - je länger desto besser
-- Action-URLs für z.B. ShellyButton, dann braucht man keine dauerhafte ui
+- Action-URLs für z.B. ShellyButton in doku, dann braucht man keine dauerhafte ui
 - grundverbrauch: tag und nacht trennen, durchschnitt aller Werte, wenn Laden=aus
 - ShellyPlug: alle Daten auf einen Schlag auslesen! Das passiert 3x
-- Status "Lädt" (bisher relay=on) ist der Status, der bei AutoAus genutzt wird
 - schreibe daten auf SD
 - Zentrale macht im Loop alle 60 Seunden eine Abfrage auf sich selber (intern, ohne Web)
 - UI liest diese Daten nur

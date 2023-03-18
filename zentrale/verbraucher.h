@@ -13,6 +13,14 @@ namespace Local {
 			return max;
 		}
 
+		int _gib_genutzte_auto_ladeleistung_in_w() {
+			return _gib_listen_maximum(auto_ladeleistung_log_in_w, 5);
+		}
+
+		int _gib_genutzte_roller_ladeleistung_in_w() {
+			return _gib_listen_maximum(roller_ladeleistung_log_in_w, 5);
+		}
+
 	public:
 		enum class Ladestatus {force, solar};
 
@@ -98,12 +106,24 @@ namespace Local {
 			return solarerzeugung_in_w > 20;
 		}
 
-		int gib_genutzte_auto_ladeleistung_in_w() {
-			return _gib_listen_maximum(auto_ladeleistung_log_in_w, 5);
+		bool auto_laden_ist_an() {
+			if(
+				auto_relay_ist_an
+				&& _gib_genutzte_auto_ladeleistung_in_w() < (float) auto_benoetigte_ladeleistung_in_w * 0.8
+			) {
+				return true;
+			}
+			return false;
 		}
 
-		int gib_genutzte_roller_ladeleistung_in_w() {
-			return _gib_listen_maximum(roller_ladeleistung_log_in_w, 5);
+		bool roller_laden_ist_an() {
+			if(
+				roller_relay_ist_an
+				&& _gib_genutzte_roller_ladeleistung_in_w() < (float) roller_benoetigte_ladeleistung_in_w * 0.8
+			) {
+				return true;
+			}
+			return false;
 		}
 
 		int gib_beruhigten_ueberschuss_in_w() {
@@ -129,7 +149,7 @@ namespace Local {
 				auto_relay_ist_an ? "an" : "aus",
 				auto_benoetigte_ladeleistung_in_w,
 				aktuelle_auto_ladeleistung_in_w,
-				gib_genutzte_auto_ladeleistung_in_w(),
+				_gib_genutzte_auto_ladeleistung_in_w(),
 				wasser_relay_ist_an ? "an" : "aus"
 			);
 		}
@@ -142,7 +162,7 @@ namespace Local {
 				roller_relay_ist_an ? "an" : "aus",
 				roller_benoetigte_ladeleistung_in_w,
 				aktuelle_roller_ladeleistung_in_w,
-				gib_genutzte_roller_ladeleistung_in_w(),
+				_gib_genutzte_roller_ladeleistung_in_w(),
 				heizung_relay_ist_an ? "an" : "aus"
 			);
 		}

@@ -58,8 +58,7 @@ namespace Local {
 			int min_schaltzeit_in_min,
 			Local::Verbraucher::Ladestatus& ladestatus,
 			bool relay_ist_an,
-			int genutzte_ladeleistung_in_w,
-			int benoetigte_ladeleistung_in_w
+			bool es_laedt
 		) {
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			if(!schalt_mindestdauer_ist_erreicht) {
@@ -74,11 +73,9 @@ namespace Local {
 				_log(log_key, (char*) "_laden_ist_beendet>StatusFehlerKorrigiert");
 				return true;
 			}
-			if(relay_ist_an) {
-				if(genutzte_ladeleistung_in_w < (float) benoetigte_ladeleistung_in_w * 0.7) {
-					_log(log_key, (char*) "_laden_ist_beendet>AusWeilBeendet");
-					return true;
-				}
+			if(!es_laedt) {
+				_log(log_key, (char*) "_laden_ist_beendet>AusWeilBeendet");
+				return true;
 			}
 			return false;
 		}
@@ -531,8 +528,7 @@ namespace Local {
 				cfg->roller_min_schaltzeit_in_min,
 				verbraucher.roller_ladestatus,
 				verbraucher.roller_relay_ist_an,
-				verbraucher.gib_genutzte_roller_ladeleistung_in_w(),
-				verbraucher.roller_benoetigte_ladeleistung_in_w
+				verbraucher.roller_laden_ist_an()
 			)) {
 				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar);
 				return;
@@ -544,8 +540,7 @@ namespace Local {
 				cfg->auto_min_schaltzeit_in_min,
 				verbraucher.auto_ladestatus,
 				verbraucher.auto_relay_ist_an,
-				verbraucher.gib_genutzte_auto_ladeleistung_in_w(),
-				verbraucher.auto_benoetigte_ladeleistung_in_w
+				verbraucher.auto_laden_ist_an()
 			)) {
 				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar);
 				return;
