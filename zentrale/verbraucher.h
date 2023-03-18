@@ -14,7 +14,7 @@ namespace Local {
 		}
 
 	public:
-		enum class Ladestatus {force, solar, off};
+		enum class Ladestatus {force, solar};
 
 		bool wasser_relay_ist_an = false;
 		int wasser_relay_zustand_seit = 0;
@@ -26,7 +26,7 @@ namespace Local {
 		float heizung_leistung_ist = 0;
 		int heizung_schaltflags = 0;
 
-		Ladestatus auto_ladestatus = Local::Verbraucher::Ladestatus::off;
+		Ladestatus auto_ladestatus = Local::Verbraucher::Ladestatus::solar;
 		int auto_benoetigte_ladeleistung_in_w = 0;
 		int aktuelle_auto_ladeleistung_in_w = 0;
 		int auto_ladeleistung_log_in_w[5];
@@ -35,7 +35,7 @@ namespace Local {
 		float auto_leistung_ist = 0;
 		int auto_schaltflags = 0;
 
-		Ladestatus roller_ladestatus = Local::Verbraucher::Ladestatus::off;
+		Ladestatus roller_ladestatus = Local::Verbraucher::Ladestatus::solar;
 		int roller_benoetigte_ladeleistung_in_w = 0;
 		int aktuelle_roller_ladeleistung_in_w = 0;
 		int roller_ladeleistung_log_in_w[5];
@@ -149,12 +149,7 @@ namespace Local {
 			sprintf(
 				buffer,
 				"va2,%s,%s,%d,%d,%d,%s",
-				(
-					auto_ladestatus == Local::Verbraucher::Ladestatus::force
-					? "force"
-						: auto_ladestatus == Local::Verbraucher::Ladestatus::solar
-						? "solar" : "off"
-				),
+				(auto_ladestatus == Local::Verbraucher::Ladestatus::force ? "force" : "solar"),
 				auto_relay_ist_an ? "an" : "aus",
 				auto_benoetigte_ladeleistung_in_w,
 				aktuelle_auto_ladeleistung_in_w,
@@ -167,12 +162,7 @@ namespace Local {
 			sprintf(
 				buffer,
 				"vb2,%s,%s,%d,%d,%d,%s",
-				(
-					roller_ladestatus == Local::Verbraucher::Ladestatus::force
-					? "force"
-						: roller_ladestatus == Local::Verbraucher::Ladestatus::solar
-						? "solar" : "off"
-				),
+				(roller_ladestatus == Local::Verbraucher::Ladestatus::force ? "force" : "solar"),
 				roller_relay_ist_an ? "an" : "aus",
 				roller_benoetigte_ladeleistung_in_w,
 				aktuelle_roller_ladeleistung_in_w,

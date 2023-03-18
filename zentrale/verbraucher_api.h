@@ -68,13 +68,8 @@ namespace Local {
 			}
 
 			if(
-				(
-					ladestatus == Local::Verbraucher::Ladestatus::off
-					&& relay_ist_an
-				) || (
-					ladestatus == Local::Verbraucher::Ladestatus::force
-					&& !relay_ist_an
-				)
+				ladestatus == Local::Verbraucher::Ladestatus::force
+				&& !relay_ist_an
 			) {
 				_log(log_key, (char*) "_laden_ist_beendet>StatusFehlerKorrigiert");
 				return true;
@@ -373,13 +368,11 @@ namespace Local {
 		}
 
 		void _lese_ladestatus(Local::Verbraucher::Ladestatus& ladestatus, const char* filename) {
-			ladestatus = Local::Verbraucher::Ladestatus::off;
+			ladestatus = Local::Verbraucher::Ladestatus::solar;
 			if(persistenz->open_file_to_read(filename)) {
 				while(persistenz->read_next_block_to_buffer()) {
 					if(persistenz->find_in_buffer((char*) "([a-z]+)")) {
-						if(strcmp(persistenz->finding_buffer, "solar") == 0) {
-							ladestatus = Local::Verbraucher::Ladestatus::solar;
-						} else if(strcmp(persistenz->finding_buffer, "force") == 0) {
+						if(strcmp(persistenz->finding_buffer, "force") == 0) {
 							ladestatus = Local::Verbraucher::Ladestatus::force;
 						}
 						return;
@@ -541,7 +534,7 @@ namespace Local {
 				verbraucher.gib_genutzte_roller_ladeleistung_in_w(),
 				verbraucher.roller_benoetigte_ladeleistung_in_w
 			)) {
-				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::off);
+				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar);
 				return;
 			}
 
@@ -554,7 +547,7 @@ namespace Local {
 				verbraucher.gib_genutzte_auto_ladeleistung_in_w(),
 				verbraucher.auto_benoetigte_ladeleistung_in_w
 			)) {
-				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
+				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar);
 				return;
 			}
 
@@ -731,13 +724,9 @@ namespace Local {
 				_schalte_roller_relay(true);
 				strcpy(stat, "force");
 				_log((char*) "setze_roller_ladestatus>force");
-			} else if(status == Local::Verbraucher::Ladestatus::solar) {
+			} else {
 				strcpy(stat, "solar");
 				_log((char*) "setze_roller_ladestatus>solar");
-			} else {
-				_schalte_roller_relay(false);
-				strcpy(stat, "off");
-				_log((char*) "setze_roller_ladestatus>off");
 			}
 			if(persistenz->open_file_to_overwrite(roller_ladestatus_filename)) {
 				sprintf(persistenz->buffer, "%s", stat);
@@ -755,13 +744,9 @@ namespace Local {
 				_schalte_auto_relay(true);
 				strcpy(stat, "force");
 				_log((char*) "setze_auto_ladestatus>force");
-			} else if(status == Local::Verbraucher::Ladestatus::solar) {
+			} else {
 				strcpy(stat, "solar");
 				_log((char*) "setze_auto_ladestatus>solar");
-			} else {
-				_schalte_auto_relay(false);
-				strcpy(stat, "off");
-				_log((char*) "setze_auto_ladestatus>off");
 			}
 			if(persistenz->open_file_to_overwrite(auto_ladestatus_filename)) {
 				sprintf(persistenz->buffer, "%s", stat);

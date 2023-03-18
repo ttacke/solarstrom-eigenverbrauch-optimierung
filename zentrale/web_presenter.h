@@ -195,8 +195,6 @@ namespace Local {
 					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::force);
 				} else if(strcmp(val, "solar") == 0) {
 					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar);
-				} else if(strcmp(val, "off") == 0) {
-					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::off);
 				} else if(strcmp(val, "change_power") == 0) {
 					verbraucher_api.wechsle_auto_ladeleistung();
 				}
@@ -205,8 +203,6 @@ namespace Local {
 					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::force);
 				} else if(strcmp(val, "solar") == 0) {
 					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar);
-				} else if(strcmp(val, "off") == 0) {
-					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::off);
 				} else if(strcmp(val, "change_power") == 0) {
 					verbraucher_api.wechsle_roller_ladeleistung();
 				}
@@ -350,10 +346,7 @@ namespace Local {
 				_print_char_to_web((char*) "\"auto_laden\":");
 					_print_char_to_web((char*) (
 						verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
-						? "\"force\""
-						: verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::solar
-							? "\"solar\""
-							: "\"off\""
+						? "\"force\"" : "\"solar\""
 					));
 					_print_char_to_web((char*) ",");
 
@@ -364,10 +357,7 @@ namespace Local {
 				_print_char_to_web((char*) "\"roller_laden\":");
 					_print_char_to_web((char*) (
 						verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::force
-						? "\"force\""
-						: verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::solar
-							? "\"solar\""
-							: "\"off\""
+						? "\"force\"" : "\"solar\""
 					));
 					_print_char_to_web((char*) ",");
 
