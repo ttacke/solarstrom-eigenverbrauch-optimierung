@@ -178,15 +178,18 @@ namespace Local {
 		}
 
 		void aendere() {
-			int now_timestamp = webserver.server.arg("time").toInt();
-			if(now_timestamp < 1674987010) {
-				webserver.server.send(400, "text/plain", "Bitte den aktuellen UnixTimestamp via Parameter 'time' angeben.");
-				return;
+			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz);
+			int now_timestamp = verbraucher_api.timestamp;
+			if(!now_timestamp) {
+				now_timestamp = webserver.server.arg("time").toInt();
+				if(now_timestamp < 1674987010) {
+					webserver.server.send(400, "text/plain", "Bitte den aktuellen UnixTimestamp via Parameter 'time' angeben.");
+					return;
+				}
 			}
 			const char* key = webserver.server.arg("key").c_str();
 			const char* val = webserver.server.arg("val").c_str();
 
-			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz, now_timestamp);
 			if(strcmp(key, "auto") == 0) {
 				if(strcmp(val, "force") == 0) {
 					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::force);
@@ -213,10 +216,14 @@ namespace Local {
 
 		void ermittle_daten(bool erneuere_daten_automatisch) {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
-			int now_timestamp = webserver.server.arg("time").toInt();
-			if(now_timestamp < 1674987010) {
-				webserver.server.send(400, "text/plain", "Bitte den aktuellen UnixTimestamp via Parameter 'time' angeben.");
-				return;
+			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz);
+			int now_timestamp = verbraucher_api.timestamp;
+			if(!now_timestamp) {
+				now_timestamp = webserver.server.arg("time").toInt();
+				if(now_timestamp < 1674987010) {
+					webserver.server.send(400, "text/plain", "Bitte den aktuellen UnixTimestamp via Parameter 'time' angeben.");
+					return;
+				}
 			}
 
 			Local::WechselrichterAPI wechselrichter_api(*cfg, web_client);
@@ -261,7 +268,6 @@ namespace Local {
 			}
 			wettervorhersage_api.persistierte_daten_einsetzen(persistenz, wetter, now_timestamp);
 
-			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz, now_timestamp);
 			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 			if(erneuere_daten_automatisch) {

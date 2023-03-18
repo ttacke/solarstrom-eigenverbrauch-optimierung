@@ -7,7 +7,6 @@ namespace Local {
 	using BaseAPI::BaseAPI;
 
 	protected:
-		int timestamp;
 		Local::Persistenz* persistenz;
 
 		const char* heizung_relay_zustand_seit_filename = "heizung_relay.status";
@@ -250,7 +249,7 @@ namespace Local {
 				"/status"
 			);
 			while(web_client->read_next_block_to_buffer()) {
-				if(web_client->find_in_buffer((char*) "\"power\":([0-9]+)")) {
+				if(web_client->find_in_buffer((char*) "\"power\":([0-9]+)[^0-9]")) {
 					return atoi(web_client->finding_buffer);
 				}
 			}
@@ -437,13 +436,28 @@ namespace Local {
 			}
 		}
 
+		int _gib_zeitstempel() {
+			web_client->send_http_get_request(
+				cfg->roller_relay_host,
+				cfg->roller_relay_port,
+				"/status"
+			);
+			while(web_client->read_next_block_to_buffer()) {
+				if(web_client->find_in_buffer((char*) "\"unixtime\":([0-9]+)[^0-9]")) {
+					return atoi(web_client->finding_buffer);
+				}
+			}
+			return 0;
+		}
+
 	public:
+		int timestamp;
+
 		VerbraucherAPI(
 			Local::Config& cfg,
 			Local::WebClient& web_client,
-			Local::Persistenz& persistenz,
-			int timestamp
-		): BaseAPI(cfg, web_client), persistenz(&persistenz), timestamp(timestamp) {
+			Local::Persistenz& persistenz
+		): BaseAPI(cfg, web_client), persistenz(&persistenz), timestamp(_gib_zeitstempel()) {
 		}
 
 		void daten_holen_und_einsetzen(
