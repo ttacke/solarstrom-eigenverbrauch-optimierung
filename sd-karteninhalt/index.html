@@ -106,36 +106,31 @@
 			_setze_balkentabelle_daten(daten['tage_balkenanzeige'], 'balkenanzeige', 13, 5);
 			_setze_elektrische_daten(daten);
 			
-			_setze_ladestatus('auto_laden', daten['auto_laden']);
+			_setze_ladewunsch('auto_laden', daten['auto_laden']);
 			document.getElementById('auto_ladeleistung').innerHTML = daten['auto_benoetigte_ladeleistung_in_w'] + " W";
 
-			_setze_ladestatus('roller_laden', daten['roller_laden']);
+			_setze_ladewunsch('roller_laden', daten['roller_laden']);
 			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
 			
 			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : 'off';
-			document.getElementById('wasser_ueberladen').getElementsByClassName('soll_ist_leistung')[0].innerHTML = daten['wasser_soll_ist_leistung'];
+			document.getElementById('wasser_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_ueberladen'] ? "l&auml;dt" : "aus";
 			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : 'off';
-			document.getElementById('heizung_ueberladen').getElementsByClassName('soll_ist_leistung')[0].innerHTML = daten['heizung_soll_ist_leistung'];
+			document.getElementById('heizung_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_ueberladen'] ? "l&auml;dt" : "aus";
 			document.getElementById('roller_laden_an').className = daten['roller_laden_an'] ? 'on' : 'off';
-			document.getElementById('roller_laden_an').getElementsByClassName('soll_ist_leistung')[0].innerHTML = daten['roller_soll_ist_leistung'];
+			document.getElementById('roller_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['roller_laden_an'] ? "l&auml;dt" : "aus";
 			document.getElementById('auto_laden_an').className = daten['auto_laden_an'] ? 'on' : 'off';
-			document.getElementById('auto_laden_an').getElementsByClassName('soll_ist_leistung')[0].innerHTML = daten['auto_soll_ist_leistung'];
+			document.getElementById('auto_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['auto_laden_an'] ? "l&auml;dt" : "aus";
 			document.getElementById('solarerzeugung_ist_aktiv').className = daten['solarerzeugung_ist_aktiv'] ? 'on' : 'off';
 		
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
 		}
-		function _setze_ladestatus(id, status) {
+		function _setze_ladewunsch(id, typ) {
 			var el = document.getElementById(id);
-			if(status == 'force') {
+			if(typ == 'force') {
 				el.getElementsByTagName("button")[0].className = 'on';
-				el.getElementsByTagName("button")[1].className = '';
-			} else if(status == 'solar') {
-				el.getElementsByTagName("button")[0].className = '';
-				el.getElementsByTagName("button")[1].className = 'on';
 			} else {
 				el.getElementsByTagName("button")[0].className = '';
-				el.getElementsByTagName("button")[1].className = '';
 			}
 		}
 		function _zaehle_fehler(fehler_vorhanden) {
@@ -408,11 +403,6 @@
 			.zusatzinfo .off,
 			.zusatzinfo .off * {
 			}
-			.zusatzinfo .soll_ist_leistung {
-				display: inline-block;
-				font-size: 0.8rem;
-				padding-top: 0.4rem;
-			}
 		
 		.schalter {
 			vertical-align: bottom;
@@ -473,19 +463,19 @@
 	</span>
 	<span id="auto_laden_an">
 		AUTO
-		<br><span class="soll_ist_leistung">-</span>
+		<br><span class="ladestatus">-</span>
 	</span>
 	<span id="roller_laden_an">
 		ROLLER
-		<br><span class="soll_ist_leistung">-</span>
+		<br><span class="ladestatus">-</span>
 	</span>
 	<span id="wasser_ueberladen">
 		WASSER
-		<br><span class="soll_ist_leistung">-</span>
+		<br><span class="ladestatus">-</span>
 	</span>
 	<span id="heizung_ueberladen">
 		HEIZUNG
-		<br><span class="soll_ist_leistung">-</span>
+		<br><span class="ladestatus">-</span>
 	</span>
 </div>
 
@@ -494,14 +484,12 @@
 <div class="schalter" id="auto_laden">
 	<span onclick="secure_action('change', 'auto', 'change_power')">Auto<br>
 	<span class="ladeleistung" id="auto_ladeleistung"></span></span>
-	<button onclick="this.className == 'on' ? return : refresh('change', 'auto', 'force')">&#9889;</button>
-	<button onclick="this.className == 'on' ? return : refresh('change', 'auto', 'solar')">&#9728;</button>
+	<button onclick="refresh('change', 'auto', this.className == 'on' ? 'solar' : 'force')">&#9889;&#9889;&#9889;</button>
 </div>
 <div class="schalter" id="roller_laden">
 	<span onclick="secure_action('change', 'roller', 'change_power')">Roller<br>
 	<span class="ladeleistung" id="roller_ladeleistung"></span></span>
-	<button onclick="this.className == 'on' ? return : refresh('change', 'roller', 'force')">&#9889;</button>
-	<button onclick="this.className == 'on' ? return : refresh('change', 'roller', 'solar')">&#9728;</button>
+	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'solar' : 'force')">&#9889;&#9889;&#9889;</button>
 </div>
 
 </body>

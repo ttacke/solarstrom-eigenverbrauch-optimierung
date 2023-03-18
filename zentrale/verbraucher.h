@@ -94,30 +94,6 @@ namespace Local {
 			return 999;
 		}
 
-		void set_auto_soll_ist_leistung(char* buffer) {
-			if(auto_ladestatus == Local::Verbraucher::Ladestatus::solar) {
-				sprintf(buffer, "%03d/%.1f", auto_schaltflags, auto_leistung_ist);
-			} else {
-				sprintf(buffer, "-");
-			}
-		}
-
-		void set_roller_soll_ist_leistung(char* buffer) {
-			if(roller_ladestatus == Local::Verbraucher::Ladestatus::solar) {
-				sprintf(buffer, "%03d/%.1f", roller_schaltflags, roller_leistung_ist);
-			} else {
-				sprintf(buffer, "-");
-			}
-		}
-
-		void set_wasser_soll_ist_leistung(char* buffer) {
-			sprintf(buffer, "%03d/%.1f", wasser_schaltflags, wasser_leistung_ist);
-		}
-
-		void set_heizung_soll_ist_leistung(char* buffer) {
-			sprintf(buffer, "%03d/%.1f", heizung_schaltflags, heizung_leistung_ist);
-		}
-
 		bool solarerzeugung_ist_aktiv() {
 			return solarerzeugung_in_w > 20;
 		}

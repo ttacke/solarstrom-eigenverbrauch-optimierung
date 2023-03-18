@@ -18,22 +18,10 @@ Konkret:
   - Pufferakku-Ladestand
 - Zweite Zeile (v.l.n.r; schwarz=aktiv, grau=inaktiv):
   - Status Solarerzeugung incl relative Verteilung der Leistung der beiden Dachhälften
-  - Auto-Wallbox incl. Debug-Daten
-    - Debug-Daten bedeuten:
-      - Einschaltschwelle erreicht=1/0
-      - Pufferakku-Zielladestand wird erreicht=1/0
-      - Mindestschaltdauer erreicht=1/0
-      - Aktuell verfügbare Leistung relativ zur benötigten Ladeleistung (1.0=100%) 
-  - Roller-Lader incl. Debug-Daten
-    - Debug-Daten: siehe Auto
-  - Warmwasser-Überladen incl. Debug-Daten
-    - Debug-Daten bedeuten:
-      - Unerfüllter Ladewunsch existiert=1/0
-      - Pufferakku wird überlaufen innerhalb von 3h=1/0
-      - Mindestschaltdauer erreicht=1/0
-      - Aktuell verfügbare Leistung relativ zur benötigten Ladeleistung (1.0=100%) 
-  - Heizungs-Überladen incl. Debug-Daten
-    - Debug-Daten: siehe Wasser
+  - Auto-Wallbox Ladestatus
+  - Roller-Lader Ladestatus
+  - Warmwasser-Überladen Ladestatus
+  - Heizungs-Überladen Ladestatus
 - Dritte Zeile (v.l.n.r):
   - Vorhersage des Pufferakku-Ladestandes der nächsten 12 Stunden
     - schwarze Balken bedeuten, das potentiell zu viel Energie vorhanden sein wird (=Netzeinspeisung)
@@ -92,6 +80,19 @@ Kommt noch:
 - In der IDE das Script netz-relay/netz-relay.ino öffnen und auf die Netz-Relay-ESPs spielen
 - In der IDE das Script zentrale/zentrale.ino öffnen und auf das zentrale Steuer-ESP spielen
 - Mit dem KindlePaperwhite die IP der Zentrale aufrufen http://[IP-DER-ZENTRALE]/master 
+
+TODO- 
+- grundverbauch und solarumrechnung ermnittelt: nach ca 14 Tagen gibts schon erste, brauchbare werte
+  - je länger desto besser
+- Action-URLs für z.B. ShellyButton, dann braucht man keine dauerhafte ui
+- grundverbrauch: tag und nacht trennen, durchschnitt aller Werte, wenn Laden=aus
+- ShellyPlug: alle Daten auf einen Schlag auslesen! Das passiert 3x
+- Status "Lädt" (bisher relay=on) ist der Status, der bei AutoAus genutzt wird
+- schreibe daten auf SD
+- Zentrale macht im Loop alle 60 Seunden eine Abfrage auf sich selber (intern, ohne Web)
+- UI liest diese Daten nur
+- /master auflösen, ist dann obsolet
+
 
 ## HINWEIS
 Wechselrichter und Batterie sollten nie im Netzwerk mit anderen Endgeräten sein. Die Zugänge
