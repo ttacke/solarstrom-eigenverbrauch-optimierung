@@ -27,12 +27,11 @@ Konkret:
     - schwarze Balken bedeuten, das potentiell zu viel Energie vorhanden sein wird (=Netzeinspeisung)
   - Vorhersage der Sonnenenergie der nächsten 5 Tage
     - schwarze Balken bedeuten, das potentiell zu viel Energie vorhanden sein wird (=Netzeinspeisung)
-- Unterer Bereich
-  - Schalter der Ladesteuerung für Auto-Wallbox und Roller-Lader (schwarz = aktiv, weiß = inaktiv)
-    - 5x tippen auf "Roller" bzw "Auto" schaltet die Ladeleistung um
-      - es existiert kein Rückkanal für diese Info, so dass Änderungen an den Ladeleistungen hier manuell eingestellt werden müssen
-  - &#9889; (Blitz) = Egal was ist kommt, es wird geladen
-  - &#9728; (Sonne) = Verwende nur den Überschuss, der Zielladestand des Pufferakkus (80%) soll erreicht werden
+- Unterer Bereich: Schalter der Ladesteuerung
+  - 5x tippen auf "Roller" bzw "Auto" schaltet die Ladeleistung um
+    - es existiert kein Rückkanal für diese Info, so dass Änderungen an den Ladeleistungen hier manuell eingestellt werden müssen
+  - Klick auf Button &#9889;&#9889;&#9889; (Blitz) = Egal was ist kommt, es wird geladen
+    - Ist der Button schwarz, ist erzwungenes Laden aktiv. Ansonsten ist Überschussladen aktiv und der Pufferakku-Zielwert von 80% bis zum Sonnenuntergang wird angestrebt
 
 ## Systembestandteile:
 - ein ESP8266-E12 als Zentrale
