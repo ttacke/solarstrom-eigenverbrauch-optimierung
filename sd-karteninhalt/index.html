@@ -22,7 +22,7 @@
 			if(!ist_initialisiert) {
 				warte_auf_daten = false;
 				_erstelle_balkentabelle('balkenanzeige', 18);
-				setInterval(function() { refresh('', '', ''); }, 1000 * 60);
+				setInterval(function() { refresh('', '', ''); }, 1000 * 20);
 				ist_initialisiert = true;
 			}
 			// user-aktionen immer ausfuehren, nie blocken!
@@ -211,15 +211,24 @@
 				if(this.readyState == this.DONE) {
 					done_func();
 					if(this.status == 200) {
-						var daten = JSON.parse(this.responseText);
+						var daten = null;
+						try {
+							daten = JSON.parse(this.responseText);
+						} catch(err) {
+							_zaehle_fehler(true);
+							console.log(err);
+							return;
+						}
+						
 						zeitpunkt_letzte_daten = daten['timestamp'] * 1000;
 						_setze_daten_ein(daten);
 						var now = Math.floor(new Date().getTime() / 1000);
-						if(daten['timestamp'] < now - 120) {
+						if(now - daten['timestamp'] > 120) {
+							console.log("Daten zu alt: " + (now - daten['timestamp']) + "s");
 							_zaehle_fehler(true);
-						} else {
-							_zaehle_fehler(false);
+							return;
 						}
+						_zaehle_fehler(false);
 					} else {
 						_zaehle_fehler(true);
 					}
@@ -452,7 +461,7 @@
 	<p>Einfach warten, was wird schon...</p>
 </div>
 
-<div id="elektrische_daten" onclick="refresh('', '', '');">
+<div id="elektrische_daten">
 	<div class="energie">
 		<span id="ueberschuss"></span>
 		<span class="einheit">W</span>

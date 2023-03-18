@@ -7,8 +7,13 @@ Local::Config cfg;
 Local::Wlan wlan(cfg.wlan_ssid, cfg.wlan_pwd);
 Local::WebClient web_client(wlan.client);
 Local::WebPresenter web_presenter(cfg, wlan);
+unsigned long runtime;
+unsigned long last_runtime;
+const char* daten_filename = "daten.json";
 
 void setup(void) {
+	runtime = 0;
+	last_runtime = 0;
 	Serial.begin(cfg.log_baud);
 	for(int i = 0; i < 5; i++) {
 		Serial.print('o');
@@ -17,28 +22,19 @@ void setup(void) {
 	Serial.println("Start strom-eigenverbrauch-optimierung Zentrale");
 	wlan.connect();
 
-	web_presenter.webserver.add_http_get_handler("/master/", []() {
-		web_presenter.zeige_ui();
-	});
-	web_presenter.webserver.add_http_get_handler("/master/daten.json", []() {
-		const char* filename = "daten.json";
-		web_presenter.ermittle_daten(filename);
-		web_presenter.download_file(filename);
-	});
-	web_presenter.webserver.add_http_get_handler("/master/change", []() {
-		web_presenter.aendere();
-	});
-
 	web_presenter.webserver.add_http_get_handler("/", []() {
 		web_presenter.zeige_ui();
 	});
-	web_presenter.webserver.add_http_get_handler("/daten.json", []() {
-		web_presenter.download_file((const char*) "daten.json");
-	});
 	web_presenter.webserver.add_http_get_handler("/change", []() {
-		web_presenter.webserver.server.send(403, "text/plain", "For master only!");
+		web_presenter.aendere();
 	});
-
+	web_presenter.webserver.add_http_get_handler("/daten.json", []() {
+		web_presenter.download_file(daten_filename);
+	});
+	web_presenter.webserver.add_http_get_handler("/debug-erzeuge-daten.json", []() {
+		web_presenter.heartbeat(daten_filename);
+		web_presenter.download_file(daten_filename);
+	});
 	web_presenter.webserver.add_http_get_handler("/download_file", []() {
 		web_presenter.download_file((const char*) web_presenter.webserver.server.arg("name").c_str());
 	});
@@ -49,7 +45,15 @@ void setup(void) {
 	Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
 }
 
+void(* resetFunc) (void) = 0;// Reset the board via software
+
 void loop(void) {
+	runtime = millis();// Will overflow after ~50 days, but this is not a problem
+	if(last_runtime == 0 || runtime - last_runtime > 60000) {// initial || 1min
+		Serial.println("heartbeat!");
+		web_presenter.heartbeat(daten_filename);
+		last_runtime = runtime;
+		return;
+	}
 	web_presenter.webserver.watch_for_client();
-	delay(1000);// Ein bisschen ausgebremst ist er immer noch schnell genug
 }
