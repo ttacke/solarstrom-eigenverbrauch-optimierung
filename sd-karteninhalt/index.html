@@ -211,9 +211,15 @@
 				if(this.readyState == this.DONE) {
 					done_func();
 					if(this.status == 200) {
-						_setze_daten_ein(JSON.parse(this.responseText));
-						_zaehle_fehler(false);
-						zeitpunkt_letzte_daten = new Date().getTime();
+						var daten = JSON.parse(this.responseText);
+						zeitpunkt_letzte_daten = daten['timestamp'] * 1000;
+						_setze_daten_ein(daten);
+						var now = Math.floor(new Date().getTime() / 1000);
+						if(daten['timestamp'] < now - 120) {
+							_zaehle_fehler(true);
+						} else {
+							_zaehle_fehler(false);
+						}
 					} else {
 						_zaehle_fehler(true);
 					}
