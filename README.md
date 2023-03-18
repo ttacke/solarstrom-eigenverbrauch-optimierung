@@ -97,4 +97,3 @@ die Geräte nicht.
 
 ### OFFENES / TODO
 - Grundverbrauch: Tag und Nacht trennen, Durchschnitt aller Werte -> nur wenn Laden=aus (bzw das rausrechnen)
-- ShellyPlug: alle Daten auf einen Schlag auslesen! Das passiert 3x

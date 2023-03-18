@@ -8,6 +8,9 @@ namespace Local {
 
 	protected:
 		Local::Persistenz* persistenz;
+		int shelly_roller_cache_timestamp = 0;
+		bool shelly_roller_cache_ison = false;
+		int shelly_roller_cache_power = 0;
 
 		const char* heizung_relay_zustand_seit_filename = "heizung_relay.status";
 
@@ -185,7 +188,7 @@ namespace Local {
 			verbraucher.auto_relay_zustand_seit = _lese_zustand_seit(auto_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			verbraucher.roller_relay_ist_an = _shellyplug_ist_an(cfg->roller_relay_host, cfg->roller_relay_port);
+			verbraucher.roller_relay_ist_an = shelly_roller_cache_ison;
 			verbraucher.roller_relay_zustand_seit = _lese_zustand_seit(roller_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 		}
@@ -212,40 +215,12 @@ namespace Local {
 			);
 		}
 
-		bool _shellyplug_ist_an(const char* host, int port) {
-			web_client->send_http_get_request(
-				host,
-				port,
-				"/status"
-			);
-			while(web_client->read_next_block_to_buffer()) {
-				if(web_client->find_in_buffer((char*) "\"ison\":true")) {
-					return true;
-				}
-			}
-			return false;
-		}
-
 		void _schalte_shellyplug(bool ein, const char* host, int port) {
 			web_client->send_http_get_request(
 				host,
 				port,
 				(ein ? "/relay/0?turn=on" : "/relay/0?turn=off")
 			);
-		}
-
-		int _gib_aktuelle_shellyplug_leistung(const char* host, int port) {
-			web_client->send_http_get_request(
-				host,
-				port,
-				"/status"
-			);
-			while(web_client->read_next_block_to_buffer()) {
-				if(web_client->find_in_buffer((char*) "\"power\":([0-9]+)[^0-9]")) {
-					return atoi(web_client->finding_buffer);
-				}
-			}
-			return 0;
 		}
 
 		int _gib_auto_benoetigte_ladeleistung_in_w() {
@@ -426,28 +401,39 @@ namespace Local {
 			}
 		}
 
-		int _gib_zeitstempel() {
+		void _load_shelly_roller_cache() {
 			web_client->send_http_get_request(
 				cfg->roller_relay_host,
 				cfg->roller_relay_port,
 				"/status"
 			);
+
+			shelly_roller_cache_timestamp = 0;
+			shelly_roller_cache_ison = false;
+			shelly_roller_cache_power = 0;
 			while(web_client->read_next_block_to_buffer()) {
 				if(web_client->find_in_buffer((char*) "\"unixtime\":([0-9]+)[^0-9]")) {
-					return atoi(web_client->finding_buffer);
+					shelly_roller_cache_timestamp = atoi(web_client->finding_buffer);
+				}
+				if(web_client->find_in_buffer((char*) "\"ison\":true")) {
+					shelly_roller_cache_ison = true;
+				}
+				if(web_client->find_in_buffer((char*) "\"power\":([0-9]+)[^0-9]")) {
+					shelly_roller_cache_power = atoi(web_client->finding_buffer);
 				}
 			}
-			return 0;
 		}
 
 	public:
-		int timestamp;
+		int timestamp = 0;
 
 		VerbraucherAPI(
 			Local::Config& cfg,
 			Local::WebClient& web_client,
 			Local::Persistenz& persistenz
-		): BaseAPI(cfg, web_client), persistenz(&persistenz), timestamp(_gib_zeitstempel()) {
+		): BaseAPI(cfg, web_client), persistenz(&persistenz) {
+			_load_shelly_roller_cache();
+			timestamp = shelly_roller_cache_timestamp;
 		}
 
 		void daten_holen_und_einsetzen(
@@ -473,7 +459,7 @@ namespace Local {
 			);
 			verbraucher.auto_benoetigte_ladeleistung_in_w = _gib_auto_benoetigte_ladeleistung_in_w();
 
-			verbraucher.aktuelle_roller_ladeleistung_in_w = _gib_aktuelle_shellyplug_leistung(cfg->roller_relay_host, cfg->roller_relay_port);
+			verbraucher.aktuelle_roller_ladeleistung_in_w = shelly_roller_cache_power;
 			_lies_verbraucher_log(
 				verbraucher.roller_ladeleistung_log_in_w,
 				roller_leistung_log_filename,
