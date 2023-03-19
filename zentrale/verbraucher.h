@@ -109,7 +109,7 @@ namespace Local {
 		bool auto_laden_ist_an() {
 			if(
 				auto_relay_ist_an
-				&& _gib_genutzte_auto_ladeleistung_in_w() < (float) auto_benoetigte_ladeleistung_in_w * 0.8
+				&& _gib_genutzte_auto_ladeleistung_in_w() > (float) auto_benoetigte_ladeleistung_in_w * 0.8
 			) {
 				return true;
 			}
@@ -119,7 +119,7 @@ namespace Local {
 		bool roller_laden_ist_an() {
 			if(
 				roller_relay_ist_an
-				&& _gib_genutzte_roller_ladeleistung_in_w() < (float) roller_benoetigte_ladeleistung_in_w * 0.8
+				&& _gib_genutzte_roller_ladeleistung_in_w() > (float) roller_benoetigte_ladeleistung_in_w * 0.8
 			) {
 				return true;
 			}
