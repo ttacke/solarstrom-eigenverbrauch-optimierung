@@ -40,6 +40,13 @@ namespace Local {
 			fh.close();
 		}
 
+		bool delete_file(const char* filename) {
+			if(!_init() || !SD.exists(filename)) {
+				return false;
+			}
+			return SD.remove(filename);
+		}
+
 		bool open_file_to_read(const char* filename) {
 			if(!_init() || !SD.exists(filename)) {
 				return false;

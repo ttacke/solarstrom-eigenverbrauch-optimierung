@@ -304,16 +304,30 @@ namespace Local {
 				liste[i] = 0;
 			}
 			if(persistenz->open_file_to_read(log_filename)) {
+				int counter = 0;
 				while(persistenz->read_next_block_to_buffer()) {
-					char suche[16] = "";
+					counter++;
+					char suche[32] = "";
 					for(int i = 0; i < length; i++) {
 						sprintf(suche, ">%d=([-0-9]+)<", i);
 						if(persistenz->find_in_buffer((char*) suche)) {
 							liste[i] = atoi(persistenz->finding_buffer);
 						}
 					}
+					if(counter > 100) {
+						break;
+					}
 				}
 				persistenz->close_file();
+				if(counter > 100) {
+					Serial.println("Errors in file. Try to remove it...");
+					Serial.println(log_filename);
+					if(persistenz->delete_file(log_filename)) {
+						Serial.println("ok");
+					} else {
+						Serial.println("Failed! Cant delete it");
+					}
+				}
 			}
 		}
 

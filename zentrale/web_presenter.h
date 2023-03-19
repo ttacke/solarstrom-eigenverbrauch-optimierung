@@ -206,7 +206,7 @@ namespace Local {
 			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz);
 			int now_timestamp = verbraucher_api.timestamp;
 			if(!now_timestamp) {
-				Serial.println("Dertimestamp konnte im System nicht korrekt gelesen werden");
+				Serial.println("Der timestamp konnte im System nicht korrekt gelesen werden");
 				return;
 			}
 
