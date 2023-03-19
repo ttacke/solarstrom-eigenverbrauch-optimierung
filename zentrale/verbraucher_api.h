@@ -59,7 +59,6 @@ namespace Local {
 			char* log_key,
 			int relay_zustand_seit,
 			int min_schaltzeit_in_min,
-			Local::Verbraucher::Ladestatus& ladestatus,
 			bool relay_ist_an,
 			bool es_laedt
 		) {
@@ -68,11 +67,7 @@ namespace Local {
 				_log(log_key, (char*) "_laden_ist_beendet>schaltdauerNichtErreicht");
 				return false;
 			}
-
-			if(
-				ladestatus == Local::Verbraucher::Ladestatus::force
-				&& !relay_ist_an
-			) {
+			if(!relay_ist_an) {
 				_log(log_key, (char*) "_laden_ist_beendet>StatusFehlerKorrigiert");
 				return true;
 			}
@@ -508,27 +503,31 @@ namespace Local {
 		}
 
 		void fuehre_schaltautomat_aus(Local::Verbraucher& verbraucher) {
-			if(_laden_ist_beendet(
-				(char*) "roller",
-				verbraucher.roller_relay_zustand_seit,
-				cfg->roller_min_schaltzeit_in_min,
-				verbraucher.roller_ladestatus,
-				verbraucher.roller_relay_ist_an,
-				verbraucher.roller_laden_ist_an()
-			)) {
-				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar);
+			if(
+				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
+				&& _laden_ist_beendet(
+					(char*) "auto",
+					verbraucher.auto_relay_zustand_seit,
+					cfg->auto_min_schaltzeit_in_min,
+					verbraucher.auto_relay_ist_an,
+					verbraucher.auto_laden_ist_an()
+				)
+			) {
+				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar);
 				return;
 			}
 
-			if(_laden_ist_beendet(
-				(char*) "auto",
-				verbraucher.auto_relay_zustand_seit,
-				cfg->auto_min_schaltzeit_in_min,
-				verbraucher.auto_ladestatus,
-				verbraucher.auto_relay_ist_an,
-				verbraucher.auto_laden_ist_an()
-			)) {
-				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar);
+			if(
+				verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::force
+				&& _laden_ist_beendet(
+					(char*) "roller",
+					verbraucher.roller_relay_zustand_seit,
+					cfg->roller_min_schaltzeit_in_min,
+					verbraucher.roller_relay_ist_an,
+					verbraucher.roller_laden_ist_an()
+				)
+			) {
+				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar);
 				return;
 			}
 
@@ -542,7 +541,6 @@ namespace Local {
 				_log((char*) "SchaltKarenzzeit");
 				return;
 			}
-
 
 			if(
 				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::solar
