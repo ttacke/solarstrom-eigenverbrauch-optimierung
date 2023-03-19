@@ -69,6 +69,8 @@ my $verbrauch = [];
 foreach my $e (@$daten) {
     push(@$verbrauch, $e->{stromverbrauch_in_w});
 }
+# TODO - Grundverbrauch: Tag und Nacht trennen, Durchschnitt aller Werte -> nur wenn Laden=aus (bzw das rausrechnen)
+# va3 und vb3 enthalten erst die sinnvollen angaben, vorher nicht
 print "Grundverbrauch(via Median): " . (sort(@$verbrauch))[int(scalar(@$verbrauch) / 2)] . " W\n";
 
 my $min_i_in_ma = 0;

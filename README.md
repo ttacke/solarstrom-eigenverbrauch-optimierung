@@ -94,6 +94,3 @@ Wechselrichter und Batterie sollten nie im Netzwerk mit anderen Endgeräten sein
 sind fest codiert und "zertifizierten Handwerkern" bekannt. Also jedem. Jemand/Etwas auf einem
 anderen Endgerät im gleichen Netzwerk könnte also problemlos Schaden anrichten. Und: SSL kennen
 die Geräte nicht.
-
-### OFFENES / TODO
-- Grundverbrauch: Tag und Nacht trennen, Durchschnitt aller Werte -> nur wenn Laden=aus (bzw das rausrechnen)
