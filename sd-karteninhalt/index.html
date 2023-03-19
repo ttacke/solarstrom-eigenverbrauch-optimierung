@@ -18,7 +18,7 @@
 			}
 		}, 2000);
 
-		function refresh(action, key, val) {// DefaultValues kann Kindle nicht
+		function refresh(action, key, val, button_element) {// DefaultValues kann Kindle nicht
 			if(!ist_initialisiert) {
 				warte_auf_daten = false;
 				_erstelle_balkentabelle('balkenanzeige', 18);
@@ -27,10 +27,11 @@
 			}
 			// user-aktionen immer ausfuehren, nie blocken!
 			if(action && (warte_auf_daten || user_aktionen.length > 0)) {
-				user_aktionen.push({action: action, key: key, val: val});
+				user_aktionen.push({action: action, key: key, val: val, el: button_element});
 				action = '';
 				key = '';
 				val = '';
+				button_element = null;
 			}
 			if(!warte_auf_daten) {// Verhindern, dass sich Requests stauen, ueberholen etc
 				warte_auf_daten = true;
@@ -39,10 +40,18 @@
 					action = e.action;
 					key = e.key;
 					val = e.val;
+					button_element = e.el;
 				}
 				
 				if(action == 'change') {
 					_fuehre_aktion_aus(key, val, function() {
+						if(val == 'force') {
+							button_element.setAttribute('data-since', Math.round(new Date().getTime() / 1000));
+							button_element.className = 'on';
+						} else if(val == 'solar') {
+							button_element.setAttribute('data-since', Math.round(new Date().getTime() / 1000));
+							button_element.className = '';
+						}
 						_lies_daten(function() {
 							warte_auf_daten = false;
 						});
@@ -85,7 +94,11 @@
 			var xhr = new XMLHttpRequest();
 			xhr.onreadystatechange = function(args) {
 				if(this.readyState == this.DONE) {
-					done_func();
+					if(this.status == 204) {
+						done_func();
+					} else {
+						console.log("Fehler: " + this.status);
+					}
 				}
 			};
 			xhr.ontimeout = function(args) {
@@ -106,10 +119,10 @@
 			_setze_balkentabelle_daten(daten['tage_balkenanzeige'], 'balkenanzeige', 13, 5);
 			_setze_elektrische_daten(daten);
 			
-			_setze_ladewunsch('auto_laden', daten['auto_laden']);
+			_setze_ladewunsch('auto_laden', daten['auto_laden'], daten['timestamp']);
 			document.getElementById('auto_ladeleistung').innerHTML = daten['auto_benoetigte_ladeleistung_in_w'] + " W";
 
-			_setze_ladewunsch('roller_laden', daten['roller_laden']);
+			_setze_ladewunsch('roller_laden', daten['roller_laden'], daten['timestamp']);
 			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
 			
 			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : 'off';
@@ -125,12 +138,16 @@
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
 		}
-		function _setze_ladewunsch(id, typ) {
-			var el = document.getElementById(id);
+		function _setze_ladewunsch(id, typ, timestamp) {
+			var el = document.getElementById(id).getElementsByTagName("button")[0];
+			var button_timestamp = el.getAttribute('data-since');
+			if(button_timestamp && button_timestamp > timestamp) {
+				return;// Wenn in der UI geklickt, wird der Status erst nach dem naehsten Heartbeat aktualisiert
+			}
 			if(typ == 'force') {
-				el.getElementsByTagName("button")[0].className = 'on';
+				el.className = 'on';
 			} else {
-				el.getElementsByTagName("button")[0].className = '';
+				el.className = '';
 			}
 		}
 		function _zaehle_fehler(fehler_vorhanden) {
@@ -500,12 +517,12 @@
 <div class="schalter" id="auto_laden">
 	<span onclick="secure_action('change', 'auto', 'change_power')">Auto<br>
 	<span class="ladeleistung" id="auto_ladeleistung"></span></span>
-	<button onclick="refresh('change', 'auto', this.className == 'on' ? 'solar' : 'force')">&#9889;&#9889;&#9889;</button>
+	<button onclick="refresh('change', 'auto', this.className == 'on' ? 'solar' : 'force', this)">&#9889;&#9889;&#9889;</button>
 </div>
 <div class="schalter" id="roller_laden">
 	<span onclick="secure_action('change', 'roller', 'change_power')">Roller<br>
 	<span class="ladeleistung" id="roller_ladeleistung"></span></span>
-	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'solar' : 'force')">&#9889;&#9889;&#9889;</button>
+	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'solar' : 'force', this)">&#9889;&#9889;&#9889;</button>
 </div>
 
 </body>
