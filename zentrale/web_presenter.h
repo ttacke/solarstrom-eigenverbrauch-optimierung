@@ -175,11 +175,8 @@ namespace Local {
 			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz);
 			int now_timestamp = verbraucher_api.timestamp;
 			if(!now_timestamp) {
-				now_timestamp = webserver.server.arg("time").toInt();
-				if(now_timestamp < 1674987010) {
-					webserver.server.send(400, "text/plain", "Bitte den aktuellen UnixTimestamp via Parameter 'time' angeben.");
-					return;
-				}
+				webserver.server.send(400, "text/plain", "Der timestamp konnte im System nicht korrekt gelesen werden");
+				return;
 			}
 			const char* key = webserver.server.arg("key").c_str();
 			const char* val = webserver.server.arg("val").c_str();
@@ -209,11 +206,8 @@ namespace Local {
 			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz);
 			int now_timestamp = verbraucher_api.timestamp;
 			if(!now_timestamp) {
-				now_timestamp = webserver.server.arg("time").toInt();
-				if(now_timestamp < 1674987010) {
-					webserver.server.send(400, "text/plain", "Bitte den aktuellen UnixTimestamp via Parameter 'time' angeben.");
-					return;
-				}
+				Serial.println("Dertimestamp konnte im System nicht korrekt gelesen werden");
+				return;
 			}
 
 			Local::WechselrichterAPI wechselrichter_api(*cfg, web_client);
