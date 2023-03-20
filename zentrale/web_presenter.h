@@ -23,7 +23,7 @@ namespace Local {
 		Local::Config* cfg;
 		Local::WebClient web_client;
 		Local::Persistenz persistenz;
-		Local::Service::Web web_service;
+		Local::Service::Web service_web;
 
 		Local::ElektroAnlage elektroanlage;
 		Local::Wetter wetter;
@@ -107,20 +107,20 @@ namespace Local {
 			Local::Config& cfg, Local::Wlan& wlan
 		):
 			cfg(&cfg), web_client(wlan.client), webserver(cfg.webserver_port),
-			web_service(webserver)
+			service_web(webserver)
 		{}
 
 		void zeige_ui() {
-			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-			webserver.server.send(200, "text/html", "");
+			service_web.init_for_write(200, "text/html");
 			if(persistenz.open_file_to_read(ui_filename)) {
 				while(persistenz.read_next_block_to_buffer()) {
-					_print_char_to_web(persistenz.buffer);
+					service_web.write(persistenz.buffer);
 				}
 				persistenz.close_file();
 			} else {
-				_print_char_to_web((char*) "<h1>Bitte im Projekt 'cd code/scripte;perl schreibe_indexdatei.pl [IP]' ausf&uuml;hren</h1>");
+				service_web.write((char*) "<h1>Bitte im Projekt 'cd code/scripte;perl schreibe_indexdatei.pl [IP]' ausf&uuml;hren</h1>");
 			}
+			service_web.flush_write_buffer();
 		}
 
 		void download_file(const char* filename) {
