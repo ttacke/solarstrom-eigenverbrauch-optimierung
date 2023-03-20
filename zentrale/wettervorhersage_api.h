@@ -1,6 +1,6 @@
 #pragma once
 #include "base_api.h"
-#include "persistenz.h"
+#include "service/file_reader.h"
 #include "wetter.h"
 #include <TimeLib.h>
 
@@ -32,7 +32,7 @@ namespace Local {
 			}
 		}
 
-		void _daten_holen_und_persistieren(Local::Persistenz& persistenz, const char* filename, const char* uri) {
+		void _daten_holen_und_persistieren(Local::Service::FileReader& persistenz, const char* filename, const char* uri) {
 			// geht der Abruf schief, wird die vorherige Datei zerstoehrt.
 			// Der entstehende Schaden ist nicht relevant genug, um sich darum zu kuemmern
 			if(!persistenz.open_file_to_overwrite(filename)) {
@@ -52,7 +52,7 @@ namespace Local {
 			Serial.println("Wetterdaten geschrieben");
 		}
 
-		void _lese_stundendaten_und_setze_ein(Local::Persistenz& persistenz, int now_timestamp) {
+		void _lese_stundendaten_und_setze_ein(Local::Service::FileReader& persistenz, int now_timestamp) {
 			if(!persistenz.open_file_to_read(hourly_filename)) {
 				return;
 			}
@@ -96,7 +96,7 @@ namespace Local {
 			return day(timestamp) + (month(timestamp) * 100) + (year(timestamp) * 10000);
 		}
 
-		void _lese_tagesdaten_und_setze_ein(Local::Persistenz& persistenz, int now_timestamp) {
+		void _lese_tagesdaten_und_setze_ein(Local::Service::FileReader& persistenz, int now_timestamp) {
 			if(!persistenz.open_file_to_read(dayly_filename)) {
 				return;
 			}
@@ -153,7 +153,7 @@ namespace Local {
 			persistenz.close_file();
 		}
 
-		void _lese_stundencache_und_setze_ein(Local::Persistenz& persistenz, int now_timestamp) {
+		void _lese_stundencache_und_setze_ein(Local::Service::FileReader& persistenz, int now_timestamp) {
 			if(!persistenz.open_file_to_read(hourly_cache_filename)) {
 				return;
 			}
@@ -173,7 +173,7 @@ namespace Local {
 			persistenz.close_file();
 		}
 
-		void _lese_tagescache_und_setze_ein(Local::Persistenz& persistenz, int now_timestamp) {
+		void _lese_tagescache_und_setze_ein(Local::Service::FileReader& persistenz, int now_timestamp) {
 			if(!persistenz.open_file_to_read(dayly_cache_filename)) {
 				return;
 			}
@@ -194,7 +194,7 @@ namespace Local {
 			persistenz.close_file();
 		}
 
-		void _schreibe_stundencache(Local::Persistenz& persistenz) {
+		void _schreibe_stundencache(Local::Service::FileReader& persistenz) {
 			if(!persistenz.open_file_to_overwrite(hourly_cache_filename)) {
 				return;
 			}
@@ -205,7 +205,7 @@ namespace Local {
 			persistenz.close_file();
 		}
 
-		void _schreibe_tagescache(Local::Persistenz& persistenz) {
+		void _schreibe_tagescache(Local::Service::FileReader& persistenz) {
 			if(!persistenz.open_file_to_overwrite(dayly_cache_filename)) {
 				return;
 			}
@@ -217,16 +217,16 @@ namespace Local {
 		}
 
 	public:
-		void stundendaten_holen_und_persistieren(Local::Persistenz& persistenz) {
+		void stundendaten_holen_und_persistieren(Local::Service::FileReader& persistenz) {
 			_daten_holen_und_persistieren(persistenz, hourly_filename, hourly_request_uri);
 		}
 
-		void tagesdaten_holen_und_persistieren(Local::Persistenz& persistenz) {
+		void tagesdaten_holen_und_persistieren(Local::Service::FileReader& persistenz) {
 			_daten_holen_und_persistieren(persistenz, dayly_filename, dayly_request_uri);
 		}
 
 		void persistierte_daten_einsetzen(
-			Local::Persistenz& persistenz, Local::Wetter& wetter, int now_timestamp
+			Local::Service::FileReader& persistenz, Local::Wetter& wetter, int now_timestamp
 		) {
 			_reset(zeitpunkt_stunden_liste, stunden_anzahl);
 			_reset(solarstrahlung_stunden_liste, stunden_anzahl);

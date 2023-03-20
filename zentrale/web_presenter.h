@@ -3,7 +3,7 @@
 #include "wlan.h"
 #include "webserver.h"
 #include "service/web_reader.h"
-#include "persistenz.h"
+#include "service/file_reader.h"
 #include "elektro_anlage.h"
 #include "wetter.h"
 #include "smartmeter_api.h"
@@ -22,7 +22,7 @@ namespace Local {
 	// Wieso knallts dann bei referenzen? Wird eins der Objekte zerstört? Muss man Referenzen überall mit & notieren?
 		Local::Config* cfg;
 		Local::Service::WebReader web_reader;
-		Local::Persistenz persistenz;
+		Local::Service::FileReader persistenz;
 		Local::Service::WebWriter web_writer;
 
 		Local::ElektroAnlage elektroanlage;

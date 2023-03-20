@@ -3,8 +3,8 @@
 #include <SD.h>
 #include <Regexp.h>
 
-namespace Local {
-	class Persistenz {
+namespace Local::Service {
+	class FileReader {
 	protected:
 		bool init = false;
 		File fh;

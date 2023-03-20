@@ -7,7 +7,7 @@ namespace Local {
 	using BaseAPI::BaseAPI;
 
 	protected:
-		Local::Persistenz* persistenz;
+		Local::Service::FileReader* persistenz;
 		int shelly_roller_cache_timestamp = 0;
 		bool shelly_roller_cache_ison = false;
 		int shelly_roller_cache_power = 0;
@@ -439,7 +439,7 @@ namespace Local {
 		VerbraucherAPI(
 			Local::Config& cfg,
 			Local::Service::WebReader& web_reader,
-			Local::Persistenz& persistenz
+			Local::Service::FileReader& persistenz
 		): BaseAPI(cfg, web_reader), persistenz(&persistenz) {
 			_load_shelly_roller_cache();
 			timestamp = shelly_roller_cache_timestamp;
