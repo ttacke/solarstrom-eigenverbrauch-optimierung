@@ -39,13 +39,13 @@ namespace Local {
 				return;
 			}
 			sprintf(request_uri, uri, cfg->accuweather_location_id, cfg->accuweather_api_key);
-			web_client->send_http_get_request(
+			web_reader->send_http_get_request(
 				"dataservice.accuweather.com",
 				80,
 				request_uri
 			);
-			while(web_client->read_next_block_to_buffer()) {
-				memcpy(persistenz.buffer, web_client->buffer, strlen(web_client->buffer) + 1);
+			while(web_reader->read_next_block_to_buffer()) {
+				memcpy(persistenz.buffer, web_reader->buffer, strlen(web_reader->buffer) + 1);
 				persistenz.print_buffer_to_file();
 			}
 			persistenz.close_file();

@@ -189,13 +189,13 @@ namespace Local {
 		}
 
 		bool _netz_relay_ist_an(const char* host, int port) {
-			web_client->send_http_get_request(
+			web_reader->send_http_get_request(
 				host,
 				port,
 				"/relay"
 			);
-			while(web_client->read_next_block_to_buffer()) {
-				if(web_client->find_in_buffer((char*) "\"ison\":true")) {
+			while(web_reader->read_next_block_to_buffer()) {
+				if(web_reader->find_in_buffer((char*) "\"ison\":true")) {
 					return true;
 				}
 			}
@@ -203,7 +203,7 @@ namespace Local {
 		}
 
 		void _schalte_netz_relay(bool ein, const char* host, int port) {
-			web_client->send_http_get_request(
+			web_reader->send_http_get_request(
 				host,
 				port,
 				(ein ? "/relay?set_relay=true" : "/relay?set_relay=false")
@@ -211,7 +211,7 @@ namespace Local {
 		}
 
 		void _schalte_shellyplug(bool ein, const char* host, int port) {
-			web_client->send_http_get_request(
+			web_reader->send_http_get_request(
 				host,
 				port,
 				(ein ? "/relay/0?turn=on" : "/relay/0?turn=off")
@@ -411,7 +411,7 @@ namespace Local {
 		}
 
 		void _load_shelly_roller_cache() {
-			web_client->send_http_get_request(
+			web_reader->send_http_get_request(
 				cfg->roller_relay_host,
 				cfg->roller_relay_port,
 				"/status"
@@ -420,15 +420,15 @@ namespace Local {
 			shelly_roller_cache_timestamp = 0;
 			shelly_roller_cache_ison = false;
 			shelly_roller_cache_power = 0;
-			while(web_client->read_next_block_to_buffer()) {
-				if(web_client->find_in_buffer((char*) "\"unixtime\":([0-9]+)[^0-9]")) {
-					shelly_roller_cache_timestamp = atoi(web_client->finding_buffer);
+			while(web_reader->read_next_block_to_buffer()) {
+				if(web_reader->find_in_buffer((char*) "\"unixtime\":([0-9]+)[^0-9]")) {
+					shelly_roller_cache_timestamp = atoi(web_reader->finding_buffer);
 				}
-				if(web_client->find_in_buffer((char*) "\"ison\":true")) {
+				if(web_reader->find_in_buffer((char*) "\"ison\":true")) {
 					shelly_roller_cache_ison = true;
 				}
-				if(web_client->find_in_buffer((char*) "\"power\":([0-9]+)[^0-9]")) {
-					shelly_roller_cache_power = atoi(web_client->finding_buffer);
+				if(web_reader->find_in_buffer((char*) "\"power\":([0-9]+)[^0-9]")) {
+					shelly_roller_cache_power = atoi(web_reader->finding_buffer);
 				}
 			}
 		}
@@ -438,9 +438,9 @@ namespace Local {
 
 		VerbraucherAPI(
 			Local::Config& cfg,
-			Local::WebClient& web_client,
+			Local::Service::WebReader& web_reader,
 			Local::Persistenz& persistenz
-		): BaseAPI(cfg, web_client), persistenz(&persistenz) {
+		): BaseAPI(cfg, web_reader), persistenz(&persistenz) {
 			_load_shelly_roller_cache();
 			timestamp = shelly_roller_cache_timestamp;
 		}

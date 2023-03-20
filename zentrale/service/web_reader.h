@@ -5,8 +5,8 @@
 // https://stackoverflow.com/questions/34078497/esp8266-wificlient-simple-http-get
 // https://arduinogetstarted.com/reference/serial-readbytes
 
-namespace Local {
-	class WebClient {
+namespace Local::Service {
+	class WebReader {
 	protected:
 		WiFiClient& wlan_client;
 		MatchState match_state;
@@ -49,7 +49,7 @@ namespace Local {
 		char finding_buffer[65];
 		char buffer[64];
 
-		WebClient(WiFiClient& wlan_client): wlan_client(wlan_client) {
+		WebReader(WiFiClient& wlan_client): wlan_client(wlan_client) {
 		}
 
 		bool find_in_buffer(char* regex) {

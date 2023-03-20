@@ -2,7 +2,7 @@
 #include "config.h"
 #include "wlan.h"
 #include "webserver.h"
-#include "web_client.h"
+#include "service/web_reader.h"
 #include "persistenz.h"
 #include "elektro_anlage.h"
 #include "wetter.h"
@@ -11,7 +11,7 @@
 #include "wettervorhersage_api.h"
 #include "verbraucher.h"
 #include "verbraucher_api.h"
-#include "service/web.h"
+#include "service/web_writer.h"
 #include <TimeLib.h>
 
 namespace Local {
@@ -21,9 +21,9 @@ namespace Local {
 	// Referenzen sind mit RefCount verbunden und unveränderlich
 	// Wieso knallts dann bei referenzen? Wird eins der Objekte zerstört? Muss man Referenzen überall mit & notieren?
 		Local::Config* cfg;
-		Local::WebClient web_client;
+		Local::Service::WebReader web_reader;
 		Local::Persistenz persistenz;
-		Local::Service::Web service_web;
+		Local::Service::WebWriter web_writer;
 
 		Local::ElektroAnlage elektroanlage;
 		Local::Wetter wetter;
@@ -102,33 +102,33 @@ namespace Local {
 		WebPresenter(
 			Local::Config& cfg, Local::Wlan& wlan
 		):
-			cfg(&cfg), web_client(wlan.client), webserver(cfg.webserver_port),
-			service_web(webserver)
+			cfg(&cfg), web_reader(wlan.client), webserver(cfg.webserver_port),
+			web_writer(webserver)
 		{}
 
 		void zeige_ui() {
-			service_web.init_for_write(200, "text/html");
+			web_writer.init_for_write(200, "text/html");
 			if(persistenz.open_file_to_read(ui_filename)) {
 				while(persistenz.read_next_block_to_buffer()) {
-					service_web.write(persistenz.buffer);
+					web_writer.write(persistenz.buffer);
 				}
 				persistenz.close_file();
 			} else {
-				service_web.write((char*) "<h1>Bitte im Projekt 'cd code/scripte;perl schreibe_indexdatei.pl [IP]' ausf&uuml;hren</h1>");
+				web_writer.write((char*) "<h1>Bitte im Projekt 'cd code/scripte;perl schreibe_indexdatei.pl [IP]' ausf&uuml;hren</h1>");
 			}
-			service_web.flush_write_buffer();
+			web_writer.flush_write_buffer();
 		}
 
 		void download_file(const char* filename) {
 			if(persistenz.open_file_to_read(filename)) {
-				service_web.init_for_write(200, "text/plain");
+				web_writer.init_for_write(200, "text/plain");
 				while(persistenz.read_next_block_to_buffer()) {
-					service_web.write(persistenz.buffer);
+					web_writer.write(persistenz.buffer);
 
 					yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				}
 				persistenz.close_file();
-				service_web.flush_write_buffer();
+				web_writer.flush_write_buffer();
 			} else {
 				webserver.server.send(404, "text/plain", "Not found");
 			}
@@ -169,7 +169,7 @@ namespace Local {
 		}
 
 		void aendere() {
-			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz);
+			Local::VerbraucherAPI verbraucher_api(*cfg, web_reader, persistenz);
 			int now_timestamp = verbraucher_api.timestamp;
 			if(!now_timestamp) {
 				webserver.server.send(400, "text/plain", "Der timestamp konnte im System nicht korrekt gelesen werden");
@@ -200,22 +200,22 @@ namespace Local {
 
 		void heartbeat(const char* data_filename) {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
-			Local::VerbraucherAPI verbraucher_api(*cfg, web_client, persistenz);
+			Local::VerbraucherAPI verbraucher_api(*cfg, web_reader, persistenz);
 			int now_timestamp = verbraucher_api.timestamp;
 			if(!now_timestamp) {
 				Serial.println("Der timestamp konnte im System nicht korrekt gelesen werden");
 				return;
 			}
 
-			Local::WechselrichterAPI wechselrichter_api(*cfg, web_client);
+			Local::WechselrichterAPI wechselrichter_api(*cfg, web_reader);
 			wechselrichter_api.daten_holen_und_einsetzen(elektroanlage);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			Local::SmartmeterAPI smartmeter_api(*cfg, web_client);
+			Local::SmartmeterAPI smartmeter_api(*cfg, web_reader);
 			smartmeter_api.daten_holen_und_einsetzen(elektroanlage);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			Local::WettervorhersageAPI wettervorhersage_api(*cfg, web_client);
+			Local::WettervorhersageAPI wettervorhersage_api(*cfg, web_reader);
 
 			_lese_systemstatus_daten();
 			if(

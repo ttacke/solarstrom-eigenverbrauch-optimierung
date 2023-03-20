@@ -1,11 +1,11 @@
 #include "config.h"
 #include "wlan.h"
-#include "web_client.h"
+#include "service/web_reader.h"
 #include "web_presenter.h"
 
 Local::Config cfg;
 Local::Wlan wlan(cfg.wlan_ssid, cfg.wlan_pwd);
-Local::WebClient web_client(wlan.client);
+Local::Service::WebReader web_reader(wlan.client);
 Local::WebPresenter web_presenter(cfg, wlan);
 unsigned long runtime;
 unsigned long last_runtime;

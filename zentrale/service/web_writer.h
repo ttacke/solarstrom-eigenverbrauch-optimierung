@@ -1,14 +1,14 @@
 #pragma once
 
 namespace Local::Service {
-	class Web {
+	class WebWriter {
 	protected:
 		Local::Webserver& webserver;
 		char buffer[2048];
 		int buffer_offset = 0;
 
 	public:
-		Web(
+		WebWriter(
 			Local::Webserver& webserver
 		): webserver(webserver) {
 		}
