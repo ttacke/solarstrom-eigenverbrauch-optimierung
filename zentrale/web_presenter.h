@@ -37,10 +37,6 @@ namespace Local {
 		const char* anlagen_log_filename = "anlage_log.csv";
 		const char* ui_filename = "index.html";
 
-		void _print_char_to_web(char* c) {
-			webserver.server.sendContent(c);
-		}
-
 		void _lese_systemstatus_daten() {
 			if(persistenz.open_file_to_read(system_status_filename)) {
 				while(persistenz.read_next_block_to_buffer()) {
@@ -125,14 +121,14 @@ namespace Local {
 
 		void download_file(const char* filename) {
 			if(persistenz.open_file_to_read(filename)) {
-				webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-				webserver.server.send(200, "text/plain", "");
+				service_web.init_for_write(200, "text/plain");
 				while(persistenz.read_next_block_to_buffer()) {
-					_print_char_to_web(persistenz.buffer);
+					service_web.write(persistenz.buffer);
 
 					yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				}
 				persistenz.close_file();
+				service_web.flush_write_buffer();
 			} else {
 				webserver.server.send(404, "text/plain", "Not found");
 			}
