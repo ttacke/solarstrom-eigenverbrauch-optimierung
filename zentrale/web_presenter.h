@@ -11,6 +11,7 @@
 #include "wettervorhersage_api.h"
 #include "verbraucher.h"
 #include "verbraucher_api.h"
+#include "service/web.h"
 #include <TimeLib.h>
 
 namespace Local {
@@ -22,13 +23,12 @@ namespace Local {
 		Local::Config* cfg;
 		Local::WebClient web_client;
 		Local::Persistenz persistenz;
+		Local::Service::Web web_service;
 
 		Local::ElektroAnlage elektroanlage;
 		Local::Wetter wetter;
 		Local::Verbraucher verbraucher;
 
-		char int_as_char[16];
-		char output_buffer[32];
 		// TODO configwerte als SD_File ablegen? dann können komlpexere Dinge außerhalb laufen
 		// z.b. die Grundlast und die Monatlichen/Stündlichen Anpassungen für Strahlungswerte
 		const char* system_status_filename = "system_status.csv";
@@ -105,9 +105,10 @@ namespace Local {
 
 		WebPresenter(
 			Local::Config& cfg, Local::Wlan& wlan
-		): cfg(&cfg), web_client(wlan.client), webserver(cfg.webserver_port) {
-
-		}
+		):
+			cfg(&cfg), web_client(wlan.client), webserver(cfg.webserver_port),
+			web_service(webserver)
+		{}
 
 		void zeige_ui() {
 			webserver.server.setContentLength(CONTENT_LENGTH_UNKNOWN);
