@@ -7,7 +7,8 @@ namespace Local {
 	using BaseAPI::BaseAPI;
 
 	protected:
-		Local::Service::FileReader* persistenz;
+		Local::Service::FileReader* file_reader;
+		Local::Service::FileWriter& file_writer;
 		int shelly_roller_cache_timestamp = 0;
 		bool shelly_roller_cache_ison = false;
 		int shelly_roller_cache_power = 0;
@@ -32,26 +33,26 @@ namespace Local {
 		const char* log_filename = "verbraucher_automatisierung.log";
 
 		void _log(char* msg) {
-			if(persistenz->open_file_to_append(log_filename)) {
-				sprintf(persistenz->buffer, "%d:", timestamp);
-				persistenz->print_buffer_to_file();
+			if(file_reader->open_file_to_append(log_filename)) {
+				sprintf(file_reader->buffer, "%d:", timestamp);
+				file_reader->print_buffer_to_file();
 
-				sprintf(persistenz->buffer, "%s\n", msg);
-				persistenz->print_buffer_to_file();
+				sprintf(file_reader->buffer, "%s\n", msg);
+				file_reader->print_buffer_to_file();
 
-				persistenz->close_file();
+				file_reader->close_file();
 			}
 		}
 
 		void _log(char* key, char* msg) {
-			if(persistenz->open_file_to_append(log_filename)) {
-				sprintf(persistenz->buffer, "%d:", timestamp);
-				persistenz->print_buffer_to_file();
+			if(file_reader->open_file_to_append(log_filename)) {
+				sprintf(file_reader->buffer, "%d:", timestamp);
+				file_reader->print_buffer_to_file();
 
-				sprintf(persistenz->buffer, "%s>%s\n", key, msg);
-				persistenz->print_buffer_to_file();
+				sprintf(file_reader->buffer, "%s>%s\n", key, msg);
+				file_reader->print_buffer_to_file();
 
-				persistenz->close_file();
+				file_reader->close_file();
 			}
 		}
 
@@ -220,81 +221,81 @@ namespace Local {
 
 		int _gib_auto_benoetigte_ladeleistung_in_w() {
 			int leistung = cfg->auto_benoetigte_leistung_gering_in_w;
-			if(persistenz->open_file_to_read(auto_leistung_filename)) {
-				while(persistenz->read_next_block_to_buffer()) {
-					if(persistenz->find_in_buffer((char*) "([0-9]+)")) {
-						int i = atoi(persistenz->finding_buffer);
+			if(file_reader->open_file_to_read(auto_leistung_filename)) {
+				while(file_reader->read_next_block_to_buffer()) {
+					if(file_reader->find_in_buffer((char*) "([0-9]+)")) {
+						int i = atoi(file_reader->finding_buffer);
 						if(i > 0) {
 							leistung = i;
 						}
 					}
 				}
-				persistenz->close_file();
+				file_reader->close_file();
 			}
 			return leistung;
 		}
 
 		void _schalte_roller_relay(bool ein) {
 			_schalte_shellyplug(ein, cfg->roller_relay_host, cfg->roller_relay_port);
-			if(persistenz->open_file_to_overwrite(roller_relay_zustand_seit_filename)) {
-				sprintf(persistenz->buffer, "%d", timestamp);
-				persistenz->print_buffer_to_file();
-				persistenz->close_file();
+			if(file_reader->open_file_to_overwrite(roller_relay_zustand_seit_filename)) {
+				sprintf(file_reader->buffer, "%d", timestamp);
+				file_reader->print_buffer_to_file();
+				file_reader->close_file();
 			}
 		}
 
 		void _schalte_auto_relay(bool ein) {
 			_schalte_netz_relay(ein, cfg->auto_relay_host, cfg->auto_relay_port);
-			if(persistenz->open_file_to_overwrite(auto_relay_zustand_seit_filename)) {
-				sprintf(persistenz->buffer, "%d", timestamp);
-				persistenz->print_buffer_to_file();
-				persistenz->close_file();
+			if(file_reader->open_file_to_overwrite(auto_relay_zustand_seit_filename)) {
+				sprintf(file_reader->buffer, "%d", timestamp);
+				file_reader->print_buffer_to_file();
+				file_reader->close_file();
 			}
 		}
 
 		void _schalte_wasser_relay(bool ein) {
 			_schalte_netz_relay(ein, cfg->wasser_relay_host, cfg->wasser_relay_port);
-			if(persistenz->open_file_to_overwrite(wasser_relay_zustand_seit_filename)) {
-				sprintf(persistenz->buffer, "%d", timestamp);
-				persistenz->print_buffer_to_file();
-				persistenz->close_file();
+			if(file_reader->open_file_to_overwrite(wasser_relay_zustand_seit_filename)) {
+				sprintf(file_reader->buffer, "%d", timestamp);
+				file_reader->print_buffer_to_file();
+				file_reader->close_file();
 			}
 		}
 
 		void _schalte_heizung_relay(bool ein) {
 			_schalte_netz_relay(ein, cfg->heizung_relay_host, cfg->heizung_relay_port);
-			if(persistenz->open_file_to_overwrite(heizung_relay_zustand_seit_filename)) {
-				sprintf(persistenz->buffer, "%d", timestamp);
-				persistenz->print_buffer_to_file();
-				persistenz->close_file();
+			if(file_reader->open_file_to_overwrite(heizung_relay_zustand_seit_filename)) {
+				sprintf(file_reader->buffer, "%d", timestamp);
+				file_reader->print_buffer_to_file();
+				file_reader->close_file();
 			}
 		}
 
 		int _lese_zustand_seit(const char* filename) {
 			int seit = 0;
-			if(persistenz->open_file_to_read(filename)) {
-				while(persistenz->read_next_block_to_buffer()) {
-					if(persistenz->find_in_buffer((char*) "([0-9]+)")) {
-						seit = atoi(persistenz->finding_buffer);
+			if(file_reader->open_file_to_read(filename)) {
+				while(file_reader->read_next_block_to_buffer()) {
+					if(file_reader->find_in_buffer((char*) "([0-9]+)")) {
+						seit = atoi(file_reader->finding_buffer);
 					}
 				}
-				persistenz->close_file();
+				file_reader->close_file();
 			}
 			return seit;
 		}
 
 		int _gib_roller_benoetigte_ladeleistung_in_w() {
 			int leistung = cfg->roller_benoetigte_leistung_hoch_in_w;
-			if(persistenz->open_file_to_read(roller_leistung_filename)) {
-				while(persistenz->read_next_block_to_buffer()) {
-					if(persistenz->find_in_buffer((char*) "([0-9]+)")) {
-						int i = atoi(persistenz->finding_buffer);
+			if(file_reader->open_file_to_read(roller_leistung_filename)) {
+				while(file_reader->read_next_block_to_buffer()) {
+					if(file_reader->find_in_buffer((char*) "([0-9]+)")) {
+						int i = atoi(file_reader->finding_buffer);
 						if(i > 0) {
 							leistung = i;
 						}
 					}
 				}
-				persistenz->close_file();
+				file_reader->close_file();
 			}
 			return leistung;
 		}
@@ -303,26 +304,26 @@ namespace Local {
 			for(int i = 0; i < length; i++) {
 				liste[i] = 0;
 			}
-			if(persistenz->open_file_to_read(log_filename)) {
+			if(file_reader->open_file_to_read(log_filename)) {
 				int counter = 0;
-				while(persistenz->read_next_block_to_buffer()) {
+				while(file_reader->read_next_block_to_buffer()) {
 					counter++;
 					char suche[32] = "";
 					for(int i = 0; i < length; i++) {
 						sprintf(suche, ">%d=([-0-9]+)<", i);
-						if(persistenz->find_in_buffer((char*) suche)) {
-							liste[i] = atoi(persistenz->finding_buffer);
+						if(file_reader->find_in_buffer((char*) suche)) {
+							liste[i] = atoi(file_reader->finding_buffer);
 						}
 					}
 					if(counter > 100) {
 						break;
 					}
 				}
-				persistenz->close_file();
+				file_reader->close_file();
 				if(counter > 100) {
 					Serial.println("Errors in file. Try to remove it...");
 					Serial.println(log_filename);
-					if(persistenz->delete_file(log_filename)) {
+					if(file_writer.delete_file(log_filename)) {
 						Serial.println("ok");
 					} else {
 						Serial.println("Failed! Cant delete it");
@@ -339,27 +340,27 @@ namespace Local {
 			}
 			liste[length - 1] = aktuell;
 
-			if(persistenz->open_file_to_overwrite(log_filename)) {
+			if(file_reader->open_file_to_overwrite(log_filename)) {
 				for(int i = 0; i < length; i++) {
-					sprintf(persistenz->buffer, ">%d=%d<", i, liste[i]);
-					persistenz->print_buffer_to_file();
+					sprintf(file_reader->buffer, ">%d=%d<", i, liste[i]);
+					file_reader->print_buffer_to_file();
 				}
-				persistenz->close_file();
+				file_reader->close_file();
 			}
 		}
 
 		void _lese_ladestatus(Local::Verbraucher::Ladestatus& ladestatus, const char* filename) {
 			ladestatus = Local::Verbraucher::Ladestatus::solar;
-			if(persistenz->open_file_to_read(filename)) {
-				while(persistenz->read_next_block_to_buffer()) {
-					if(persistenz->find_in_buffer((char*) "([a-z]+)")) {
-						if(strcmp(persistenz->finding_buffer, "force") == 0) {
+			if(file_reader->open_file_to_read(filename)) {
+				while(file_reader->read_next_block_to_buffer()) {
+					if(file_reader->find_in_buffer((char*) "([a-z]+)")) {
+						if(strcmp(file_reader->finding_buffer, "force") == 0) {
 							ladestatus = Local::Verbraucher::Ladestatus::force;
 						}
 						return;
 					}
 				}
-				persistenz->close_file();
+				file_reader->close_file();
 			}
 		}
 
@@ -439,8 +440,9 @@ namespace Local {
 		VerbraucherAPI(
 			Local::Config& cfg,
 			Local::Service::WebReader& web_reader,
-			Local::Service::FileReader& persistenz
-		): BaseAPI(cfg, web_reader), persistenz(&persistenz) {
+			Local::Service::FileReader& file_reader,
+			Local::Service::FileWriter& file_writer
+		): BaseAPI(cfg, web_reader), file_reader(&file_reader), file_writer(file_writer) {
 			_load_shelly_roller_cache();
 			timestamp = shelly_roller_cache_timestamp;
 		}
@@ -721,13 +723,13 @@ namespace Local {
 				strcpy(stat, "solar");
 				_log((char*) "setze_roller_ladestatus>solar");
 			}
-			if(persistenz->open_file_to_overwrite(roller_ladestatus_filename)) {
-				sprintf(persistenz->buffer, "%s", stat);
-				persistenz->print_buffer_to_file();
-				persistenz->close_file();
+			if(file_reader->open_file_to_overwrite(roller_ladestatus_filename)) {
+				sprintf(file_reader->buffer, "%s", stat);
+				file_reader->print_buffer_to_file();
+				file_reader->close_file();
 			}
-			if(persistenz->open_file_to_overwrite(roller_leistung_log_filename)) {
-				persistenz->close_file();
+			if(file_reader->open_file_to_overwrite(roller_leistung_log_filename)) {
+				file_reader->close_file();
 			}
 		}
 
@@ -741,13 +743,13 @@ namespace Local {
 				strcpy(stat, "solar");
 				_log((char*) "setze_auto_ladestatus>solar");
 			}
-			if(persistenz->open_file_to_overwrite(auto_ladestatus_filename)) {
-				sprintf(persistenz->buffer, "%s", stat);
-				persistenz->print_buffer_to_file();
-				persistenz->close_file();
+			if(file_reader->open_file_to_overwrite(auto_ladestatus_filename)) {
+				sprintf(file_reader->buffer, "%s", stat);
+				file_reader->print_buffer_to_file();
+				file_reader->close_file();
 			}
-			if(persistenz->open_file_to_overwrite(auto_leistung_log_filename)) {
-				persistenz->close_file();
+			if(file_reader->open_file_to_overwrite(auto_leistung_log_filename)) {
+				file_reader->close_file();
 			}
 		}
 
@@ -759,10 +761,10 @@ namespace Local {
 			} else {
 				auto_benoetigte_ladeleistung_in_w = cfg->auto_benoetigte_leistung_hoch_in_w;
 			}
-			if(persistenz->open_file_to_overwrite(auto_leistung_filename)) {
-				sprintf(persistenz->buffer, "%d", auto_benoetigte_ladeleistung_in_w);
-				persistenz->print_buffer_to_file();
-				persistenz->close_file();
+			if(file_reader->open_file_to_overwrite(auto_leistung_filename)) {
+				sprintf(file_reader->buffer, "%d", auto_benoetigte_ladeleistung_in_w);
+				file_reader->print_buffer_to_file();
+				file_reader->close_file();
 			}
 		}
 
@@ -774,10 +776,10 @@ namespace Local {
 			} else {
 				roller_benoetigte_ladeleistung_in_w = cfg->roller_benoetigte_leistung_hoch_in_w;
 			}
-			if(persistenz->open_file_to_overwrite(roller_leistung_filename)) {
-				sprintf(persistenz->buffer, "%d", roller_benoetigte_ladeleistung_in_w);
-				persistenz->print_buffer_to_file();
-				persistenz->close_file();
+			if(file_reader->open_file_to_overwrite(roller_leistung_filename)) {
+				sprintf(file_reader->buffer, "%d", roller_benoetigte_ladeleistung_in_w);
+				file_reader->print_buffer_to_file();
+				file_reader->close_file();
 			}
 		}
 	};

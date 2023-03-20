@@ -4,6 +4,7 @@
 #include "webserver.h"
 #include "service/web_reader.h"
 #include "service/file_reader.h"
+#include "service/file_writer.h"
 #include "elektro_anlage.h"
 #include "wetter.h"
 #include "smartmeter_api.h"
@@ -22,8 +23,9 @@ namespace Local {
 	// Wieso knallts dann bei referenzen? Wird eins der Objekte zerstört? Muss man Referenzen überall mit & notieren?
 		Local::Config* cfg;
 		Local::Service::WebReader web_reader;
-		Local::Service::FileReader persistenz;
 		Local::Service::WebWriter web_writer;
+		Local::Service::FileReader file_reader;
+		Local::Service::FileWriter file_writer;
 
 		Local::ElektroAnlage elektroanlage;
 		Local::Wetter wetter;
@@ -38,61 +40,61 @@ namespace Local {
 		const char* ui_filename = "index.html";
 
 		void _lese_systemstatus_daten() {
-			if(persistenz.open_file_to_read(system_status_filename)) {
-				while(persistenz.read_next_block_to_buffer()) {
-					if(persistenz.find_in_buffer((char*) "\nstunden_wettervorhersage_letzter_abruf,([0-9]+),")) {
-						stunden_wettervorhersage_letzter_abruf = atoi(persistenz.finding_buffer);
+			if(file_reader.open_file_to_read(system_status_filename)) {
+				while(file_reader.read_next_block_to_buffer()) {
+					if(file_reader.find_in_buffer((char*) "\nstunden_wettervorhersage_letzter_abruf,([0-9]+),")) {
+						stunden_wettervorhersage_letzter_abruf = atoi(file_reader.finding_buffer);
 					}
-					if(persistenz.find_in_buffer((char*) "\ntages_wettervorhersage_letzter_abruf,([0-9]+),")) {
-						tages_wettervorhersage_letzter_abruf = atoi(persistenz.finding_buffer);
+					if(file_reader.find_in_buffer((char*) "\ntages_wettervorhersage_letzter_abruf,([0-9]+),")) {
+						tages_wettervorhersage_letzter_abruf = atoi(file_reader.finding_buffer);
 					}
 				}
-				persistenz.close_file();
+				file_reader.close_file();
 			}
 		}
 
 		void _schreibe_systemstatus_daten() {
-			if(persistenz.open_file_to_overwrite(system_status_filename)) {
-				sprintf(persistenz.buffer, "\nstunden_wettervorhersage_letzter_abruf,%d,", stunden_wettervorhersage_letzter_abruf);
-				persistenz.print_buffer_to_file();
+			if(file_reader.open_file_to_overwrite(system_status_filename)) {
+				sprintf(file_reader.buffer, "\nstunden_wettervorhersage_letzter_abruf,%d,", stunden_wettervorhersage_letzter_abruf);
+				file_reader.print_buffer_to_file();
 
-				sprintf(persistenz.buffer, "\ntages_wettervorhersage_letzter_abruf,%d,", tages_wettervorhersage_letzter_abruf);
-				persistenz.print_buffer_to_file();
+				sprintf(file_reader.buffer, "\ntages_wettervorhersage_letzter_abruf,%d,", tages_wettervorhersage_letzter_abruf);
+				file_reader.print_buffer_to_file();
 
-				persistenz.close_file();
+				file_reader.close_file();
 			}
 		}
 
 		void _write_log_data(int now_timestamp) {
-			if(persistenz.open_file_to_append(anlagen_log_filename)) {
-				sprintf(persistenz.buffer, "%d,", now_timestamp);
-				persistenz.print_buffer_to_file();
+			if(file_reader.open_file_to_append(anlagen_log_filename)) {
+				sprintf(file_reader.buffer, "%d,", now_timestamp);
+				file_reader.print_buffer_to_file();
 
-				elektroanlage.set_log_data(persistenz.buffer);
-				persistenz.print_buffer_to_file();
+				elektroanlage.set_log_data(file_reader.buffer);
+				file_reader.print_buffer_to_file();
 
-				sprintf(persistenz.buffer, "%s", ",");
-				persistenz.print_buffer_to_file();
+				sprintf(file_reader.buffer, "%s", ",");
+				file_reader.print_buffer_to_file();
 
-				wetter.set_log_data(persistenz.buffer);
-				persistenz.print_buffer_to_file();
+				wetter.set_log_data(file_reader.buffer);
+				file_reader.print_buffer_to_file();
 
-				sprintf(persistenz.buffer, "%s", ",");
-				persistenz.print_buffer_to_file();
+				sprintf(file_reader.buffer, "%s", ",");
+				file_reader.print_buffer_to_file();
 
-				verbraucher.set_log_data_a(persistenz.buffer);
-				persistenz.print_buffer_to_file();
+				verbraucher.set_log_data_a(file_reader.buffer);
+				file_reader.print_buffer_to_file();
 
-				sprintf(persistenz.buffer, "%s", ",");
-				persistenz.print_buffer_to_file();
+				sprintf(file_reader.buffer, "%s", ",");
+				file_reader.print_buffer_to_file();
 
-				verbraucher.set_log_data_b(persistenz.buffer);
-				persistenz.print_buffer_to_file();
+				verbraucher.set_log_data_b(file_reader.buffer);
+				file_reader.print_buffer_to_file();
 
-				sprintf(persistenz.buffer, "%s", "\n");
-				persistenz.print_buffer_to_file();
+				sprintf(file_reader.buffer, "%s", "\n");
+				file_reader.print_buffer_to_file();
 
-				persistenz.close_file();
+				file_reader.close_file();
 			}
 		}
 
@@ -108,11 +110,11 @@ namespace Local {
 
 		void zeige_ui() {
 			web_writer.init_for_write(200, "text/html");
-			if(persistenz.open_file_to_read(ui_filename)) {
-				while(persistenz.read_next_block_to_buffer()) {
-					web_writer.write(persistenz.buffer);
+			if(file_reader.open_file_to_read(ui_filename)) {
+				while(file_reader.read_next_block_to_buffer()) {
+					web_writer.write(file_reader.buffer);
 				}
-				persistenz.close_file();
+				file_reader.close_file();
 			} else {
 				web_writer.write((char*) "<h1>Bitte im Projekt 'cd code/scripte;perl schreibe_indexdatei.pl [IP]' ausf&uuml;hren</h1>");
 			}
@@ -120,14 +122,14 @@ namespace Local {
 		}
 
 		void download_file(const char* filename) {
-			if(persistenz.open_file_to_read(filename)) {
+			if(file_reader.open_file_to_read(filename)) {
 				web_writer.init_for_write(200, "text/plain");
-				while(persistenz.read_next_block_to_buffer()) {
-					web_writer.write(persistenz.buffer);
+				while(file_reader.read_next_block_to_buffer()) {
+					web_writer.write(file_reader.buffer);
 
 					yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				}
-				persistenz.close_file();
+				file_reader.close_file();
 				web_writer.flush_write_buffer();
 			} else {
 				webserver.server.send(404, "text/plain", "Not found");
@@ -140,28 +142,28 @@ namespace Local {
 			HTTPUpload& upload = webserver.server.upload();
 			const char* filename = webserver.server.arg("name").c_str();
 			if(upload.status == UPLOAD_FILE_START) {
-				if(persistenz.open_file_to_overwrite(filename)) {
-					persistenz.close_file();
+				if(file_reader.open_file_to_overwrite(filename)) {
+					file_reader.close_file();
 				} else {
 					webserver.server.send(500, "text/plain", "Kann Datei nicht schreiben");
 				}
 			} else if(upload.status == UPLOAD_FILE_WRITE) {
-				if(persistenz.open_file_to_append(filename)) {
+				if(file_reader.open_file_to_append(filename)) {
 					int offset = 0;
 					while(true) {
-						int read_size = std::min(sizeof(persistenz.buffer), upload.currentSize - offset);
+						int read_size = std::min(sizeof(file_reader.buffer), upload.currentSize - offset);
 						if(read_size <= 0) {
 							break;
 						} else {
-							memcpy(persistenz.buffer, upload.buf + offset, read_size);
-							if(read_size < sizeof(persistenz.buffer)) {
-								std::fill(persistenz.buffer + read_size, persistenz.buffer + sizeof(persistenz.buffer), 0);
+							memcpy(file_reader.buffer, upload.buf + offset, read_size);
+							if(read_size < sizeof(file_reader.buffer)) {
+								std::fill(file_reader.buffer + read_size, file_reader.buffer + sizeof(file_reader.buffer), 0);
 							}
-							persistenz.print_buffer_to_file();
+							file_reader.print_buffer_to_file();
 							offset += read_size;
 						}
 					}
-					persistenz.close_file();
+					file_reader.close_file();
 				}
 			  } else if(upload.status == UPLOAD_FILE_END){
 				  webserver.server.send(201);
@@ -169,7 +171,7 @@ namespace Local {
 		}
 
 		void aendere() {
-			Local::VerbraucherAPI verbraucher_api(*cfg, web_reader, persistenz);
+			Local::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer);
 			int now_timestamp = verbraucher_api.timestamp;
 			if(!now_timestamp) {
 				webserver.server.send(400, "text/plain", "Der timestamp konnte im System nicht korrekt gelesen werden");
@@ -200,7 +202,7 @@ namespace Local {
 
 		void heartbeat(const char* data_filename) {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
-			Local::VerbraucherAPI verbraucher_api(*cfg, web_reader, persistenz);
+			Local::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer);
 			int now_timestamp = verbraucher_api.timestamp;
 			if(!now_timestamp) {
 				Serial.println("Der timestamp konnte im System nicht korrekt gelesen werden");
@@ -227,7 +229,7 @@ namespace Local {
 				)
 			) {// Insgesamt also 1x die Stunde ca 10 nach um
 				Serial.println("Schreibe Stunden-Wettervorhersage");
-				wettervorhersage_api.stundendaten_holen_und_persistieren(persistenz);
+				wettervorhersage_api.stundendaten_holen_und_persistieren(file_reader);
 				stunden_wettervorhersage_letzter_abruf = now_timestamp;
 				_schreibe_systemstatus_daten();
 				yield();
@@ -240,12 +242,12 @@ namespace Local {
 				)
 			) {// Insgesamt also 1x alle 4 Stunden
 				Serial.println("Schreibe Tages-Wettervorhersage");
-				wettervorhersage_api.tagesdaten_holen_und_persistieren(persistenz);
+				wettervorhersage_api.tagesdaten_holen_und_persistieren(file_reader);
 				tages_wettervorhersage_letzter_abruf = now_timestamp;
 				_schreibe_systemstatus_daten();
 				yield();
 			}
-			wettervorhersage_api.persistierte_daten_einsetzen(persistenz, wetter, now_timestamp);
+			wettervorhersage_api.persistierte_daten_einsetzen(file_reader, wetter, now_timestamp);
 
 			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
@@ -255,43 +257,43 @@ namespace Local {
 
 			_write_log_data(now_timestamp);
 
-			if(persistenz.open_file_to_overwrite(data_filename)) {
+			if(file_reader.open_file_to_overwrite(data_filename)) {
 				int anteil_pv1_in_prozent = elektroanlage.gib_anteil_pv1_in_prozent();
-				sprintf(persistenz.buffer,
+				sprintf(file_reader.buffer,
 					"{\"ueberschuss_in_wh\":%i,\"solarakku_ist_an\":%s,",
 					elektroanlage.gib_ueberschuss_in_w(),
 					(elektroanlage.solarakku_ist_an ? "true" : "false")
 				);
-				persistenz.print_buffer_to_file();
-				sprintf(persistenz.buffer,
+				file_reader.print_buffer_to_file();
+				sprintf(file_reader.buffer,
 					"\"solarakku_ladestand_in_promille\":%i,",
 					elektroanlage.solarakku_ladestand_in_promille
 				);
-				persistenz.print_buffer_to_file();
-				sprintf(persistenz.buffer,
+				file_reader.print_buffer_to_file();
+				sprintf(file_reader.buffer,
 					"\"solaranteil_in_prozent_string1\":%i,",
 					anteil_pv1_in_prozent
 				);
-				persistenz.print_buffer_to_file();
-				sprintf(persistenz.buffer,
+				file_reader.print_buffer_to_file();
+				sprintf(file_reader.buffer,
 					"\"solaranteil_in_prozent_string2\":%i,",
 					100 - anteil_pv1_in_prozent
 				);
-				persistenz.print_buffer_to_file();
-				sprintf(persistenz.buffer,
+				file_reader.print_buffer_to_file();
+				sprintf(file_reader.buffer,
 					"\"stunden_balkenanzeige_startzeit\":%i,",
 					wetter.stundenvorhersage_startzeitpunkt
 				);
-				persistenz.print_buffer_to_file();
+				file_reader.print_buffer_to_file();
 				int stundenvorhersage[12];
 				for(int i = 0; i < 12; i++) {
 					stundenvorhersage[i] = verbraucher.gib_stundenvorhersage_akku_ladestand_als_fibonacci(i);
 				}
-				sprintf(persistenz.buffer,
+				sprintf(file_reader.buffer,
 					"\"stunden_balkenanzeige\":"
 				);
-				persistenz.print_buffer_to_file();
-				sprintf(persistenz.buffer,
+				file_reader.print_buffer_to_file();
+				sprintf(file_reader.buffer,
 					"[%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i],",
 					stundenvorhersage[0],
 					stundenvorhersage[1],
@@ -306,17 +308,17 @@ namespace Local {
 					stundenvorhersage[10],
 					stundenvorhersage[11]
 				);
-				persistenz.print_buffer_to_file();
-				sprintf(persistenz.buffer,
+				file_reader.print_buffer_to_file();
+				sprintf(file_reader.buffer,
 					"\"tage_balkenanzeige_startzeit\":%i,",
 					wetter.tagesvorhersage_startzeitpunkt
 				);
-				persistenz.print_buffer_to_file();
+				file_reader.print_buffer_to_file();
 				int tagesvorhersage[5];
 				for(int i = 0; i < 5; i++) {
 					tagesvorhersage[i] = wetter.gib_tagesvorhersage_solarstrahlung_als_fibonacci(i);
 				}
-				sprintf(persistenz.buffer,
+				sprintf(file_reader.buffer,
 					"\"tage_balkenanzeige\":[%i,%i,%i,%i,%i],",
 					tagesvorhersage[0],
 					tagesvorhersage[1],
@@ -324,44 +326,44 @@ namespace Local {
 					tagesvorhersage[3],
 					tagesvorhersage[4]
 				);
-				persistenz.print_buffer_to_file();
-				sprintf(persistenz.buffer,
+				file_reader.print_buffer_to_file();
+				sprintf(file_reader.buffer,
 					"\"auto_laden_an\":%s,\"roller_laden_an\":%s,",
 					verbraucher.auto_laden_ist_an() ? "true" : "false",
 					verbraucher.roller_laden_ist_an() ? "true" : "false"
 				);
-				persistenz.print_buffer_to_file();
-				sprintf(persistenz.buffer,
+				file_reader.print_buffer_to_file();
+				sprintf(file_reader.buffer,
 					"\"wasser_ueberladen\":%s,\"heizung_ueberladen\":%s,",
 					verbraucher.wasser_relay_ist_an ? "true" : "false",
 					verbraucher.heizung_relay_ist_an ? "true" : "false"
 				);
-				persistenz.print_buffer_to_file();
-				sprintf(persistenz.buffer,
+				file_reader.print_buffer_to_file();
+				sprintf(file_reader.buffer,
 					"\"auto_laden\":%s,\"roller_laden\":%s,",
 					verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
 						? "\"force\"" : "\"solar\"",
 					verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::force
 						? "\"force\"" : "\"solar\""
 				);
-				persistenz.print_buffer_to_file();
-				sprintf(persistenz.buffer,
+				file_reader.print_buffer_to_file();
+				sprintf(file_reader.buffer,
 					"\"auto_benoetigte_ladeleistung_in_w\":%i,",
 					verbraucher.auto_benoetigte_ladeleistung_in_w
 				);
-				persistenz.print_buffer_to_file();
-				sprintf(persistenz.buffer,
+				file_reader.print_buffer_to_file();
+				sprintf(file_reader.buffer,
 					"\"roller_benoetigte_ladeleistung_in_w\":%i,",
 					verbraucher.roller_benoetigte_ladeleistung_in_w
 				);
-				persistenz.print_buffer_to_file();
-				sprintf(persistenz.buffer,
+				file_reader.print_buffer_to_file();
+				sprintf(file_reader.buffer,
 					"\"solarerzeugung_ist_aktiv\":%s,\"timestamp\":%i}",
 					verbraucher.solarerzeugung_ist_aktiv() ? "true" : "false",
 					now_timestamp
 				);
-				persistenz.print_buffer_to_file();
-				persistenz.close_file();
+				file_reader.print_buffer_to_file();
+				file_reader.close_file();
 			}
 		}
 	};
