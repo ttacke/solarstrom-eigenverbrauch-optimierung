@@ -8,7 +8,7 @@
 namespace Local {
 	class WebClient {
 	protected:
-		WiFiClient* wlan_client;
+		WiFiClient& wlan_client;
 		MatchState match_state;
 		int content_length = 0;
 		char old_buffer[64];
@@ -16,14 +16,14 @@ namespace Local {
 		char search_buffer[128];
 
 		bool _send_request(const char* host, const char* request_uri) {
-			wlan_client->print("GET ");
-			wlan_client->print(request_uri);
-			wlan_client->print(" HTTP/1.1\r\nHost: ");
-			wlan_client->print(host);
-			wlan_client->print("\r\nConnection: close\r\n\r\n");
+			wlan_client.print("GET ");
+			wlan_client.print(request_uri);
+			wlan_client.print(" HTTP/1.1\r\nHost: ");
+			wlan_client.print(host);
+			wlan_client.print("\r\nConnection: close\r\n\r\n");
 
 			int i = 0;
-			while(!wlan_client->available()) {
+			while(!wlan_client.available()) {
 				i++;
 				if(i > 2000) {// 20s timeout
 					return false;
@@ -49,7 +49,7 @@ namespace Local {
 		char finding_buffer[65];
 		char buffer[64];
 
-		WebClient(WiFiClient& wlan_client): wlan_client(&wlan_client) {
+		WebClient(WiFiClient& wlan_client): wlan_client(wlan_client) {
 		}
 
 		bool find_in_buffer(char* regex) {
@@ -67,7 +67,7 @@ namespace Local {
 			content_length = 0;
 			old_buffer[0] = '\0';
 			buffer[0] = '\0';
-			if(!wlan_client->connect(host, port)) {
+			if(!wlan_client.connect(host, port)) {
 				return;
 			}
 			if(!_send_request(host, request_uri)) {
@@ -77,14 +77,14 @@ namespace Local {
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			int max_read_size = sizeof(buffer) - 1;
-			while(wlan_client->available()) {
+			while(wlan_client.available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
 				std::fill(buffer, buffer + sizeof(buffer), 0);// Reset
 
 				int read_size = 0;
 				bool content_start_reached = false;
 				while(true) {
-					wlan_client->readBytes(buffer + read_size, 1);
+					wlan_client.readBytes(buffer + read_size, 1);
 					read_size++;
 					if(
 						read_size >= 4
@@ -130,7 +130,7 @@ namespace Local {
 
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			if(wlan_client->available()) {
+			if(wlan_client.available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
 				_read_body_content_to_buffer();
 				return true;
@@ -141,7 +141,7 @@ namespace Local {
 		}
 
 		void _read_body_content_to_buffer() {
-			int read_size = wlan_client->readBytes(
+			int read_size = wlan_client.readBytes(
 				buffer,
 				std::min((size_t) content_length, (size_t) (sizeof(buffer) - 1))
 			);
