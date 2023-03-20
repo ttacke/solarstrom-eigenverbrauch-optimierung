@@ -112,11 +112,12 @@ namespace Local {
 			web_writer.init_for_write(200, "text/html");
 			if(file_reader.open_file_to_read(ui_filename)) {
 				while(file_reader.read_next_block_to_buffer()) {
-					web_writer.write(file_reader.buffer);
+					web_writer.write(file_reader.buffer, strlen(file_reader.buffer));
 				}
 				file_reader.close_file();
 			} else {
-				web_writer.write((char*) "<h1>Bitte im Projekt 'cd code/scripte;perl schreibe_indexdatei.pl [IP]' ausf&uuml;hren</h1>");
+				char* text = (char*) "<h1>Bitte im Projekt 'cd code/scripte;perl schreibe_indexdatei.pl [IP]' ausf&uuml;hren</h1>";
+				web_writer.write(text, strlen(text));
 			}
 			web_writer.flush_write_buffer();
 		}
@@ -125,7 +126,7 @@ namespace Local {
 			if(file_reader.open_file_to_read(filename)) {
 				web_writer.init_for_write(200, "text/plain");
 				while(file_reader.read_next_block_to_buffer()) {
-					web_writer.write(file_reader.buffer);
+					web_writer.write(file_reader.buffer, strlen(file_reader.buffer));
 
 					yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				}
@@ -142,28 +143,15 @@ namespace Local {
 			HTTPUpload& upload = webserver.server.upload();
 			const char* filename = webserver.server.arg("name").c_str();
 			if(upload.status == UPLOAD_FILE_START) {
-				if(file_reader.open_file_to_overwrite(filename)) {
-					file_reader.close_file();
+				if(file_writer.open_file_to_overwrite(filename)) {
+					file_writer.close_file();
 				} else {
 					webserver.server.send(500, "text/plain", "Kann Datei nicht schreiben");
 				}
 			} else if(upload.status == UPLOAD_FILE_WRITE) {
-				if(file_reader.open_file_to_append(filename)) {
-					int offset = 0;
-					while(true) {
-						int read_size = std::min(sizeof(file_reader.buffer), upload.currentSize - offset);
-						if(read_size <= 0) {
-							break;
-						} else {
-							memcpy(file_reader.buffer, upload.buf + offset, read_size);
-							if(read_size < sizeof(file_reader.buffer)) {
-								std::fill(file_reader.buffer + read_size, file_reader.buffer + sizeof(file_reader.buffer), 0);
-							}
-							file_reader.print_buffer_to_file();
-							offset += read_size;
-						}
-					}
-					file_reader.close_file();
+				if(file_writer.open_file_to_append(filename)) {
+					file_writer.write(upload.buf, upload.currentSize);
+					file_writer.close_file();
 				}
 			  } else if(upload.status == UPLOAD_FILE_END){
 				  webserver.server.send(201);
