@@ -33,6 +33,7 @@ namespace Local {
 		const char* log_filename = "verbraucher_automatisierung.log";
 
 		void _log(char* msg) {
+			// TODO das hier mit file_writer ersetzen
 			if(file_reader->open_file_to_append(log_filename)) {
 				sprintf(file_reader->buffer, "%d:", timestamp);
 				file_reader->print_buffer_to_file();
@@ -237,6 +238,7 @@ namespace Local {
 
 		void _schalte_roller_relay(bool ein) {
 			_schalte_shellyplug(ein, cfg->roller_relay_host, cfg->roller_relay_port);
+			// TODO das hier mit file_writer ersetzen
 			if(file_reader->open_file_to_overwrite(roller_relay_zustand_seit_filename)) {
 				sprintf(file_reader->buffer, "%d", timestamp);
 				file_reader->print_buffer_to_file();

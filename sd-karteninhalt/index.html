@@ -113,6 +113,7 @@
 			xhr.send();
 		}
 		function _setze_daten_ein(daten) {
+			document.getElementsByTagName('html')[0].className = daten['ersatzstrom_ist_aktiv'] ? 'ersatzstrom' : '';
 			_setze_balkentabelle_stunden_label('balkenanzeige', 0, 12, daten);
 			_setze_balkentabelle_daten(daten['stunden_balkenanzeige'], 'balkenanzeige', 0, 12);
 			_setze_balkentabelle_tage_label('balkenanzeige', 13, 5, daten);
@@ -283,6 +284,21 @@
 		}
 	</script>
 	<style>
+		html.ersatzstrom {
+			font-size: 0.8rem;
+			padding-top: 7rem;
+			border: dashed 2rem black;
+			
+		}
+		html.ersatzstrom:before {
+			content: "NETZAUSFALL";
+			position: absolute;
+			font-weight: bold;
+			text-decoration: underline;
+			top: 0.5rem;
+			left: 1rem;
+			font-size: 5rem;
+		}
 		body {
 			padding: 0.5rem;
 		}
@@ -316,7 +332,6 @@
 		body.fehler #fehler_vorhang {
 			display: block;
 		}
-
 
 		#elektrische_daten {
 			position: relative;

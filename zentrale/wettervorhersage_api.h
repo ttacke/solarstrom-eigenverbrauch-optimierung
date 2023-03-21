@@ -35,6 +35,7 @@ namespace Local {
 		void _daten_holen_und_persistieren(Local::Service::FileReader& file_reader, const char* filename, const char* uri) {
 			// geht der Abruf schief, wird die vorherige Datei zerstoehrt.
 			// Der entstehende Schaden ist nicht relevant genug, um sich darum zu kuemmern
+			// TODO das hier mit file_writer ersetzen
 			if(!file_reader.open_file_to_overwrite(filename)) {
 				return;
 			}

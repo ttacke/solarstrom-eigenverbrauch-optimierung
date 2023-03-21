@@ -107,6 +107,7 @@ namespace Local::Service {
 			return false;
 		}
 
+		// TODO DEPRECATED
 		bool open_file_to_overwrite(const char* filename) {
 			if(!_init()) {
 				return false;
@@ -117,6 +118,7 @@ namespace Local::Service {
 			return open_file_to_append(filename);
 		}
 
+		// TODO DEPRECATED
 		bool open_file_to_append(const char* filename) {
 			if(!_init()) {
 				return false;
@@ -127,6 +129,7 @@ namespace Local::Service {
 			return true;
 		}
 
+		// TODO DEPRECATED
 		void print_buffer_to_file() {
 			fh.print(buffer);
 		}

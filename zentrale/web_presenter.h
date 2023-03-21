@@ -68,6 +68,7 @@ namespace Local {
 		}
 
 		void _write_log_data(int now_timestamp) {
+			// TODO das hier mit file_writer ersetzen
 			if(file_reader.open_file_to_append(anlagen_log_filename)) {
 				sprintf(file_reader.buffer, "%d,", now_timestamp);
 				file_reader.print_buffer_to_file();
@@ -334,8 +335,15 @@ namespace Local {
 					verbraucher.roller_benoetigte_ladeleistung_in_w
 				);
 				file_writer.write_formated(
-					"\"solarerzeugung_ist_aktiv\":%s,\"timestamp\":%i}",
-					verbraucher.solarerzeugung_ist_aktiv() ? "true" : "false",
+					"\"solarerzeugung_ist_aktiv\":%s,",
+					verbraucher.solarerzeugung_ist_aktiv() ? "true" : "false"
+				);
+				file_writer.write_formated(// TODO alle 3 Phasen haben die gleiche Spannung!
+					"\"ersatzstrom_ist_aktiv\":%s,",// TODO wenn true -> zielakkuwert=110% (zur Sicherheit), alles aus wenn <90%
+					false ? "true" : "false"
+				);
+				file_writer.write_formated(
+					"\"timestamp\":%i}",
 					now_timestamp
 				);
 				file_writer.close_file();

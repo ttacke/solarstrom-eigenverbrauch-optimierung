@@ -47,6 +47,16 @@ void setup(void) {
 
 void(* resetFunc) (void) = 0;// Reset the board via software
 
+// TODO grundsätzlich: nur schreiben, wenn sich was verändert hat
+// nur lesen, wenn die Daten im Speicher nicht da sind
+// ggf ein zentrales Paremeterobjekt, damit das alles verwaltet wird?
+// zentral am Ende schreiben -> schauen, ob von init() bis end() irgendwas verändert wurde. Wenn ja, schreiben!
+// sonst nicht.
+// lesen??
+// daten.json auch im Ram halten und von dort lesen? Das reicht! Die SD muss das nicht enthalten!
+// d.h. auch ein ram_reader/writer muss her, der Buffer bekommt auf denen er agiert
+
+
 void loop(void) {
 	runtime = millis();// Will overflow after ~50 days, but this is not a problem
 	if(last_runtime == 0 || runtime - last_runtime > 60000) {// initial || 1min
