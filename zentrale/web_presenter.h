@@ -54,14 +54,16 @@ namespace Local {
 		}
 
 		void _schreibe_systemstatus_daten() {
-			if(file_reader.open_file_to_overwrite(system_status_filename)) {
-				sprintf(file_reader.buffer, "\nstunden_wettervorhersage_letzter_abruf,%d,", stunden_wettervorhersage_letzter_abruf);
-				file_reader.print_buffer_to_file();
-
-				sprintf(file_reader.buffer, "\ntages_wettervorhersage_letzter_abruf,%d,", tages_wettervorhersage_letzter_abruf);
-				file_reader.print_buffer_to_file();
-
-				file_reader.close_file();
+			if(file_writer.open_file_to_overwrite(system_status_filename)) {
+				file_writer.write_formated(
+					"\nstunden_wettervorhersage_letzter_abruf,%d,",
+					stunden_wettervorhersage_letzter_abruf
+				);
+				file_writer.write_formated(
+					"\ntages_wettervorhersage_letzter_abruf,%d,",
+					tages_wettervorhersage_letzter_abruf
+				);
+				file_writer.close_file();
 			}
 		}
 
