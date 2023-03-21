@@ -25,12 +25,10 @@ namespace Local::Service {
 
 	public:
 		bool open_file_to_overwrite(const char* filename) {
+			delete_file(filename);
 			if(!_init()) {
 				return false;
 			}
-			fh = SD.open(filename, T_CREATE | O_WRITE | O_TRUNC);
-			fh.close();
-
 			return open_file_to_append(filename);
 		}
 
