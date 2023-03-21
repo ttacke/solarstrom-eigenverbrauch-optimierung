@@ -8,6 +8,7 @@ namespace Local::Service {
 		bool init = false;
 		File fh;
 		char buffer[2048];
+		char format_buffer[64];
 		int buffer_offset = 0;
 
 		bool _init() {
@@ -41,6 +42,15 @@ namespace Local::Service {
 			std::fill(buffer, buffer + sizeof(buffer), 0);
 			buffer_offset = 0;
 			return true;
+		}
+
+		void write_formated(const char* format, ...) {
+			va_list arglist;
+			va_start(arglist, format);
+			vsprintf(format_buffer, format, arglist);
+			va_end(arglist);
+
+			write((uint8_t*) format_buffer, strlen(format_buffer));
 		}
 
 		void write(uint8_t* string, int string_length) {

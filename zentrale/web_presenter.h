@@ -245,43 +245,37 @@ namespace Local {
 
 			_write_log_data(now_timestamp);
 
-			if(file_reader.open_file_to_overwrite(data_filename)) {
+			if(file_writer.open_file_to_overwrite(data_filename)) {
 				int anteil_pv1_in_prozent = elektroanlage.gib_anteil_pv1_in_prozent();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"{\"ueberschuss_in_wh\":%i,\"solarakku_ist_an\":%s,",
 					elektroanlage.gib_ueberschuss_in_w(),
 					(elektroanlage.solarakku_ist_an ? "true" : "false")
 				);
-				file_reader.print_buffer_to_file();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"solarakku_ladestand_in_promille\":%i,",
 					elektroanlage.solarakku_ladestand_in_promille
 				);
-				file_reader.print_buffer_to_file();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"solaranteil_in_prozent_string1\":%i,",
 					anteil_pv1_in_prozent
 				);
-				file_reader.print_buffer_to_file();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"solaranteil_in_prozent_string2\":%i,",
 					100 - anteil_pv1_in_prozent
 				);
-				file_reader.print_buffer_to_file();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"stunden_balkenanzeige_startzeit\":%i,",
 					wetter.stundenvorhersage_startzeitpunkt
 				);
-				file_reader.print_buffer_to_file();
 				int stundenvorhersage[12];
 				for(int i = 0; i < 12; i++) {
 					stundenvorhersage[i] = verbraucher.gib_stundenvorhersage_akku_ladestand_als_fibonacci(i);
 				}
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"stunden_balkenanzeige\":"
 				);
-				file_reader.print_buffer_to_file();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"[%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i],",
 					stundenvorhersage[0],
 					stundenvorhersage[1],
@@ -296,17 +290,15 @@ namespace Local {
 					stundenvorhersage[10],
 					stundenvorhersage[11]
 				);
-				file_reader.print_buffer_to_file();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"tage_balkenanzeige_startzeit\":%i,",
 					wetter.tagesvorhersage_startzeitpunkt
 				);
-				file_reader.print_buffer_to_file();
 				int tagesvorhersage[5];
 				for(int i = 0; i < 5; i++) {
 					tagesvorhersage[i] = wetter.gib_tagesvorhersage_solarstrahlung_als_fibonacci(i);
 				}
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"tage_balkenanzeige\":[%i,%i,%i,%i,%i],",
 					tagesvorhersage[0],
 					tagesvorhersage[1],
@@ -314,44 +306,37 @@ namespace Local {
 					tagesvorhersage[3],
 					tagesvorhersage[4]
 				);
-				file_reader.print_buffer_to_file();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"auto_laden_an\":%s,\"roller_laden_an\":%s,",
 					verbraucher.auto_laden_ist_an() ? "true" : "false",
 					verbraucher.roller_laden_ist_an() ? "true" : "false"
 				);
-				file_reader.print_buffer_to_file();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"wasser_ueberladen\":%s,\"heizung_ueberladen\":%s,",
 					verbraucher.wasser_relay_ist_an ? "true" : "false",
 					verbraucher.heizung_relay_ist_an ? "true" : "false"
 				);
-				file_reader.print_buffer_to_file();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"auto_laden\":%s,\"roller_laden\":%s,",
 					verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
 						? "\"force\"" : "\"solar\"",
 					verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::force
 						? "\"force\"" : "\"solar\""
 				);
-				file_reader.print_buffer_to_file();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"auto_benoetigte_ladeleistung_in_w\":%i,",
 					verbraucher.auto_benoetigte_ladeleistung_in_w
 				);
-				file_reader.print_buffer_to_file();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"roller_benoetigte_ladeleistung_in_w\":%i,",
 					verbraucher.roller_benoetigte_ladeleistung_in_w
 				);
-				file_reader.print_buffer_to_file();
-				sprintf(file_reader.buffer,
+				file_writer.write_formated(
 					"\"solarerzeugung_ist_aktiv\":%s,\"timestamp\":%i}",
 					verbraucher.solarerzeugung_ist_aktiv() ? "true" : "false",
 					now_timestamp
 				);
-				file_reader.print_buffer_to_file();
-				file_reader.close_file();
+				file_writer.close_file();
 			}
 		}
 	};
