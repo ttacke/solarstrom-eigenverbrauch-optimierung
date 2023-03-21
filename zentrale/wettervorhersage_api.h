@@ -197,26 +197,32 @@ namespace Local {
 			file_reader.close_file();
 		}
 
-		void _schreibe_stundencache(Local::Service::FileReader& file_reader) {
-			if(!file_reader.open_file_to_overwrite(hourly_cache_filename)) {
+		void _schreibe_stundencache(Local::Service::FileWriter& file_writer) {
+			if(!file_writer.open_file_to_overwrite(hourly_cache_filename)) {
 				return;
 			}
 			for(int i = 0; i < stunden_anzahl; i++) {
-				sprintf(file_reader.buffer, "%d,%d\n", zeitpunkt_stunden_liste[i], solarstrahlung_stunden_liste[i]);
-				file_reader.print_buffer_to_file();
+				file_writer.write_formated(
+					"%d,%d\n",
+					zeitpunkt_stunden_liste[i],
+					solarstrahlung_stunden_liste[i]
+				);
 			}
-			file_reader.close_file();
+			file_writer.close_file();
 		}
 
-		void _schreibe_tagescache(Local::Service::FileReader& file_reader) {
-			if(!file_reader.open_file_to_overwrite(dayly_cache_filename)) {
+		void _schreibe_tagescache(Local::Service::FileWriter& file_writer) {
+			if(!file_writer.open_file_to_overwrite(dayly_cache_filename)) {
 				return;
 			}
 			for(int i = 0; i < tage_anzahl; i++) {
-				sprintf(file_reader.buffer, "%d,%d\n", zeitpunkt_tage_liste[i], solarstrahlung_tage_liste[i]);
-				file_reader.print_buffer_to_file();
+				file_writer.write_formated(
+					"%d,%d\n",
+					zeitpunkt_tage_liste[i],
+					solarstrahlung_tage_liste[i]
+				);
 			}
-			file_reader.close_file();
+			file_writer.close_file();
 		}
 
 	public:
@@ -235,7 +241,9 @@ namespace Local {
 		}
 
 		void persistierte_daten_einsetzen(
-			Local::Service::FileReader& file_reader, Local::Wetter& wetter, int now_timestamp
+			Local::Service::FileReader& file_reader,
+			Local::Service::FileWriter& file_writer,
+			Local::Wetter& wetter, int now_timestamp
 		) {
 			_reset(zeitpunkt_stunden_liste, stunden_anzahl);
 			_reset(solarstrahlung_stunden_liste, stunden_anzahl);
@@ -250,7 +258,7 @@ namespace Local {
 			for(int i = 0; i < stunden_anzahl; i++) {
 				wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_stunden_liste[i]);
 			}
-			_schreibe_stundencache(file_reader);
+			_schreibe_stundencache(file_writer);
 
 			_reset(zeitpunkt_tage_liste, tage_anzahl);
 			_reset(solarstrahlung_tage_liste, tage_anzahl);
@@ -267,7 +275,7 @@ namespace Local {
 			for(int i = 0; i < tage_anzahl; i++) {
 				wetter.setze_tagesvorhersage_solarstrahlung(i, solarstrahlung_tage_liste[i]);
 			}
-			_schreibe_tagescache(file_reader);
+			_schreibe_tagescache(file_writer);
 		}
 	};
 }

@@ -218,7 +218,7 @@ namespace Local {
 				_schreibe_systemstatus_daten();
 				yield();
 			}
-			wettervorhersage_api.persistierte_daten_einsetzen(file_reader, wetter, now_timestamp);
+			wettervorhersage_api.persistierte_daten_einsetzen(file_reader, file_writer, wetter, now_timestamp);
 
 			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben

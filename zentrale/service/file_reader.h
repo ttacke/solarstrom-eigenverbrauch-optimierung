@@ -32,6 +32,22 @@ namespace Local::Service {
 			memcpy(search_buffer + old_buffer_strlen, buffer, strlen(buffer) + 1);
 		}
 
+		bool _read_next_block_to_buffer() {
+			int size = fh.size();
+			fh.seek(offset);
+			int read_size = std::min(sizeof(buffer) - 1, fh.size() - offset);
+			if(read_size == 0) {
+				std::fill(buffer, buffer + sizeof(buffer), 0);
+				return false;
+			}
+
+			memcpy(old_buffer, buffer, sizeof(buffer));
+			fh.read((uint8_t*) buffer, read_size);
+			std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
+			offset += read_size;
+			return true;
+		}
+
 	public:
 		char finding_buffer[65];
 		char buffer[64];
@@ -47,22 +63,6 @@ namespace Local::Service {
 			offset = 0;
 			buffer[0] = '\0';
 			fh = SD.open(filename);
-			return true;
-		}
-
-		bool _read_next_block_to_buffer() {
-			int size = fh.size();
-			fh.seek(offset);
-			int read_size = std::min(sizeof(buffer) - 1, fh.size() - offset);
-			if(read_size == 0) {
-				std::fill(buffer, buffer + sizeof(buffer), 0);
-				return false;
-			}
-
-			memcpy(old_buffer, buffer, sizeof(buffer));
-			fh.read((uint8_t*) buffer, read_size);
-			std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
-			offset += read_size;
 			return true;
 		}
 
@@ -105,33 +105,6 @@ namespace Local::Service {
 				return true;
 			}
 			return false;
-		}
-
-		// TODO DEPRECATED
-		bool open_file_to_overwrite(const char* filename) {
-			if(!_init()) {
-				return false;
-			}
-			fh = SD.open(filename, T_CREATE | O_WRITE | O_TRUNC);
-			fh.close();
-
-			return open_file_to_append(filename);
-		}
-
-		// TODO DEPRECATED
-		bool open_file_to_append(const char* filename) {
-			if(!_init()) {
-				return false;
-			}
-			offset = 0;
-			buffer[0] = '\0';
-			fh = SD.open(filename, FILE_WRITE);
-			return true;
-		}
-
-		// TODO DEPRECATED
-		void print_buffer_to_file() {
-			fh.print(buffer);
 		}
 	};
 }
