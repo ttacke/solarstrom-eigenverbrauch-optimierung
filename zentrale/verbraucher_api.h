@@ -33,27 +33,16 @@ namespace Local {
 		const char* log_filename = "verbraucher_automatisierung.log";
 
 		void _log(char* msg) {
-			// TODO das hier mit file_writer ersetzen
-			if(file_reader->open_file_to_append(log_filename)) {
-				sprintf(file_reader->buffer, "%d:", timestamp);
-				file_reader->print_buffer_to_file();
-
-				sprintf(file_reader->buffer, "%s\n", msg);
-				file_reader->print_buffer_to_file();
-
-				file_reader->close_file();
+			if(file_writer.open_file_to_append(log_filename)) {
+				file_writer.write_formated("%d:%s\n", timestamp, msg);
+				file_writer.close_file();
 			}
 		}
 
 		void _log(char* key, char* msg) {
-			if(file_reader->open_file_to_append(log_filename)) {
-				sprintf(file_reader->buffer, "%d:", timestamp);
-				file_reader->print_buffer_to_file();
-
-				sprintf(file_reader->buffer, "%s>%s\n", key, msg);
-				file_reader->print_buffer_to_file();
-
-				file_reader->close_file();
+			if(file_writer.open_file_to_append(log_filename)) {
+				file_writer.write_formated("%d:%s>%s\n", timestamp, key, msg);
+				file_writer.close_file();
 			}
 		}
 
@@ -238,38 +227,33 @@ namespace Local {
 
 		void _schalte_roller_relay(bool ein) {
 			_schalte_shellyplug(ein, cfg->roller_relay_host, cfg->roller_relay_port);
-			// TODO das hier mit file_writer ersetzen
-			if(file_reader->open_file_to_overwrite(roller_relay_zustand_seit_filename)) {
-				sprintf(file_reader->buffer, "%d", timestamp);
-				file_reader->print_buffer_to_file();
-				file_reader->close_file();
+			if(file_writer.open_file_to_overwrite(roller_relay_zustand_seit_filename)) {
+				file_writer.write_formated("%d", timestamp);
+				file_writer.close_file();
 			}
 		}
 
 		void _schalte_auto_relay(bool ein) {
 			_schalte_netz_relay(ein, cfg->auto_relay_host, cfg->auto_relay_port);
-			if(file_reader->open_file_to_overwrite(auto_relay_zustand_seit_filename)) {
-				sprintf(file_reader->buffer, "%d", timestamp);
-				file_reader->print_buffer_to_file();
-				file_reader->close_file();
+			if(file_writer.open_file_to_overwrite(auto_relay_zustand_seit_filename)) {
+				file_writer.write_formated("%d", timestamp);
+				file_writer.close_file();
 			}
 		}
 
 		void _schalte_wasser_relay(bool ein) {
 			_schalte_netz_relay(ein, cfg->wasser_relay_host, cfg->wasser_relay_port);
-			if(file_reader->open_file_to_overwrite(wasser_relay_zustand_seit_filename)) {
-				sprintf(file_reader->buffer, "%d", timestamp);
-				file_reader->print_buffer_to_file();
-				file_reader->close_file();
+			if(file_writer.open_file_to_overwrite(wasser_relay_zustand_seit_filename)) {
+				file_writer.write_formated("%d", timestamp);
+				file_writer.close_file();
 			}
 		}
 
 		void _schalte_heizung_relay(bool ein) {
 			_schalte_netz_relay(ein, cfg->heizung_relay_host, cfg->heizung_relay_port);
-			if(file_reader->open_file_to_overwrite(heizung_relay_zustand_seit_filename)) {
-				sprintf(file_reader->buffer, "%d", timestamp);
-				file_reader->print_buffer_to_file();
-				file_reader->close_file();
+			if(file_writer.open_file_to_overwrite(heizung_relay_zustand_seit_filename)) {
+				file_writer.write_formated("%d", timestamp);
+				file_writer.close_file();
 			}
 		}
 
@@ -342,12 +326,11 @@ namespace Local {
 			}
 			liste[length - 1] = aktuell;
 
-			if(file_reader->open_file_to_overwrite(log_filename)) {
+			if(file_writer.open_file_to_overwrite(log_filename)) {
 				for(int i = 0; i < length; i++) {
-					sprintf(file_reader->buffer, ">%d=%d<", i, liste[i]);
-					file_reader->print_buffer_to_file();
+					file_writer.write_formated(">%d=%d<", i, liste[i]);
 				}
-				file_reader->close_file();
+				file_writer.close_file();
 			}
 		}
 
@@ -725,14 +708,11 @@ namespace Local {
 				strcpy(stat, "solar");
 				_log((char*) "setze_roller_ladestatus>solar");
 			}
-			if(file_reader->open_file_to_overwrite(roller_ladestatus_filename)) {
-				sprintf(file_reader->buffer, "%s", stat);
-				file_reader->print_buffer_to_file();
-				file_reader->close_file();
+			if(file_writer.open_file_to_overwrite(roller_ladestatus_filename)) {
+				file_writer.write_formated("%s", stat);
+				file_writer.close_file();
 			}
-			if(file_reader->open_file_to_overwrite(roller_leistung_log_filename)) {
-				file_reader->close_file();
-			}
+			file_writer.delete_file(roller_leistung_log_filename);
 		}
 
 		void setze_auto_ladestatus(Local::Verbraucher::Ladestatus status) {
@@ -745,14 +725,11 @@ namespace Local {
 				strcpy(stat, "solar");
 				_log((char*) "setze_auto_ladestatus>solar");
 			}
-			if(file_reader->open_file_to_overwrite(auto_ladestatus_filename)) {
-				sprintf(file_reader->buffer, "%s", stat);
-				file_reader->print_buffer_to_file();
-				file_reader->close_file();
+			if(file_writer.open_file_to_overwrite(auto_ladestatus_filename)) {
+				file_writer.write_formated("%s", stat);
+				file_writer.close_file();
 			}
-			if(file_reader->open_file_to_overwrite(auto_leistung_log_filename)) {
-				file_reader->close_file();
-			}
+			file_writer.delete_file(auto_leistung_log_filename);
 		}
 
 		void wechsle_auto_ladeleistung() {
@@ -763,10 +740,9 @@ namespace Local {
 			} else {
 				auto_benoetigte_ladeleistung_in_w = cfg->auto_benoetigte_leistung_hoch_in_w;
 			}
-			if(file_reader->open_file_to_overwrite(auto_leistung_filename)) {
-				sprintf(file_reader->buffer, "%d", auto_benoetigte_ladeleistung_in_w);
-				file_reader->print_buffer_to_file();
-				file_reader->close_file();
+			if(file_writer.open_file_to_overwrite(auto_leistung_filename)) {
+				file_writer.write_formated("%d", auto_benoetigte_ladeleistung_in_w);
+				file_writer.close_file();
 			}
 		}
 
@@ -778,10 +754,9 @@ namespace Local {
 			} else {
 				roller_benoetigte_ladeleistung_in_w = cfg->roller_benoetigte_leistung_hoch_in_w;
 			}
-			if(file_reader->open_file_to_overwrite(roller_leistung_filename)) {
-				sprintf(file_reader->buffer, "%d", roller_benoetigte_ladeleistung_in_w);
-				file_reader->print_buffer_to_file();
-				file_reader->close_file();
+			if(file_writer.open_file_to_overwrite(roller_leistung_filename)) {
+				file_writer.write_formated("%d", roller_benoetigte_ladeleistung_in_w);
+				file_writer.close_file();
 			}
 		}
 	};
