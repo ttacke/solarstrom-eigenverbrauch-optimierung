@@ -27,9 +27,8 @@ namespace Local {
 			return round((float) leistungsanteil_pv1 * 100 / (float) (leistungsanteil_pv2 + leistungsanteil_pv1));
 		}
 
-		void set_log_data(char* buffer) {
-			sprintf(
-				buffer,
+		void write_log_data(Local::Service::FileWriter& file_writer) {
+			file_writer.write_formated(
 				"e1,%d,%d,%d,%d,%d,%d,%d,%d,%d",
 				netzbezug_in_w,
 				solarakku_zuschuss_in_w,

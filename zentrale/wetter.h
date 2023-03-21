@@ -38,9 +38,8 @@ namespace Local {
 			return 100;
 		}
 
-		void set_log_data(char* buffer) {
-			sprintf(
-				buffer,
+		void write_log_data(Local::Service::FileWriter& file_writer) {
+			file_writer.write_formated(
 				"w2,%d,%d,%d",
 				stundenvorhersage_solarstrahlung_liste[0],
 				tagesvorhersage_solarstrahlung_liste[0],

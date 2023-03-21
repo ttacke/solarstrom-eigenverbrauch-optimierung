@@ -141,9 +141,8 @@ namespace Local {
 			return round((erzeugung / 31) - max_verbrauch);
 		}
 
-		void set_log_data_a(char* buffer) {
-			sprintf(
-				buffer,
+		void write_log_data(Local::Service::FileWriter& file_writer) {
+			file_writer.write_formated(
 				"va3,%s,%s,%d,%d,%d,%s",
 				(auto_ladestatus == Local::Verbraucher::Ladestatus::force ? "force" : "solar"),
 				auto_laden_ist_an() ? "an" : "aus",
@@ -152,12 +151,8 @@ namespace Local {
 				_gib_genutzte_auto_ladeleistung_in_w(),
 				wasser_relay_ist_an ? "an" : "aus"
 			);
-		}
-
-		void set_log_data_b(char* buffer) {
-			sprintf(
-				buffer,
-				"vb3,%s,%s,%d,%d,%d,%s",
+			file_writer.write_formated(
+				",vb3,%s,%s,%d,%d,%d,%s",
 				(roller_ladestatus == Local::Verbraucher::Ladestatus::force ? "force" : "solar"),
 				roller_laden_ist_an() ? "an" : "aus",
 				roller_benoetigte_ladeleistung_in_w,

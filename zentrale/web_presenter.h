@@ -38,6 +38,7 @@ namespace Local {
 		int tages_wettervorhersage_letzter_abruf;
 		const char* anlagen_log_filename = "anlage_log.csv";
 		const char* ui_filename = "index.html";
+		char log_buffer[64];
 
 		void _lese_systemstatus_daten() {
 			if(file_reader.open_file_to_read(system_status_filename)) {
@@ -68,36 +69,15 @@ namespace Local {
 		}
 
 		void _write_log_data(int now_timestamp) {
-			// TODO das hier mit file_writer ersetzen
-			if(file_reader.open_file_to_append(anlagen_log_filename)) {
-				sprintf(file_reader.buffer, "%d,", now_timestamp);
-				file_reader.print_buffer_to_file();
-
-				elektroanlage.set_log_data(file_reader.buffer);
-				file_reader.print_buffer_to_file();
-
-				sprintf(file_reader.buffer, "%s", ",");
-				file_reader.print_buffer_to_file();
-
-				wetter.set_log_data(file_reader.buffer);
-				file_reader.print_buffer_to_file();
-
-				sprintf(file_reader.buffer, "%s", ",");
-				file_reader.print_buffer_to_file();
-
-				verbraucher.set_log_data_a(file_reader.buffer);
-				file_reader.print_buffer_to_file();
-
-				sprintf(file_reader.buffer, "%s", ",");
-				file_reader.print_buffer_to_file();
-
-				verbraucher.set_log_data_b(file_reader.buffer);
-				file_reader.print_buffer_to_file();
-
-				sprintf(file_reader.buffer, "%s", "\n");
-				file_reader.print_buffer_to_file();
-
-				file_reader.close_file();
+			if(file_writer.open_file_to_append(anlagen_log_filename)) {
+				file_writer.write_formated("%d,", now_timestamp);
+				elektroanlage.write_log_data(file_writer);
+				file_writer.write_formated(",");
+				wetter.write_log_data(file_writer);
+				file_writer.write_formated(",");
+				verbraucher.write_log_data(file_writer);
+				file_writer.write_formated("\n");
+				file_writer.close_file();
 			}
 		}
 
@@ -340,7 +320,7 @@ namespace Local {
 				);
 				file_writer.write_formated(// TODO alle 3 Phasen haben die gleiche Spannung!
 					"\"ersatzstrom_ist_aktiv\":%s,",// TODO wenn true -> zielakkuwert=110% (zur Sicherheit), alles aus wenn <90%
-					false ? "true" : "false"
+					true ? "true" : "false"
 				);
 				file_writer.write_formated(
 					"\"timestamp\":%i}",
