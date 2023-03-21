@@ -45,6 +45,16 @@ namespace Local::Service {
 			memcpy(search_buffer + old_buffer_strlen, buffer, strlen(buffer) + 1);
 		}
 
+		void _read_body_content_to_buffer() {
+			int read_size = wlan_client.readBytes(
+				buffer,
+				std::min((size_t) content_length, (size_t) (sizeof(buffer) - 1))
+			);
+			std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
+			_prepare_search_buffer();
+			content_length -= strlen(buffer);
+		}
+
 	public:
 		char finding_buffer[65];
 		char buffer[64];
@@ -138,16 +148,6 @@ namespace Local::Service {
 			buffer[0] = '\0';
 			content_length = 0;
 			return false;
-		}
-
-		void _read_body_content_to_buffer() {
-			int read_size = wlan_client.readBytes(
-				buffer,
-				std::min((size_t) content_length, (size_t) (sizeof(buffer) - 1))
-			);
-			std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
-			_prepare_search_buffer();
-			content_length -= strlen(buffer);
 		}
 	};
 }
