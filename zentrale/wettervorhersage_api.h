@@ -32,11 +32,14 @@ namespace Local {
 			}
 		}
 
-		void _daten_holen_und_persistieren(Local::Service::FileReader& file_reader, const char* filename, const char* uri) {
+		void _daten_holen_und_persistieren(
+			Local::Service::FileReader& file_reader,
+			Local::Service::FileWriter& file_writer,
+			const char* filename, const char* uri
+		) {
 			// geht der Abruf schief, wird die vorherige Datei zerstoehrt.
 			// Der entstehende Schaden ist nicht relevant genug, um sich darum zu kuemmern
-			// TODO das hier mit file_writer ersetzen
-			if(!file_reader.open_file_to_overwrite(filename)) {
+			if(!file_writer.open_file_to_overwrite(filename)) {
 				return;
 			}
 			sprintf(request_uri, uri, cfg->accuweather_location_id, cfg->accuweather_api_key);
@@ -46,10 +49,9 @@ namespace Local {
 				request_uri
 			);
 			while(web_reader->read_next_block_to_buffer()) {
-				memcpy(file_reader.buffer, web_reader->buffer, strlen(web_reader->buffer) + 1);
-				file_reader.print_buffer_to_file();
+				file_writer.write(web_reader->buffer, strlen(web_reader->buffer));
 			}
-			file_reader.close_file();
+			file_writer.close_file();
 			Serial.println("Wetterdaten geschrieben");
 		}
 
@@ -218,12 +220,18 @@ namespace Local {
 		}
 
 	public:
-		void stundendaten_holen_und_persistieren(Local::Service::FileReader& file_reader) {
-			_daten_holen_und_persistieren(file_reader, hourly_filename, hourly_request_uri);
+		void stundendaten_holen_und_persistieren(
+			Local::Service::FileReader& file_reader,
+			Local::Service::FileWriter& file_writer
+		) {
+			_daten_holen_und_persistieren(file_reader, file_writer, hourly_filename, hourly_request_uri);
 		}
 
-		void tagesdaten_holen_und_persistieren(Local::Service::FileReader& file_reader) {
-			_daten_holen_und_persistieren(file_reader, dayly_filename, dayly_request_uri);
+		void tagesdaten_holen_und_persistieren(
+			Local::Service::FileReader& file_reader,
+			Local::Service::FileWriter& file_writer
+		) {
+			_daten_holen_und_persistieren(file_reader, file_writer, dayly_filename, dayly_request_uri);
 		}
 
 		void persistierte_daten_einsetzen(

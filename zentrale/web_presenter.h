@@ -200,7 +200,7 @@ namespace Local {
 				)
 			) {// Insgesamt also 1x die Stunde ca 10 nach um
 				Serial.println("Schreibe Stunden-Wettervorhersage");
-				wettervorhersage_api.stundendaten_holen_und_persistieren(file_reader);
+				wettervorhersage_api.stundendaten_holen_und_persistieren(file_reader, file_writer);
 				stunden_wettervorhersage_letzter_abruf = now_timestamp;
 				_schreibe_systemstatus_daten();
 				yield();
@@ -213,7 +213,7 @@ namespace Local {
 				)
 			) {// Insgesamt also 1x alle 4 Stunden
 				Serial.println("Schreibe Tages-Wettervorhersage");
-				wettervorhersage_api.tagesdaten_holen_und_persistieren(file_reader);
+				wettervorhersage_api.tagesdaten_holen_und_persistieren(file_reader, file_writer);
 				tages_wettervorhersage_letzter_abruf = now_timestamp;
 				_schreibe_systemstatus_daten();
 				yield();

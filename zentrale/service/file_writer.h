@@ -54,6 +54,10 @@ namespace Local::Service {
 		}
 
 		void write(uint8_t* string, int string_length) {
+			write((char*) string, string_length);
+		}
+
+		void write(char* string, int string_length) {
 			int buffer_space_length = sizeof(buffer) - buffer_offset - 1;
 			int read_string_till = std::min(string_length, buffer_space_length);
 			memcpy(buffer + buffer_offset, string, read_string_till);
