@@ -320,7 +320,7 @@ namespace Local {
 				);
 				file_writer.write_formated(// TODO alle 3 Phasen haben die gleiche Spannung!
 					"\"ersatzstrom_ist_aktiv\":%s,",// TODO wenn true -> zielakkuwert=110% (zur Sicherheit), alles aus wenn <90%
-					true ? "true" : "false"
+					false ? "true" : "false"
 				);
 				file_writer.write_formated(
 					"\"timestamp\":%i}",

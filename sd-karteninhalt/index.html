@@ -286,18 +286,20 @@
 	<style>
 		html.ersatzstrom {
 			font-size: 0.8rem;
-			padding-top: 7rem;
+			padding-top: 4rem;
 			border: dashed 2rem black;
-			
 		}
-		html.ersatzstrom:before {
+		html.ersatzstrom body:before {
 			content: "NETZAUSFALL";
 			position: absolute;
 			font-weight: bold;
 			text-decoration: underline;
-			top: 0.5rem;
+			top: 2.0rem;
 			left: 1rem;
 			font-size: 5rem;
+		}
+		html.ersatzstrom body {
+			padding: 0.2rem;
 		}
 		body {
 			padding: 0.5rem;

@@ -56,7 +56,6 @@ void(* resetFunc) (void) = 0;// Reset the board via software
 // daten.json auch im Ram halten und von dort lesen? Das reicht! Die SD muss das nicht enthalten!
 // d.h. auch ein ram_reader/writer muss her, der Buffer bekommt auf denen er agiert
 
-
 void loop(void) {
 	runtime = millis();// Will overflow after ~50 days, but this is not a problem
 	if(last_runtime == 0 || runtime - last_runtime > 60000) {// initial || 1min
