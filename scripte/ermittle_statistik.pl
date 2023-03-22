@@ -5,6 +5,8 @@ use warnings;
 sub _gib_duchschnitt {
     my ($liste) = @_;
     #return (sort(@$liste))[int(scalar(@$liste) / 2)];
+    return 0 if(!scalar($#$liste));
+
     my $x = 0;
     foreach(@$liste) {
         $x += $_;
@@ -13,10 +15,10 @@ sub _gib_duchschnitt {
 }
 sub _hole_daten {
     my $daten = [];
-    foreach my $filename (qw/
-        anlage_log.csv.2023-03-03
-        anlage_log.csv
-    /) {
+    opendir(my $dh, '../sd-karteninhalt') or die $!;
+    while(my $filename = readdir($dh)) {
+        next if($filename !~ m/^anlage_log\.csv/);
+
         my $fh;
         if(!open($fh, '<', "../sd-karteninhalt/$filename")) {
             if($filename eq 'anlage_log.csv') {
@@ -26,11 +28,10 @@ sub _hole_daten {
             }
         }
         $/ = "\n";
-        my $alt = {};
-
         while(my $line = <$fh>) {
             chomp($line);
 
+            # TODO e2 beachten! regex trennen
             my @e = $line =~ m/^(\d+),e1,([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),w[12],(\d+),(\d+)/;
             next if(!scalar(@e));
 
@@ -49,17 +50,19 @@ sub _hole_daten {
                 l2_strom_ma => $e[7],
                 l3_strom_ma => $e[8],
                 gib_anteil_pv1_in_prozent => $e[9],
+
                 stunden_solarstrahlung => $e[10],
                 tages_solarstrahlung => $e[11],
             };
             push(@$daten, $neu);
-            $alt = $neu;
         }
         close($fh);
     }
+    closedir($dh);
     return $daten;
 }
 my $daten = _hole_daten();
+$daten = [sort { $a->{zeitpunkt} <=> $b->{zeitpunkt} } @$daten];
 
 print "\nAnzahl der Log-Datensaetze: " . scalar(@$daten) . "\n";
 my $logdaten_in_tagen = ($daten->[$#$daten]->{'zeitpunkt'} - $daten->[0]->{'zeitpunkt'}) / 86400;
