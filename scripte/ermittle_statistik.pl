@@ -32,7 +32,7 @@ sub _hole_daten {
             chomp($line);
 
             # TODO e2 beachten! regex trennen
-            my @e = $line =~ m/^(\d+),e1,([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),w[12],(\d+),(\d+)/;
+            my @e = $line =~ m/^(\d{10,}),e1,([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),w[12],(\d+),(\d+)/;
             next if(!scalar(@e));
 
             my @d = gmtime($e[0]);
