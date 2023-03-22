@@ -37,4 +37,5 @@ void setup(void) {
 
 void loop(void) {
 	webserver.watch_for_client();
+	delay(50);
 }

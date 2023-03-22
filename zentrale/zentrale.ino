@@ -65,4 +65,5 @@ void loop(void) {
 		return;
 	}
 	web_presenter.webserver.watch_for_client();
+	delay(50);
 }
