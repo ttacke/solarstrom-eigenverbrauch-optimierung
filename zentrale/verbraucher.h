@@ -148,7 +148,7 @@ namespace Local {
 				auto_laden_ist_an() ? "an" : "aus",
 				auto_benoetigte_ladeleistung_in_w,
 				aktuelle_auto_ladeleistung_in_w,
-				_gib_genutzte_auto_ladeleistung_in_w(),
+				_gib_genutzte_auto_ladeleistung_in_w(),// TODO <-- da kommt 60 raus. Wieso?
 				wasser_relay_ist_an ? "an" : "aus"
 			);
 			file_writer.write_formated(

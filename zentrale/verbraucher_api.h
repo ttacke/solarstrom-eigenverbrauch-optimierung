@@ -440,7 +440,7 @@ namespace Local {
 			_ermittle_relay_zustaende(verbraucher);
 
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(
-				(float) (elektroanlage.l3_strom_ma + elektroanlage.l3_solarstrom_ma) / 1000 * 230
+				(float) (elektroanlage.l1_strom_ma + elektroanlage.l1_solarstrom_ma) / 1000 * 230
 			);
 			_lies_verbraucher_log(
 				verbraucher.auto_ladeleistung_log_in_w,

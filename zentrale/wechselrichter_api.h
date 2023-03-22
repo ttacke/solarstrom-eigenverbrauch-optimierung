@@ -67,8 +67,8 @@ namespace Local {
 				elektroanlage.leistungsanteil_pv2 = round(atof(web_reader->finding_buffer) * 1000);
 				findings |= 0b1000'0000;
 			}
-			if(web_reader->find_in_buffer((char*) "\"ACBRIDGE_CURRENT_ACTIVE_MEAN_03_F32\" *: *([-0-9.]+)[^0-9]")) {
-				elektroanlage.l3_solarstrom_ma = round(atof(web_reader->finding_buffer) * 1000);
+			if(web_reader->find_in_buffer((char*) "\"ACBRIDGE_CURRENT_ACTIVE_MEAN_01_F32\" *: *([-0-9.]+)[^0-9]")) {
+				elektroanlage.l1_solarstrom_ma = round(atof(web_reader->finding_buffer) * 1000);
 				findings2 |= 0b0000'0001;
 			}
 		}
@@ -102,7 +102,7 @@ namespace Local {
 				elektroanlage.solarakku_ist_an = false;
 				elektroanlage.leistungsanteil_pv1 = 0;
 				elektroanlage.leistungsanteil_pv2 = 0;
-				elektroanlage.l3_solarstrom_ma = 0;
+				elektroanlage.l1_solarstrom_ma = 0;
 			}
 		}
 	};
