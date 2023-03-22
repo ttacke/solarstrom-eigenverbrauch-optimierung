@@ -91,7 +91,7 @@ namespace Local {
 			return einschaltschwelle;
 		}
 
-		template<typename F1, typename F2>
+		template<typename F1>
 		bool _schalte_automatisch(
 			char* log_key,
 			Local::Verbraucher& verbraucher,
@@ -99,8 +99,7 @@ namespace Local {
 			int min_schaltzeit_in_min,
 			int benoetigte_leistung_in_w,
 			bool relay_ist_an,
-			F1 && log_func,
-			F2 && schalt_func
+			F1 && schalt_func
 		) {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(
 				verbraucher, benoetigte_leistung_in_w
@@ -114,17 +113,6 @@ namespace Local {
 				verbraucher.aktueller_akku_ladenstand_in_promille,
 				nicht_laden_unter_akkuladestand
 			);
-			float flags = 0;// TODO DEPRECATED
-			if(min_bereitgestellte_leistung > einschaltschwelle) {
-				flags += 100;
-			}
-			if(akku_erreicht_zielladestand) {
-				flags += 10;// TODO DEPRECATED
-			}
-			if(schalt_mindestdauer_ist_erreicht) {
-				flags += 1;// TODO DEPRECATED
-			}
-			log_func(flags, min_bereitgestellte_leistung);// TODO DEPRECATED
 			if(!schalt_mindestdauer_ist_erreicht) {
 				_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
 				return false;
@@ -552,10 +540,6 @@ namespace Local {
 					cfg->auto_min_schaltzeit_in_min,
 					verbraucher.auto_benoetigte_ladeleistung_in_w,
 					verbraucher.auto_relay_ist_an,
-					[&](int flags, float ist_leistung) {// TODO DEPRECATED
-						verbraucher.auto_leistung_ist = ist_leistung;// TODO DEPRECATED
-						verbraucher.auto_schaltflags = flags;// TODO DEPRECATED
-					},
 					[&](bool ein) { _schalte_auto_relay(ein); }
 				)
 			) {
@@ -570,10 +554,6 @@ namespace Local {
 					cfg->roller_min_schaltzeit_in_min,
 					verbraucher.roller_benoetigte_ladeleistung_in_w,
 					verbraucher.roller_relay_ist_an,
-					[&](int flags, float ist_leistung) {// TODO DEPRECATED
-						verbraucher.roller_leistung_ist = ist_leistung;// TODO DEPRECATED
-						verbraucher.roller_schaltflags = flags;// TODO DEPRECATED
-					},
 					[&](bool ein) { _schalte_roller_relay(ein); }
 				)
 			) {
@@ -587,10 +567,6 @@ namespace Local {
 				cfg->wasser_min_schaltzeit_in_min,
 				cfg->wasser_benoetigte_leistung_in_w,
 				verbraucher.wasser_relay_ist_an,
-				[&](int flags, float ist_leistung) {// TODO DEPRECATED
-					verbraucher.wasser_leistung_ist = ist_leistung;// TODO DEPRECATED
-					verbraucher.wasser_schaltflags = flags;// TODO DEPRECATED
-				},
 				[&](bool ein) { _schalte_wasser_relay(ein); }
 			)) {
 				return;
@@ -603,17 +579,13 @@ namespace Local {
 				cfg->heizung_min_schaltzeit_in_min,
 				cfg->heizung_benoetigte_leistung_in_w,
 				verbraucher.heizung_relay_ist_an,
-				[&](int flags, float ist_leistung) {// TODO DEPRECATED
-					verbraucher.heizung_leistung_ist = ist_leistung;// TODO DEPRECATED
-					verbraucher.heizung_schaltflags = flags;// TODO DEPRECATED
-				},
 				[&](bool ein) { _schalte_heizung_relay(ein); }
 			)) {
 				return;
 			}
 		}
 
-		template<typename F1, typename F2>
+		template<typename F1>
 		bool _schalte_ueberladen_automatisch(
 			char* log_key,
 			Local::Verbraucher& verbraucher,
@@ -621,24 +593,12 @@ namespace Local {
 			int min_schaltzeit_in_min,
 			int benoetigte_leistung_in_w,
 			bool relay_ist_an,
-			F1 && log_func,
-			F2 && schalt_func
+			F1 && schalt_func
 		) {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
 			bool akku_laeuft_potentiell_in_3h_ueber = verbraucher.akku_erreicht_ladestand_in_stunden(1000) <= 3;
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			bool unerfuellter_ladewunsch = _es_besteht_ein_unerfuellter_ladewunsch(verbraucher);
-			float flags = 0;// TODO DEPRECATED
-			if(unerfuellter_ladewunsch) {
-				flags += 100;
-			}
-			if(akku_laeuft_potentiell_in_3h_ueber) {
-				flags += 10;// TODO DEPRECATED
-			}
-			if(schalt_mindestdauer_ist_erreicht) {
-				flags += 1;// TODO DEPRECATED
-			}
-			log_func(flags, min_bereitgestellte_leistung);// TODO DEPRECATED
 			if(!schalt_mindestdauer_ist_erreicht) {
 				_log(log_key, (char*) "-ueberladen>SchaltdauerNichtErreicht");
 				return false;

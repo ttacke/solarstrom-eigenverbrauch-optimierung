@@ -26,13 +26,9 @@ namespace Local {
 
 		bool wasser_relay_ist_an = false;
 		int wasser_relay_zustand_seit = 0;
-		float wasser_leistung_ist = 0;
-		int wasser_schaltflags = 0;
 
 		bool heizung_relay_ist_an = false;
 		int heizung_relay_zustand_seit = 0;
-		float heizung_leistung_ist = 0;
-		int heizung_schaltflags = 0;
 
 		Ladestatus auto_ladestatus = Local::Verbraucher::Ladestatus::solar;
 		int auto_benoetigte_ladeleistung_in_w = 0;
@@ -40,8 +36,6 @@ namespace Local {
 		int auto_ladeleistung_log_in_w[5];
 		bool auto_relay_ist_an = false;
 		int auto_relay_zustand_seit = 0;
-		float auto_leistung_ist = 0;
-		int auto_schaltflags = 0;
 
 		Ladestatus roller_ladestatus = Local::Verbraucher::Ladestatus::solar;
 		int roller_benoetigte_ladeleistung_in_w = 0;
@@ -49,8 +43,6 @@ namespace Local {
 		int roller_ladeleistung_log_in_w[5];
 		bool roller_relay_ist_an = false;
 		int roller_relay_zustand_seit = 0;
-		float roller_leistung_ist = 0;
-		int roller_schaltflags = 0;
 
 		int aktueller_verbrauch_in_w = 0;
 		int verbrauch_log_in_w[5];
@@ -148,7 +140,7 @@ namespace Local {
 				auto_laden_ist_an() ? "an" : "aus",
 				auto_benoetigte_ladeleistung_in_w,
 				aktuelle_auto_ladeleistung_in_w,
-				_gib_genutzte_auto_ladeleistung_in_w(),// TODO <-- da kommt 60 raus. Wieso?
+				_gib_genutzte_auto_ladeleistung_in_w(),
 				wasser_relay_ist_an ? "an" : "aus"
 			);
 			file_writer.write_formated(
