@@ -31,9 +31,11 @@ sub _hole_daten {
         while(my $line = <$fh>) {
             chomp($line);
 
-            # TODO e2 beachten! regex trennen
-            my @e = $line =~ m/^(\d{10,}),e1,([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),w[12],(\d+),(\d+)/;
+            my @e = $line =~ m/^(\d{10,}),e[12],([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),w[12],(\d+),(\d+)(?:,(\d+)|)/;
             next if(!scalar(@e));
+
+            my @w = $line =~ m/,w[12],(\d+),(\d+)/;
+            next if(!scalar(@w));
 
             my @d = gmtime($e[0]);
             my $neu = {
@@ -50,9 +52,10 @@ sub _hole_daten {
                 l2_strom_ma => $e[7],
                 l3_strom_ma => $e[8],
                 gib_anteil_pv1_in_prozent => $e[9],
+                ersatzstrom_ist_aktiv => $e[10] ? 1 : 0,
 
-                stunden_solarstrahlung => $e[10],
-                tages_solarstrahlung => $e[11],
+                stunden_solarstrahlung => $w[0],
+                tages_solarstrahlung => $w[1],
             };
             push(@$daten, $neu);
         }
