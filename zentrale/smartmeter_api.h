@@ -22,6 +22,19 @@ namespace Local {
 				elektroanlage.l3_strom_ma = round(atof(web_reader->finding_buffer) * 1000);
 				findings |= 0b0000'0100;
 			}
+
+			if(web_reader->find_in_buffer((char*) "\"SMARTMETER_VOLTAGE_01_F64\" *: *([0-9.]+)[^0-9]")) {
+				elektroanlage.l1_spannung_dv = round(atof(web_reader->finding_buffer) * 10);
+				findings |= 0b0000'1000;
+			}
+			if(web_reader->find_in_buffer((char*) "\"SMARTMETER_VOLTAGE_02_F64\" *: *([0-9.]+)[^0-9]")) {
+				elektroanlage.l2_spannung_dv = round(atof(web_reader->finding_buffer) * 10);
+				findings |= 0b0001'0000;
+			}
+			if(web_reader->find_in_buffer((char*) "\"SMARTMETER_VOLTAGE_03_F64\" *: *([0-9.]+)[^0-9]")) {
+				elektroanlage.l3_spannung_dv = round(atof(web_reader->finding_buffer) * 10);
+				findings |= 0b0010'0000;
+			}
 		}
 
 	public:
@@ -35,10 +48,13 @@ namespace Local {
 			while(web_reader->read_next_block_to_buffer()) {
 				_daten_extrahieren_und_einsetzen(elektroanlage);
 			}
-			if(!(findings & 0b0000'0111)) {
+			if(!(findings & 0b0011'1111)) {
 				elektroanlage.l1_strom_ma = 0;
 				elektroanlage.l2_strom_ma = 0;
 				elektroanlage.l3_strom_ma = 0;
+				elektroanlage.l1_spannung_dv = 0;
+				elektroanlage.l2_spannung_dv = 0;
+				elektroanlage.l3_spannung_dv = 0;
 			}
 		}
 	};

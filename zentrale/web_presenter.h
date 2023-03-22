@@ -318,9 +318,9 @@ namespace Local {
 					"\"solarerzeugung_ist_aktiv\":%s,",
 					verbraucher.solarerzeugung_ist_aktiv() ? "true" : "false"
 				);
-				file_writer.write_formated(// TODO alle 3 Phasen haben die gleiche Spannung!
-					"\"ersatzstrom_ist_aktiv\":%s,",// TODO wenn true -> zielakkuwert=110% (zur Sicherheit), alles aus wenn <90%
-					false ? "true" : "false"
+				file_writer.write_formated(
+					"\"ersatzstrom_ist_aktiv\":%s,",
+					elektroanlage.ersatzstrom_ist_aktiv() ? "true" : "false"
 				);
 				file_writer.write_formated(
 					"\"timestamp\":%i}",
