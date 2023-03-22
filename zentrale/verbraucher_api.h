@@ -484,6 +484,7 @@ namespace Local {
 
 			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
 			verbraucher.solarerzeugung_in_w = elektroanlage.solarerzeugung_in_w;
+			verbraucher.ersatzstrom_ist_aktiv = elektroanlage.ersatzstrom_ist_aktiv();
 			verbraucher.zeitpunkt_sonnenuntergang = wetter.zeitpunkt_sonnenuntergang;
 
 			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
@@ -492,14 +493,21 @@ namespace Local {
 		}
 
 		void fuehre_schaltautomat_aus(Local::Verbraucher& verbraucher) {
+			if(verbraucher.ersatzstrom_ist_aktiv) {
+				_log((char*) "Ersatzstrom->forceUnterbinden");
+			}
+
 			if(
 				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
-				&& _laden_ist_beendet(
-					(char*) "auto",
-					verbraucher.auto_relay_zustand_seit,
-					cfg->auto_min_schaltzeit_in_min,
-					verbraucher.auto_relay_ist_an,
-					verbraucher.auto_laden_ist_an()
+				&& (
+					_laden_ist_beendet(
+						(char*) "auto",
+						verbraucher.auto_relay_zustand_seit,
+						cfg->auto_min_schaltzeit_in_min,
+						verbraucher.auto_relay_ist_an,
+						verbraucher.auto_laden_ist_an()
+					)
+					|| verbraucher.ersatzstrom_ist_aktiv
 				)
 			) {
 				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar);
@@ -508,12 +516,15 @@ namespace Local {
 
 			if(
 				verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::force
-				&& _laden_ist_beendet(
-					(char*) "roller",
-					verbraucher.roller_relay_zustand_seit,
-					cfg->roller_min_schaltzeit_in_min,
-					verbraucher.roller_relay_ist_an,
-					verbraucher.roller_laden_ist_an()
+				&& (
+					_laden_ist_beendet(
+						(char*) "roller",
+						verbraucher.roller_relay_zustand_seit,
+						cfg->roller_min_schaltzeit_in_min,
+						verbraucher.roller_relay_ist_an,
+						verbraucher.roller_laden_ist_an()
+					)
+					|| verbraucher.ersatzstrom_ist_aktiv
 				)
 			) {
 				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar);
