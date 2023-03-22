@@ -3,6 +3,9 @@
 #include <SD.h>
 #include <Regexp.h>
 
+// TODO persistence-Objekt benutzen
+// Das enthält Write/Read und hat selber extra Funktionen, um die Daten im RAM zu halten (als Char*)
+// Will man explizit schreiben/lesen von FS, muss das im Code auch explizit sein
 namespace Local::Service {
 	class FileReader {
 	protected:
