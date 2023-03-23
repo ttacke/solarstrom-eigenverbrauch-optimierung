@@ -15,23 +15,8 @@ namespace Local {
 		int l1_solarstrom_ma = 0;
 		int leistungsanteil_pv1 = 0;
 		int leistungsanteil_pv2 = 0;
-		int l1_spannung_dv = 0;// Dezi-Volt - ist hat die Aufloesung des Messgeraetes
-		int l2_spannung_dv = 0;
-		int l3_spannung_dv = 0;
-
-		bool ersatzstrom_ist_aktiv() {
-			// TODO wenn aktiv, dann: 110% AkkuZielwert statt 80 bzw. 100 && Kein Forced laden!
-			if(
-				l1_spannung_dv == l2_spannung_dv
-				&& l1_spannung_dv == l3_spannung_dv
-			) {
-				return true;
-			}
-			if(!l1_spannung_dv || !l2_spannung_dv || !l3_spannung_dv) {
-				return true;
-			}
-			return false;
-		}
+		// TODO wenn aktiv, dann: 110% AkkuZielwert statt 80 bzw. 100 && Kein Forced laden!
+		bool ersatzstrom_ist_aktiv = false;
 
 		int gib_ueberschuss_in_w() {
 			return solarerzeugung_in_w - stromverbrauch_in_w;
@@ -56,7 +41,7 @@ namespace Local {
 				l2_strom_ma,
 				l3_strom_ma,
 				gib_anteil_pv1_in_prozent(),
-				ersatzstrom_ist_aktiv() ? 1 : 0
+				ersatzstrom_ist_aktiv ? 1 : 0
 			);
 		}
 	};

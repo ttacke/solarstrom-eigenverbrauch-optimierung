@@ -104,6 +104,7 @@ namespace Local {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(
 				verbraucher, benoetigte_leistung_in_w
 			);
+			// TODO hier (unter anderem)
 			bool akku_erreicht_zielladestand = verbraucher.akku_erreicht_ladestand_in_promille(
 				cfg->akku_zielladestand_in_promille
 			);
@@ -484,7 +485,7 @@ namespace Local {
 
 			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
 			verbraucher.solarerzeugung_in_w = elektroanlage.solarerzeugung_in_w;
-			verbraucher.ersatzstrom_ist_aktiv = elektroanlage.ersatzstrom_ist_aktiv();
+			verbraucher.ersatzstrom_ist_aktiv = elektroanlage.ersatzstrom_ist_aktiv;
 			verbraucher.zeitpunkt_sonnenuntergang = wetter.zeitpunkt_sonnenuntergang;
 
 			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
@@ -496,6 +497,7 @@ namespace Local {
 			if(verbraucher.ersatzstrom_ist_aktiv) {
 				_log((char*) "Ersatzstrom->forceUnterbinden");
 			}
+			// TODO bei ersatzstrom zielLadestand: 120%, erst bai > 95% alles starten
 
 			if(
 				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force

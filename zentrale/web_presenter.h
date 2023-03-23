@@ -320,7 +320,7 @@ namespace Local {
 				);
 				file_writer.write_formated(
 					"\"ersatzstrom_ist_aktiv\":%s,",
-					elektroanlage.ersatzstrom_ist_aktiv() ? "true" : "false"
+					elektroanlage.ersatzstrom_ist_aktiv ? "true" : "false"
 				);
 				file_writer.write_formated(
 					"\"timestamp\":%i}",
