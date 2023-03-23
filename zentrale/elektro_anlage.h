@@ -15,7 +15,6 @@ namespace Local {
 		int l1_solarstrom_ma = 0;
 		int leistungsanteil_pv1 = 0;
 		int leistungsanteil_pv2 = 0;
-		// TODO wenn aktiv, dann: 110% AkkuZielwert statt 80 bzw. 100 && Kein Forced laden!
 		bool ersatzstrom_ist_aktiv = false;
 
 		int gib_ueberschuss_in_w() {

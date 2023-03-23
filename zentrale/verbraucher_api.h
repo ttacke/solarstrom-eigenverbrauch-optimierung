@@ -104,7 +104,6 @@ namespace Local {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(
 				verbraucher, benoetigte_leistung_in_w
 			);
-			// TODO hier (unter anderem)
 			bool akku_erreicht_zielladestand = verbraucher.akku_erreicht_ladestand_in_promille(
 				cfg->akku_zielladestand_in_promille
 			);
@@ -494,22 +493,29 @@ namespace Local {
 		}
 
 		void fuehre_schaltautomat_aus(Local::Verbraucher& verbraucher) {
+			int ausschalter_auto_relay_zustand_seit = verbraucher.auto_relay_zustand_seit;
+			int ausschalter_roller_relay_zustand_seit = verbraucher.roller_relay_zustand_seit;
 			if(verbraucher.ersatzstrom_ist_aktiv) {
+				verbraucher.auto_ladestatus = Local::Verbraucher::Ladestatus::solar;
+				verbraucher.roller_ladestatus = Local::Verbraucher::Ladestatus::solar;
+				ausschalter_auto_relay_zustand_seit = 0;
+				ausschalter_roller_relay_zustand_seit = 0;
 				_log((char*) "Ersatzstrom->forceUnterbinden");
 			}
-			// TODO bei ersatzstrom zielLadestand: 120%, erst bai > 95% alles starten
+			// TODO bei ersatzstrom regeln anpassen
+			// zielLadestand: 120% bei allem
+			// karenzzeit: 1min bei allem
+			// min schaltzeit: 1min bei allem
+			//  (d.h. hier rein ziehen und ueberschreiben)
 
 			if(
 				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
-				&& (
-					_laden_ist_beendet(
-						(char*) "auto",
-						verbraucher.auto_relay_zustand_seit,
-						cfg->auto_min_schaltzeit_in_min,
-						verbraucher.auto_relay_ist_an,
-						verbraucher.auto_laden_ist_an()
-					)
-					|| verbraucher.ersatzstrom_ist_aktiv
+				&& _laden_ist_beendet(
+					(char*) "auto",
+					ausschalter_auto_relay_zustand_seit,
+					cfg->auto_min_schaltzeit_in_min,
+					verbraucher.auto_relay_ist_an,
+					verbraucher.auto_laden_ist_an()
 				)
 			) {
 				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar);
@@ -518,15 +524,12 @@ namespace Local {
 
 			if(
 				verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::force
-				&& (
-					_laden_ist_beendet(
-						(char*) "roller",
-						verbraucher.roller_relay_zustand_seit,
-						cfg->roller_min_schaltzeit_in_min,
-						verbraucher.roller_relay_ist_an,
-						verbraucher.roller_laden_ist_an()
-					)
-					|| verbraucher.ersatzstrom_ist_aktiv
+				&& _laden_ist_beendet(
+					(char*) "roller",
+					ausschalter_roller_relay_zustand_seit,
+					cfg->roller_min_schaltzeit_in_min,
+					verbraucher.roller_relay_ist_an,
+					verbraucher.roller_laden_ist_an()
 				)
 			) {
 				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar);
