@@ -19,7 +19,8 @@ namespace Local::Service {
 			std::fill(buffer, buffer + sizeof(buffer), 0);
 			buffer_offset = 0;
 		}
-
+		// Bug, der eigentlich gefixt sein sollte: https://github.com/esp8266/Arduino/issues/6877
+		// Doku zu ChunkedEncoding https://en.wikipedia.org/wiki/Chunked_transfer_encoding
 		void write(char* string, int string_length) {
 			int buffer_space_length = sizeof(buffer) - buffer_offset - 1;
 			int read_string_till = std::min(string_length, buffer_space_length);

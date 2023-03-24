@@ -517,14 +517,6 @@ Serial.println(shelly_roller_cache_power);
 				auto_min_schaltzeit_in_min = 5;
 				roller_min_schaltzeit_in_min = 5;
 			}
-// TODO die Zwischenräume sind ggf wegen des Encoding:chunked, was im Header aber gar nicht steht
-// https://en.wikipedia.org/wiki/Chunked_transfer_encoding
-// 1. Hex anlahl an bytes + \r\n
-// dann bytes + \r\n
-// wieder von vorn
-// Am ende halt 0\r\n
-
-// diese Marker sende ich gar nicht.
 			if(
 				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
 				&& _laden_ist_beendet(
