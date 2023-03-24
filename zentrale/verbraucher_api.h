@@ -394,6 +394,8 @@ namespace Local {
 			shelly_roller_cache_timestamp = 0;
 			shelly_roller_cache_ison = false;
 			shelly_roller_cache_power = 0;
+// TODO
+Serial.println("SearchRollerPower");
 			while(web_reader->read_next_block_to_buffer()) {
 				if(web_reader->find_in_buffer((char*) "\"unixtime\":([0-9]+)[^0-9]")) {
 					shelly_roller_cache_timestamp = atoi(web_reader->finding_buffer);
@@ -402,7 +404,11 @@ namespace Local {
 					shelly_roller_cache_ison = true;
 				}
 				if(web_reader->find_in_buffer((char*) "\"power\":([0-9]+)[^0-9]")) {
+// TODO Warum ist die RollerPower=0
+Serial.println("RollerPowerFound");
 					shelly_roller_cache_power = atoi(web_reader->finding_buffer);
+// TODO
+Serial.println(shelly_roller_cache_power);
 				}
 			}
 		}
@@ -507,7 +513,14 @@ namespace Local {
 			// karenzzeit: 1min bei allem
 			// min schaltzeit: 1min bei allem
 			//  (d.h. hier rein ziehen und ueberschreiben)
+// TODO die Zwischenräume sind ggf wegen des Encoding:chunked, was im Header aber gar nicht steht
+// https://en.wikipedia.org/wiki/Chunked_transfer_encoding
+// 1. Hex anlahl an bytes + \r\n
+// dann bytes + \r\n
+// wieder von vorn
+// Am ende halt 0\r\n
 
+// diese Marker sende ich gar nicht.
 			if(
 				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
 				&& _laden_ist_beendet(
