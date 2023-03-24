@@ -28,7 +28,6 @@ namespace Local {
 		int heizung_benoetigte_leistung_in_w = 420;
 		int heizung_min_schaltzeit_in_min = 60;
 
-		int schaltautomat_schalt_karenzzeit_in_min = 5;
 		int grundverbrauch_in_w_pro_h = 238;
 		float solarstrahlungs_vorhersage_umrechnungsfaktor = 4.65;
 		int akku_groesse_in_wh = 7680;

@@ -99,13 +99,14 @@ namespace Local {
 			int min_schaltzeit_in_min,
 			int benoetigte_leistung_in_w,
 			bool relay_ist_an,
+			int akku_zielladestand_in_promille,
 			F1 && schalt_func
 		) {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(
 				verbraucher, benoetigte_leistung_in_w
 			);
 			bool akku_erreicht_zielladestand = verbraucher.akku_erreicht_ladestand_in_promille(
-				cfg->akku_zielladestand_in_promille
+				akku_zielladestand_in_promille
 			);
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			float nicht_laden_unter_akkuladestand = 400;
@@ -501,18 +502,21 @@ Serial.println(shelly_roller_cache_power);
 		void fuehre_schaltautomat_aus(Local::Verbraucher& verbraucher) {
 			int ausschalter_auto_relay_zustand_seit = verbraucher.auto_relay_zustand_seit;
 			int ausschalter_roller_relay_zustand_seit = verbraucher.roller_relay_zustand_seit;
+			int akku_zielladestand_in_promille = cfg->akku_zielladestand_in_promille;
+			int auto_min_schaltzeit_in_min = cfg->auto_min_schaltzeit_in_min;
+			int roller_min_schaltzeit_in_min = cfg->roller_min_schaltzeit_in_min;
+			int akku_zielladestand_fuer_ueberladen_in_promille = 1000;
 			if(verbraucher.ersatzstrom_ist_aktiv) {
 				verbraucher.auto_ladestatus = Local::Verbraucher::Ladestatus::solar;
 				verbraucher.roller_ladestatus = Local::Verbraucher::Ladestatus::solar;
 				ausschalter_auto_relay_zustand_seit = 0;
 				ausschalter_roller_relay_zustand_seit = 0;
 				_log((char*) "Ersatzstrom->forceUnterbinden");
+				akku_zielladestand_in_promille = 1200;
+				akku_zielladestand_fuer_ueberladen_in_promille = 1200;
+				auto_min_schaltzeit_in_min = 5;
+				roller_min_schaltzeit_in_min = 5;
 			}
-			// TODO bei ersatzstrom regeln anpassen
-			// zielLadestand: 120% bei allem
-			// karenzzeit: 1min bei allem
-			// min schaltzeit: 1min bei allem
-			//  (d.h. hier rein ziehen und ueberschreiben)
 // TODO die Zwischenräume sind ggf wegen des Encoding:chunked, was im Header aber gar nicht steht
 // https://en.wikipedia.org/wiki/Chunked_transfer_encoding
 // 1. Hex anlahl an bytes + \r\n
@@ -549,7 +553,7 @@ Serial.println(shelly_roller_cache_power);
 				return;
 			}
 
-			int karenzzeit = (cfg->schaltautomat_schalt_karenzzeit_in_min * 60);
+			int karenzzeit = (7 * 60);// in Sekunden, muss >5min sein, da die LadeLog 5min betraegt
 			if(
 				verbraucher.auto_relay_zustand_seit >= timestamp - karenzzeit
 				|| verbraucher.roller_relay_zustand_seit >= timestamp - karenzzeit
@@ -566,9 +570,10 @@ Serial.println(shelly_roller_cache_power);
 					(char*) "auto",
 					verbraucher,
 					verbraucher.auto_relay_zustand_seit,
-					cfg->auto_min_schaltzeit_in_min,
+					auto_min_schaltzeit_in_min,
 					verbraucher.auto_benoetigte_ladeleistung_in_w,
 					verbraucher.auto_relay_ist_an,
+					akku_zielladestand_in_promille,
 					[&](bool ein) { _schalte_auto_relay(ein); }
 				)
 			) {
@@ -580,9 +585,10 @@ Serial.println(shelly_roller_cache_power);
 					(char*) "roller",
 					verbraucher,
 					verbraucher.roller_relay_zustand_seit,
-					cfg->roller_min_schaltzeit_in_min,
+					roller_min_schaltzeit_in_min,
 					verbraucher.roller_benoetigte_ladeleistung_in_w,
 					verbraucher.roller_relay_ist_an,
+					akku_zielladestand_in_promille,
 					[&](bool ein) { _schalte_roller_relay(ein); }
 				)
 			) {
@@ -596,6 +602,7 @@ Serial.println(shelly_roller_cache_power);
 				cfg->wasser_min_schaltzeit_in_min,
 				cfg->wasser_benoetigte_leistung_in_w,
 				verbraucher.wasser_relay_ist_an,
+				akku_zielladestand_fuer_ueberladen_in_promille,
 				[&](bool ein) { _schalte_wasser_relay(ein); }
 			)) {
 				return;
@@ -608,6 +615,7 @@ Serial.println(shelly_roller_cache_power);
 				cfg->heizung_min_schaltzeit_in_min,
 				cfg->heizung_benoetigte_leistung_in_w,
 				verbraucher.heizung_relay_ist_an,
+				akku_zielladestand_fuer_ueberladen_in_promille,
 				[&](bool ein) { _schalte_heizung_relay(ein); }
 			)) {
 				return;
@@ -622,10 +630,11 @@ Serial.println(shelly_roller_cache_power);
 			int min_schaltzeit_in_min,
 			int benoetigte_leistung_in_w,
 			bool relay_ist_an,
+			int akku_zielladestand_in_promille,
 			F1 && schalt_func
 		) {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
-			bool akku_laeuft_potentiell_in_3h_ueber = verbraucher.akku_erreicht_ladestand_in_stunden(1000) <= 3;
+			bool akku_laeuft_potentiell_in_3h_ueber = verbraucher.akku_erreicht_ladestand_in_stunden(akku_zielladestand_in_promille) <= 3;
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			bool unerfuellter_ladewunsch = _es_besteht_ein_unerfuellter_ladewunsch(verbraucher);
 			if(!schalt_mindestdauer_ist_erreicht) {
