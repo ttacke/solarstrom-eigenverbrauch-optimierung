@@ -11,6 +11,7 @@ unsigned long runtime;
 unsigned long last_runtime;
 const char* daten_filename = "daten.json";
 
+// TODO index.html -> ein iFrame drumherum und das wiederum liest PRoblemeaus und lädt ggf den iFrameInhalt neu
 void setup(void) {
 	runtime = 0;
 	last_runtime = 0;
