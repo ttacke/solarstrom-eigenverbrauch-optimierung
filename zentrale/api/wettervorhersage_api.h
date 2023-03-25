@@ -1,10 +1,10 @@
 #pragma once
 #include "base_api.h"
-#include "service/file_reader.h"
-#include "model/wetter.h"
+#include "../service/file_reader.h"
+#include "../model/wetter.h"
 #include <TimeLib.h>
 
-namespace Local {
+namespace Local::Api {
 	class WettervorhersageAPI: public BaseAPI {
 
 	using BaseAPI::BaseAPI;

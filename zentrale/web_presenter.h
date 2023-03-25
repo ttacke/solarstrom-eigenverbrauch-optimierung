@@ -7,11 +7,11 @@
 #include "service/file_writer.h"
 #include "model/elektro_anlage.h"
 #include "model/wetter.h"
-#include "smartmeter_api.h"
-#include "wechselrichter_api.h"
-#include "wettervorhersage_api.h"
+#include "api/smartmeter_api.h"
+#include "api/wechselrichter_api.h"
+#include "api/wettervorhersage_api.h"
 #include "model/verbraucher.h"
-#include "verbraucher_api.h"
+#include "api/verbraucher_api.h"
 #include "service/web_writer.h"
 #include <TimeLib.h>
 
@@ -140,7 +140,7 @@ namespace Local {
 		}
 
 		void aendere() {
-			Local::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer);
+			Local::Api::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer);
 			int now_timestamp = verbraucher_api.timestamp;
 			if(!now_timestamp) {
 				webserver.server.send(400, "text/plain", "Der timestamp konnte im System nicht korrekt gelesen werden");
@@ -171,22 +171,22 @@ namespace Local {
 
 		void heartbeat(const char* data_filename) {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
-			Local::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer);
+			Local::Api::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer);
 			int now_timestamp = verbraucher_api.timestamp;
 			if(!now_timestamp) {
 				Serial.println("Der timestamp konnte im System nicht korrekt gelesen werden");
 				return;
 			}
 
-			Local::WechselrichterAPI wechselrichter_api(*cfg, web_reader);
+			Local::Api::WechselrichterAPI wechselrichter_api(*cfg, web_reader);
 			wechselrichter_api.daten_holen_und_einsetzen(elektroanlage);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			Local::SmartmeterAPI smartmeter_api(*cfg, web_reader);
+			Local::Api::SmartmeterAPI smartmeter_api(*cfg, web_reader);
 			smartmeter_api.daten_holen_und_einsetzen(elektroanlage);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			Local::WettervorhersageAPI wettervorhersage_api(*cfg, web_reader);
+			Local::Api::WettervorhersageAPI wettervorhersage_api(*cfg, web_reader);
 
 			_lese_systemstatus_daten();
 			if(

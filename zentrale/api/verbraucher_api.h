@@ -1,7 +1,7 @@
 #pragma once
 #include "base_api.h"
 
-namespace Local {
+namespace Local::Api {
 	class VerbraucherAPI: public BaseAPI {
 
 	using BaseAPI::BaseAPI;

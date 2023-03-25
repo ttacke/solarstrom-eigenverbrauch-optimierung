@@ -1,7 +1,7 @@
 #pragma once
 #include "base_api.h"
 
-namespace Local {
+namespace Local::Api {
 	class SmartmeterAPI: public BaseAPI {
 
 	using BaseAPI::BaseAPI;

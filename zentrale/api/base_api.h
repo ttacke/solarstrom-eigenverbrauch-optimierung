@@ -1,9 +1,9 @@
 #pragma once
-#include "service/web_reader.h"
-#include "config.h"
+#include "../service/web_reader.h"
+#include "../config.h"
 #include <Regexp.h>
 
-namespace Local {
+namespace Local::Api {
 	class BaseAPI {
 
 	protected:

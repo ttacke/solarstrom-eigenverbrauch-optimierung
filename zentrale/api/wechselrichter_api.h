@@ -1,8 +1,8 @@
 #pragma once
 #include "base_api.h"
-#include "model/elektro_anlage.h"
+#include "../model/elektro_anlage.h"
 
-namespace Local {
+namespace Local::Api {
 	class WechselrichterAPI: public BaseAPI {
 
 	using BaseAPI::BaseAPI;
