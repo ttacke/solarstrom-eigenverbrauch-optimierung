@@ -70,7 +70,7 @@ namespace Local {
 			return false;
 		}
 
-		float _gib_min_bereitgestellte_leistung(Local::Verbraucher& verbraucher, int benoetigte_leistung_in_w) {
+		float _gib_min_bereitgestellte_leistung(Local::Model::Verbraucher& verbraucher, int benoetigte_leistung_in_w) {
 			return
 				(float) verbraucher.gib_beruhigten_ueberschuss_in_w()
 				/
@@ -95,7 +95,7 @@ namespace Local {
 		template<typename F1>
 		bool _schalte_automatisch(
 			char* log_key,
-			Local::Verbraucher& verbraucher,
+			Local::Model::Verbraucher& verbraucher,
 			int relay_zustand_seit,
 			int min_schaltzeit_in_min,
 			int benoetigte_leistung_in_w,
@@ -151,7 +151,7 @@ namespace Local {
 			return false;
 		}
 
-		void _ermittle_relay_zustaende(Local::Verbraucher& verbraucher) {
+		void _ermittle_relay_zustaende(Local::Model::Verbraucher& verbraucher) {
 			verbraucher.heizung_relay_ist_an = _netz_relay_ist_an(cfg->heizung_relay_host, cfg->heizung_relay_port);
 			verbraucher.heizung_relay_zustand_seit = _lese_zustand_seit(heizung_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
@@ -334,13 +334,13 @@ namespace Local {
 			}
 		}
 
-		void _lese_ladestatus(Local::Verbraucher::Ladestatus& ladestatus, const char* filename) {
-			ladestatus = Local::Verbraucher::Ladestatus::solar;
+		void _lese_ladestatus(Local::Model::Verbraucher::Ladestatus& ladestatus, const char* filename) {
+			ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 			if(file_reader->open_file_to_read(filename)) {
 				while(file_reader->read_next_block_to_buffer()) {
 					if(file_reader->find_in_buffer((char*) "([a-z]+)")) {
 						if(strcmp(file_reader->finding_buffer, "force") == 0) {
-							ladestatus = Local::Verbraucher::Ladestatus::force;
+							ladestatus = Local::Model::Verbraucher::Ladestatus::force;
 						}
 						return;
 					}
@@ -350,8 +350,8 @@ namespace Local {
 		}
 
 		void _fuelle_akkuladestands_vorhersage(
-			Local::Verbraucher& verbraucher,
-			Local::Wetter wetter
+			Local::Model::Verbraucher& verbraucher,
+			Local::Model::Wetter wetter
 		) {
 			int akkuzuwachs_unmoeglich_weil_vergangenheit = 0;
 			int zeit_unterschied = timestamp - wetter.stundenvorhersage_startzeitpunkt;
@@ -444,9 +444,9 @@ namespace Local {
 		}
 
 		void daten_holen_und_einsetzen(
-			Local::Verbraucher& verbraucher,
-			Local::ElektroAnlage& elektroanlage,
-			Local::Wetter wetter
+			Local::Model::Verbraucher& verbraucher,
+			Local::Model::ElektroAnlage& elektroanlage,
+			Local::Model::Wetter wetter
 		) {
 			_ermittle_relay_zustaende(verbraucher);
 
@@ -515,7 +515,7 @@ namespace Local {
 			_fuelle_akkuladestands_vorhersage(verbraucher, wetter);
 		}
 
-		void fuehre_schaltautomat_aus(Local::Verbraucher& verbraucher) {
+		void fuehre_schaltautomat_aus(Local::Model::Verbraucher& verbraucher) {
 			int ausschalter_auto_relay_zustand_seit = verbraucher.auto_relay_zustand_seit;
 			int ausschalter_roller_relay_zustand_seit = verbraucher.roller_relay_zustand_seit;
 			int akku_zielladestand_in_promille = cfg->akku_zielladestand_in_promille;
@@ -523,8 +523,8 @@ namespace Local {
 			int roller_min_schaltzeit_in_min = cfg->roller_min_schaltzeit_in_min;
 			int akku_zielladestand_fuer_ueberladen_in_promille = 1000;
 			if(verbraucher.ersatzstrom_ist_aktiv) {
-				verbraucher.auto_ladestatus = Local::Verbraucher::Ladestatus::solar;
-				verbraucher.roller_ladestatus = Local::Verbraucher::Ladestatus::solar;
+				verbraucher.auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
+				verbraucher.roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 				ausschalter_auto_relay_zustand_seit = 0;
 				ausschalter_roller_relay_zustand_seit = 0;
 				_log((char*) "Ersatzstrom->forceUnterbinden");
@@ -534,7 +534,7 @@ namespace Local {
 				roller_min_schaltzeit_in_min = 5;
 			}
 			if(
-				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
+				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
 				&& _laden_ist_beendet(
 					(char*) "auto",
 					ausschalter_auto_relay_zustand_seit,
@@ -543,12 +543,12 @@ namespace Local {
 					verbraucher.auto_laden_ist_an()
 				)
 			) {
-				setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar);
+				setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
 				return;
 			}
 
 			if(
-				verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::force
+				verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force
 				&& _laden_ist_beendet(
 					(char*) "roller",
 					ausschalter_roller_relay_zustand_seit,
@@ -557,7 +557,7 @@ namespace Local {
 					verbraucher.roller_laden_ist_an()
 				)
 			) {
-				setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar);
+				setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
 				return;
 			}
 
@@ -573,7 +573,7 @@ namespace Local {
 			}
 
 			if(
-				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::solar
+				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
 				&& _schalte_automatisch(
 					(char*) "auto",
 					verbraucher,
@@ -588,7 +588,7 @@ namespace Local {
 				return;
 			}
 			if(
-				verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::solar
+				verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
 				&& _schalte_automatisch(
 					(char*) "roller",
 					verbraucher,
@@ -633,7 +633,7 @@ namespace Local {
 		template<typename F1>
 		bool _schalte_ueberladen_automatisch(
 			char* log_key,
-			Local::Verbraucher& verbraucher,
+			Local::Model::Verbraucher& verbraucher,
 			int relay_zustand_seit,
 			int min_schaltzeit_in_min,
 			int benoetigte_leistung_in_w,
@@ -688,15 +688,15 @@ namespace Local {
 			return false;
 		}
 
-		bool _es_besteht_ein_unerfuellter_ladewunsch(Local::Verbraucher& verbraucher) {
+		bool _es_besteht_ein_unerfuellter_ladewunsch(Local::Model::Verbraucher& verbraucher) {
 			if(
-				verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::solar
+				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
 				&& !verbraucher.auto_relay_ist_an
 			) {
 				return true;
 			}
 			if(
-				verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::solar
+				verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
 				&& !verbraucher.roller_relay_ist_an
 			) {
 				return true;
@@ -704,9 +704,9 @@ namespace Local {
 			return false;
 		}
 
-		void setze_roller_ladestatus(Local::Verbraucher::Ladestatus status) {
+		void setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus status) {
 			char stat[6];
-			if(status == Local::Verbraucher::Ladestatus::force) {
+			if(status == Local::Model::Verbraucher::Ladestatus::force) {
 				_schalte_roller_relay(true);
 				strcpy(stat, "force");
 				_log((char*) "setze_roller_ladestatus>force");
@@ -721,9 +721,9 @@ namespace Local {
 			file_writer.delete_file(roller_leistung_log_filename);
 		}
 
-		void setze_auto_ladestatus(Local::Verbraucher::Ladestatus status) {
+		void setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus status) {
 			char stat[6];
-			if(status == Local::Verbraucher::Ladestatus::force) {
+			if(status == Local::Model::Verbraucher::Ladestatus::force) {
 				_schalte_auto_relay(true);
 				strcpy(stat, "force");
 				_log((char*) "setze_auto_ladestatus>force");

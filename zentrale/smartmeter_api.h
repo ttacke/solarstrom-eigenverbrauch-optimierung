@@ -9,7 +9,7 @@ namespace Local {
 	protected:
 		std::uint8_t findings;
 
-		void _daten_extrahieren_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
+		void _daten_extrahieren_und_einsetzen(Local::Model::ElektroAnlage& elektroanlage) {
 			if(web_reader->find_in_buffer((char*) "\"SMARTMETER_CURRENT_01_F64\" *: *([-0-9.]+)[^0-9]")) {
 				elektroanlage.l1_strom_ma = round(atof(web_reader->finding_buffer) * 1000);
 				findings |= 0b0000'0001;
@@ -25,7 +25,7 @@ namespace Local {
 		}
 
 	public:
-		void daten_holen_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
+		void daten_holen_und_einsetzen(Local::Model::ElektroAnlage& elektroanlage) {
 			web_reader->send_http_get_request(
 				cfg->wechselrichter_host,
 				cfg->wechselrichter_port,

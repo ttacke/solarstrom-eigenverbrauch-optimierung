@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Local {
+namespace Local::Model {
 	class Verbraucher {
 	protected:
 		int _gib_listen_maximum(int* liste, int length) {
@@ -30,14 +30,14 @@ namespace Local {
 		bool heizung_relay_ist_an = false;
 		int heizung_relay_zustand_seit = 0;
 
-		Ladestatus auto_ladestatus = Local::Verbraucher::Ladestatus::solar;
+		Ladestatus auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 		int auto_benoetigte_ladeleistung_in_w = 0;
 		int aktuelle_auto_ladeleistung_in_w = 0;
 		int auto_ladeleistung_log_in_w[5];
 		bool auto_relay_ist_an = false;
 		int auto_relay_zustand_seit = 0;
 
-		Ladestatus roller_ladestatus = Local::Verbraucher::Ladestatus::solar;
+		Ladestatus roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 		int roller_benoetigte_ladeleistung_in_w = 0;
 		int aktuelle_roller_ladeleistung_in_w = 0;
 		int roller_ladeleistung_log_in_w[5];
@@ -137,7 +137,7 @@ namespace Local {
 		void write_log_data(Local::Service::FileWriter& file_writer) {
 			file_writer.write_formated(
 				"va3,%s,%s,%d,%d,%d,%s",
-				(auto_ladestatus == Local::Verbraucher::Ladestatus::force ? "force" : "solar"),
+				(auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force ? "force" : "solar"),
 				auto_laden_ist_an() ? "an" : "aus",
 				auto_benoetigte_ladeleistung_in_w,
 				aktuelle_auto_ladeleistung_in_w,
@@ -146,7 +146,7 @@ namespace Local {
 			);
 			file_writer.write_formated(
 				",vb3,%s,%s,%d,%d,%d,%s",
-				(roller_ladestatus == Local::Verbraucher::Ladestatus::force ? "force" : "solar"),
+				(roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force ? "force" : "solar"),
 				roller_laden_ist_an() ? "an" : "aus",
 				roller_benoetigte_ladeleistung_in_w,
 				aktuelle_roller_ladeleistung_in_w,

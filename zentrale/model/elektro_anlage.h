@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Local {
+namespace Local::Model {
 	class ElektroAnlage {
 	public:
 		int netzbezug_in_w = 0;// + = bezug, - = einspeisung

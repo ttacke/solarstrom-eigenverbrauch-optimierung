@@ -1,6 +1,6 @@
 #pragma once
 #include "base_api.h"
-#include "elektro_anlage.h"
+#include "model/elektro_anlage.h"
 
 namespace Local {
 	class WechselrichterAPI: public BaseAPI {
@@ -11,7 +11,7 @@ namespace Local {
 		std::uint8_t findings;
 		std::uint8_t findings2;
 
-		void _daten_extrahieren_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
+		void _daten_extrahieren_und_einsetzen(Local::Model::ElektroAnlage& elektroanlage) {
 			if(web_reader->find_in_buffer((char*) "\"P_PV\":([-0-9.]+)[^0-9]")) {
 				elektroanlage.solarerzeugung_in_w = round(atof(web_reader->finding_buffer));
 				findings |= 0b0000'0001;
@@ -64,7 +64,7 @@ namespace Local {
 			}
 		}
 
-		void _detaildaten_einsetzen(Local::ElektroAnlage& elektroanlage) {
+		void _detaildaten_einsetzen(Local::Model::ElektroAnlage& elektroanlage) {
 			if(web_reader->find_in_buffer((char*) "\"PV_POWERACTIVE_MEAN_01_F32\" *: *([0-9.]+)[^0-9]")) {
 				elektroanlage.leistungsanteil_pv1 = round(atof(web_reader->finding_buffer) * 1000);
 				findings |= 0b0100'0000;
@@ -80,7 +80,7 @@ namespace Local {
 		}
 
 	public:
-		void daten_holen_und_einsetzen(Local::ElektroAnlage& elektroanlage) {
+		void daten_holen_und_einsetzen(Local::Model::ElektroAnlage& elektroanlage) {
 			web_reader->send_http_get_request(
 				cfg->wechselrichter_host,
 				cfg->wechselrichter_port,

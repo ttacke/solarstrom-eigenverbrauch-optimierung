@@ -5,12 +5,12 @@
 #include "service/web_reader.h"
 #include "service/file_reader.h"
 #include "service/file_writer.h"
-#include "elektro_anlage.h"
-#include "wetter.h"
+#include "model/elektro_anlage.h"
+#include "model/wetter.h"
 #include "smartmeter_api.h"
 #include "wechselrichter_api.h"
 #include "wettervorhersage_api.h"
-#include "verbraucher.h"
+#include "model/verbraucher.h"
 #include "verbraucher_api.h"
 #include "service/web_writer.h"
 #include <TimeLib.h>
@@ -27,9 +27,9 @@ namespace Local {
 		Local::Service::FileReader file_reader;
 		Local::Service::FileWriter file_writer;
 
-		Local::ElektroAnlage elektroanlage;
-		Local::Wetter wetter;
-		Local::Verbraucher verbraucher;
+		Local::Model::ElektroAnlage elektroanlage;
+		Local::Model::Wetter wetter;
+		Local::Model::Verbraucher verbraucher;
 
 		// TODO configwerte als SD_File ablegen? dann können komlpexere Dinge außerhalb laufen
 		// z.b. die Grundlast und die Monatlichen/Stündlichen Anpassungen für Strahlungswerte
@@ -151,17 +151,17 @@ namespace Local {
 
 			if(strcmp(key, "auto") == 0) {
 				if(strcmp(val, "force") == 0) {
-					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::force);
+					verbraucher_api.setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::force);
 				} else if(strcmp(val, "solar") == 0) {
-					verbraucher_api.setze_auto_ladestatus(Local::Verbraucher::Ladestatus::solar);
+					verbraucher_api.setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
 				} else if(strcmp(val, "change_power") == 0) {
 					verbraucher_api.wechsle_auto_ladeleistung();
 				}
 			} else if(strcmp(key, "roller") == 0) {
 				if(strcmp(val, "force") == 0) {
-					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::force);
+					verbraucher_api.setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::force);
 				} else if(strcmp(val, "solar") == 0) {
-					verbraucher_api.setze_roller_ladestatus(Local::Verbraucher::Ladestatus::solar);
+					verbraucher_api.setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
 				} else if(strcmp(val, "change_power") == 0) {
 					verbraucher_api.wechsle_roller_ladeleistung();
 				}
@@ -299,9 +299,9 @@ namespace Local {
 				);
 				file_writer.write_formated(
 					"\"auto_laden\":%s,\"roller_laden\":%s,",
-					verbraucher.auto_ladestatus == Local::Verbraucher::Ladestatus::force
+					verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
 						? "\"force\"" : "\"solar\"",
-					verbraucher.roller_ladestatus == Local::Verbraucher::Ladestatus::force
+					verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force
 						? "\"force\"" : "\"solar\""
 				);
 				file_writer.write_formated(

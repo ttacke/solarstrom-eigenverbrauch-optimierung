@@ -1,7 +1,7 @@
 #pragma once
 #include "base_api.h"
 #include "service/file_reader.h"
-#include "wetter.h"
+#include "model/wetter.h"
 #include <TimeLib.h>
 
 namespace Local {
@@ -243,7 +243,7 @@ namespace Local {
 		void persistierte_daten_einsetzen(
 			Local::Service::FileReader& file_reader,
 			Local::Service::FileWriter& file_writer,
-			Local::Wetter& wetter, int now_timestamp
+			Local::Model::Wetter& wetter, int now_timestamp
 		) {
 			_reset(zeitpunkt_stunden_liste, stunden_anzahl);
 			_reset(solarstrahlung_stunden_liste, stunden_anzahl);

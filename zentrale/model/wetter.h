@@ -1,7 +1,7 @@
 #pragma once
-#include "config.h"
+#include "../config.h"
 
-namespace Local {
+namespace Local::Model {
 	class Wetter {
 	protected:
 		// Hinweis: index0 = ist immer "jetzt" bei Stunde und Tag
