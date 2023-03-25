@@ -71,6 +71,10 @@ namespace Local::Service {
 			return true;
 		}
 
+		int get_file_size() {
+			return fh.size();
+		}
+
 		bool read_next_line_to_buffer() {
 			if(!_read_next_block_to_buffer()) {
 				return false;

@@ -107,7 +107,7 @@ namespace Local {
 
 		void download_file(const char* filename) {
 			if(file_reader.open_file_to_read(filename)) {
-				web_writer.init_for_write(200, "text/plain");
+				web_writer.init_for_write(200, "text/plain", file_reader.get_file_size());
 				while(file_reader.read_next_block_to_buffer()) {
 					web_writer.write(file_reader.buffer, strlen(file_reader.buffer));
 				}

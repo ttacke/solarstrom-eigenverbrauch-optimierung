@@ -19,6 +19,14 @@ namespace Local::Service {
 			std::fill(buffer, buffer + sizeof(buffer), 0);
 			buffer_offset = 0;
 		}
+
+		void init_for_write(int return_code, const char* content_type, int content_length) {
+			webserver.server.setContentLength(content_length);
+			webserver.server.send(return_code, content_type, "");
+			std::fill(buffer, buffer + sizeof(buffer), 0);
+			buffer_offset = 0;
+		}
+
 		// Bug, der eigentlich gefixt sein sollte: https://github.com/esp8266/Arduino/issues/6877
 		// Doku zu ChunkedEncoding https://en.wikipedia.org/wiki/Chunked_transfer_encoding
 		void write(char* string, int string_length) {
