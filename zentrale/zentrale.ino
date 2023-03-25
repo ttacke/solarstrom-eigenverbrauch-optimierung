@@ -4,7 +4,7 @@
 #include "web_presenter.h"
 
 Local::Config cfg;
-Local::Wlan wlan(cfg.wlan_ssid, cfg.wlan_pwd);
+Local::Service::Wlan wlan(cfg.wlan_ssid, cfg.wlan_pwd);
 Local::Service::WebReader web_reader(wlan.client);
 Local::WebPresenter web_presenter(cfg, wlan);
 unsigned long runtime;

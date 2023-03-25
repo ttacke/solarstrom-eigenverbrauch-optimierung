@@ -2,7 +2,7 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
-namespace Local {
+namespace Local::Service {
 	class Webserver {
 	public:
 		ESP8266WebServer server;// ist via unique_ptr gesichert, es kann nur einen Pointer geben!

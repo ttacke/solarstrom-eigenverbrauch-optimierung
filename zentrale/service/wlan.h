@@ -2,7 +2,7 @@
 #include <WiFiClient.h>
 #include <ESP8266WiFi.h>
 
-namespace Local {
+namespace Local::Service {
 	class Wlan {
 	public:
 		WiFiClient client;

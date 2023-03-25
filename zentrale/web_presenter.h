@@ -1,7 +1,7 @@
 #pragma once
 #include "config.h"
-#include "wlan.h"
-#include "webserver.h"
+#include "service/wlan.h"
+#include "service/webserver.h"
 #include "service/web_reader.h"
 #include "service/file_reader.h"
 #include "service/file_writer.h"
@@ -82,10 +82,10 @@ namespace Local {
 		}
 
 	public:
-		Local::Webserver webserver;
+		Local::Service::Webserver webserver;
 
 		WebPresenter(
-			Local::Config& cfg, Local::Wlan& wlan
+			Local::Config& cfg, Local::Service::Wlan& wlan
 		):
 			cfg(&cfg), web_reader(wlan.client), webserver(cfg.webserver_port),
 			web_writer(webserver)

@@ -3,13 +3,13 @@
 namespace Local::Service {
 	class WebWriter {
 	protected:
-		Local::Webserver& webserver;
+		Local::Service::Webserver& webserver;
 		char buffer[2048];
 		int buffer_offset = 0;
 
 	public:
 		WebWriter(
-			Local::Webserver& webserver
+			Local::Service::Webserver& webserver
 		): webserver(webserver) {
 		}
 
