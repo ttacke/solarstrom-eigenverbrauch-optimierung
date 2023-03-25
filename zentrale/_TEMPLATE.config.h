@@ -10,6 +10,8 @@ namespace Local {
 
 		const char* roller_relay_host = "192.168.2.30";
 		int roller_relay_port = 80;
+		const char* roller_aussen_relay_host = "192.168.2.34";
+		int roller_aussen_relay_port = 80;
 		const char* wasser_relay_host = "192.168.2.31";
 		int wasser_relay_port = 80;
 		const char* auto_relay_host = "192.168.2.32";

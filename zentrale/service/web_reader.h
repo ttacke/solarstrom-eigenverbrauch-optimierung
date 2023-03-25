@@ -15,17 +15,18 @@ namespace Local::Service {
 		bool first_body_part_exist = false;
 		char search_buffer[128];
 
-		bool _send_request(const char* host, const char* request_uri) {
+		bool _send_request(const char* host, const char* request_uri, int timeout_in_hundertstel_s) {
 			wlan_client.print("GET ");
 			wlan_client.print(request_uri);
 			wlan_client.print(" HTTP/1.1\r\nHost: ");
 			wlan_client.print(host);
+			wlan_client.print("\r\nAuthorization: Basic YWRtaW46MW41eldURldIbVluZUdlb2Vxd3U=");// Fuer ShellyPlugRollerAussen
 			wlan_client.print("\r\nConnection: close\r\n\r\n");
 
 			int i = 0;
 			while(!wlan_client.available()) {
 				i++;
-				if(i > 2000) {// 20s timeout
+				if(i > timeout_in_hundertstel_s) {// 20s timeout
 					return false;
 				}
 				delay(10);
@@ -58,6 +59,8 @@ namespace Local::Service {
 	public:
 		char finding_buffer[65];
 		char buffer[64];
+		int default_timeout_in_hundertstel_s = 2000;
+		int kurzer_timeout_in_hundertstel_s = 500;
 
 		WebReader(WiFiClient& wlan_client): wlan_client(wlan_client) {
 		}
@@ -72,16 +75,25 @@ namespace Local::Service {
 			return false;
 		}
 
-		void send_http_get_request(const char* host, const int port, const char* request_uri) {
+		bool send_http_get_request(
+			const char* host, const int port, const char* request_uri
+		) {
+			return send_http_get_request(host, port, request_uri, default_timeout_in_hundertstel_s);
+		}
+
+		bool send_http_get_request(
+			const char* host, const int port, const char* request_uri,
+			int timeout_in_hundertstel_s
+		) {
 			first_body_part_exist = false;
 			content_length = 0;
 			old_buffer[0] = '\0';
 			buffer[0] = '\0';
 			if(!wlan_client.connect(host, port)) {
-				return;
+				return false;
 			}
-			if(!_send_request(host, request_uri)) {
-				return;
+			if(!_send_request(host, request_uri, timeout_in_hundertstel_s)) {
+				return false;
 			}
 
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
@@ -124,9 +136,10 @@ namespace Local::Service {
 						first_body_part_exist = true;
 						_read_body_content_to_buffer();// Zu kurze Inhalte enden sonst hier!
 					}
-					return;
+					return true;
 				}
 			}
+			return false;
 		}
 
 		bool read_next_block_to_buffer() {

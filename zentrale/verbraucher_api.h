@@ -12,6 +12,7 @@ namespace Local {
 		int shelly_roller_cache_timestamp = 0;
 		bool shelly_roller_cache_ison = false;
 		int shelly_roller_cache_power = 0;
+		int roller_benoetigte_ladeleistung_in_w_cache = 0;
 
 		const char* heizung_relay_zustand_seit_filename = "heizung_relay.status";
 
@@ -190,11 +191,12 @@ namespace Local {
 			);
 		}
 
-		void _schalte_shellyplug(bool ein, const char* host, int port) {
+		void _schalte_shellyplug(bool ein, const char* host, int port, int timeout) {
 			web_reader->send_http_get_request(
 				host,
 				port,
-				(ein ? "/relay/0?turn=on" : "/relay/0?turn=off")
+				(ein ? "/relay/0?turn=on" : "/relay/0?turn=off"),
+				timeout
 			);
 		}
 
@@ -215,7 +217,16 @@ namespace Local {
 		}
 
 		void _schalte_roller_relay(bool ein) {
-			_schalte_shellyplug(ein, cfg->roller_relay_host, cfg->roller_relay_port);
+			_schalte_shellyplug(
+				ein, cfg->roller_relay_host, cfg->roller_relay_port,
+				web_reader->default_timeout_in_hundertstel_s
+			);
+			if(roller_benoetigte_ladeleistung_in_w_cache == cfg->auto_benoetigte_leistung_gering_in_w) {
+				_schalte_shellyplug(
+					ein, cfg->roller_aussen_relay_host, cfg->roller_aussen_relay_port,
+					web_reader->kurzer_timeout_in_hundertstel_s
+				);
+			}
 			if(file_writer.open_file_to_overwrite(roller_relay_zustand_seit_filename)) {
 				file_writer.write_formated("%d", timestamp);
 				file_writer.close_file();
@@ -386,17 +397,26 @@ namespace Local {
 		}
 
 		void _load_shelly_roller_cache() {
-			web_reader->send_http_get_request(
-				cfg->roller_relay_host,
-				cfg->roller_relay_port,
-				"/status"
-			);
+			roller_benoetigte_ladeleistung_in_w_cache = _gib_roller_benoetigte_ladeleistung_in_w();
+			bool senden_erfolgreich = false;
+			if(roller_benoetigte_ladeleistung_in_w_cache == cfg->auto_benoetigte_leistung_gering_in_w) {
+				senden_erfolgreich = web_reader->send_http_get_request(
+					cfg->roller_aussen_relay_host,
+					cfg->roller_aussen_relay_port,
+					"/status"
+				);
+			}
+			if(!senden_erfolgreich) {// Internen immer abfragen, damit min. ein Datensatz da ist
+				web_reader->send_http_get_request(
+					cfg->roller_relay_host,
+					cfg->roller_relay_port,
+					"/status"
+				);
+			}
 
 			shelly_roller_cache_timestamp = 0;
 			shelly_roller_cache_ison = false;
 			shelly_roller_cache_power = 0;
-// TODO
-Serial.println("SearchRollerPower");
 			while(web_reader->read_next_block_to_buffer()) {
 				if(web_reader->find_in_buffer((char*) "\"unixtime\":([0-9]+)[^0-9]")) {
 					shelly_roller_cache_timestamp = atoi(web_reader->finding_buffer);
@@ -405,11 +425,7 @@ Serial.println("SearchRollerPower");
 					shelly_roller_cache_ison = true;
 				}
 				if(web_reader->find_in_buffer((char*) "\"power\":([0-9]+)[^0-9]")) {
-// TODO Warum ist die RollerPower=0
-Serial.println("RollerPowerFound");
 					shelly_roller_cache_power = atoi(web_reader->finding_buffer);
-// TODO
-Serial.println(shelly_roller_cache_power);
 				}
 			}
 		}
@@ -462,7 +478,7 @@ Serial.println(shelly_roller_cache_power);
 				roller_leistung_log_filename,
 				5
 			);
-			verbraucher.roller_benoetigte_ladeleistung_in_w = _gib_roller_benoetigte_ladeleistung_in_w();
+			verbraucher.roller_benoetigte_ladeleistung_in_w = roller_benoetigte_ladeleistung_in_w_cache;
 
 			verbraucher.aktueller_verbrauch_in_w = elektroanlage.stromverbrauch_in_w;
 			_lies_verbraucher_log(
@@ -738,7 +754,7 @@ Serial.println(shelly_roller_cache_power);
 
 		void wechsle_roller_ladeleistung() {
 			_log((char*) "wechsle_roller_ladeleistung");
-			int roller_benoetigte_ladeleistung_in_w = _gib_roller_benoetigte_ladeleistung_in_w();
+			int roller_benoetigte_ladeleistung_in_w = roller_benoetigte_ladeleistung_in_w_cache;
 			if(roller_benoetigte_ladeleistung_in_w == cfg->roller_benoetigte_leistung_hoch_in_w) {
 				roller_benoetigte_ladeleistung_in_w = cfg->roller_benoetigte_leistung_gering_in_w;
 			} else {

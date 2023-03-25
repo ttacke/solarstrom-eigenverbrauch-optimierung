@@ -112,7 +112,7 @@ namespace Local {
 		bool roller_laden_ist_an() {
 			if(
 				roller_relay_ist_an
-				&& _gib_genutzte_roller_ladeleistung_in_w() > (float) roller_benoetigte_ladeleistung_in_w * 0.8
+				&& _gib_genutzte_roller_ladeleistung_in_w() > (float) roller_benoetigte_ladeleistung_in_w * 0.7
 			) {
 				return true;
 			}
