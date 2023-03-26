@@ -657,17 +657,15 @@ namespace Local::Api {
 			}
 			if(
 				!relay_ist_an
-				&& !unerfuellter_ladewunsch
 				&& verbraucher.solarerzeugung_ist_aktiv()
+				&& akku_laeuft_potentiell_in_3h_ueber
 				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
 				&& (
 					(
-						akku_laeuft_potentiell_in_3h_ueber
-						&& verbraucher.aktueller_akku_ladenstand_in_promille > 400
-					) || (
-						verbraucher.aktueller_akku_ladenstand_in_promille > 950
-						&& min_bereitgestellte_leistung > 0.5
+						verbraucher.aktueller_akku_ladenstand_in_promille > 600
+						&& !unerfuellter_ladewunsch
 					)
+					|| verbraucher.aktueller_akku_ladenstand_in_promille > 800
 				)
 			) {
 				_log(log_key, (char*) "-ueberladen>AnWeilGenug");
