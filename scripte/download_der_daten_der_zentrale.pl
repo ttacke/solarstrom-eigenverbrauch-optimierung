@@ -35,7 +35,6 @@ foreach my $filename (qw/
     print "$filename...";
     my $target = "../sd-karteninhalt/$filename";
     if(system("wget -q 'http://$ARGV[0]/download_file?name=$filename' -O $target") == 0) {
-        print `perl korrigiere_downloadfehler.pl $target`;
         print "ok\n";
     } else {
         print "FEHLER\n";
@@ -45,7 +44,6 @@ foreach my $filename (qw/
 print "daten.json...";
 my $target = "../sd-karteninhalt/daten.json";
 if(system("wget -q 'http://$ARGV[0]/daten.json?time=" . time() . "' -O $target") == 0) {
-    print `perl korrigiere_downloadfehler.pl $target`;
     print "ok\n";
 } else {
     print "FEHLER\n";
