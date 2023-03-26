@@ -26,6 +26,7 @@ Konkret:
 - Unterer Bereich: Schalter der Ladesteuerung
   - 5x (langsames) tippen auf "Roller" bzw "Auto" schaltet die Ladeleistung um
     - es existiert kein Rückkanal für diese Info, so dass Änderungen an den Ladeleistungen hier manuell eingestellt werden müssen
+    - beim Roller wird dann die zweite, externe Ladedose aktiviert und diese genutzt; die "normale" dient dann nur als Fallback 
   - Klick auf Button &#9889; (Blitz) = Egal was ist kommt, es wird geladen
     - Ist der Button schwarz, ist erzwungenes Laden aktiv bis kein Strom mehr abgenommen wird. Dann schaltet er automatisch zurück auf Überschussladen.
     - Ansonsten ist Überschussladen aktiv und der Pufferakku-Zielwert von 80% bis zum Sonnenuntergang wird angestrebt
