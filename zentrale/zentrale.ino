@@ -1,5 +1,5 @@
 #include "config.h"
-#include "wlan.h"
+#include "service/wlan.h"
 #include "service/web_reader.h"
 #include "web_presenter.h"
 
@@ -11,7 +11,8 @@ unsigned long runtime;
 unsigned long last_runtime;
 const char* daten_filename = "daten.json";
 
-// TODO index.html -> ein iFrame drumherum und das wiederum liest PRoblemeaus und lädt ggf den iFrameInhalt neu
+// TODO index.html -> ein iFrame drumherum und das wiederum liest Probleme aus
+// und lädt ggf den iFrameInhalt neu: ist das noch noetig? Ist das aktuell ggf stabil genug?
 void setup(void) {
 	runtime = 0;
 	last_runtime = 0;
