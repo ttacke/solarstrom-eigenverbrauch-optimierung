@@ -6,7 +6,7 @@ weitgehend schonend zu behandeln.
 Konkret:
 - Pufferbatterie beim Laden anderer Verbraucher am besten nur, wenn überhaupt, zwischen 40% und 60% zu "bewegen"
 - Pufferbatterie-Zielladestand am Ende des Tages: 80%
-- Bei drohender Einspeisung von frühzeitiges Überladen der Warmwasser- und Heizungsanlage
+- Bei drohender Einspeisung: frühzeitiges Überladen der Warmwasser- und Heizungsanlage
 
 ## Steuerungs-UI
 
@@ -95,3 +95,16 @@ Wechselrichter und Batterie sollten nie im Netzwerk mit anderen Endgeräten sein
 sind fest codiert und "zertifizierten Handwerkern" bekannt. Also jedem. Jemand/Etwas auf einem
 anderen Endgerät im gleichen Netzwerk könnte also problemlos Schaden anrichten. Und: SSL kennen
 die Geräte nicht.
+
+# TODO Anstehende Aufgaben
+- persistence-Objekt benutzen, um die Daten im RAM und nicht auf der SD zu halten (um SD zu schonen)
+-- Das enthält Write/Read und hat selber extra Funktionen, um die Daten im RAM zu halten (als Char*)
+-- Will man explizit schreiben/lesen von FS, muss das im Code auch explizit sein
+-- RAM ist dann Default, SD der Fallback, wenn bei neustart der RAM leer ist
+-- Schreiben der SD alle x Minuten sicherstellen
+- Grundverbrauch und Solarstrahlungs-Umrechnung via SD-Config verwalten, damit man die Werte von außen vorgeben kann
+-- Solarstrahlungs-Umrechnung umstellen, dass jeden Monat ein anderer Wert genutzt werden kann. Die Werte Schwanken über das Jahr.
+-- Grundverbrauch in Tag und Nacht trennen (und Ladevorgänge herausrechnen) um bessere Vorhersagen zu haben
+- Falls die UI nochmal hängen bleibt: index.html in einem iFrame zeigen und vom umgebenen Frame neu laden, wenn Fehler erkannt werden
+- Akku-Haltbarkeit: Laden zwischen 20-80% ist weniger schlimm, 40-60 am wenigsten. Diese Bereiche zusätzlich mit angeben (x% 20-80%, x% 40-60%) 
+- Button für "Pufferakku leeren": Wenn frü Morgens klar ist, dass alles überläuft und das Auto noch Platz hat, dann alles ins Auto pumpen bevor man weg fährt

@@ -75,8 +75,6 @@ my $verbrauch = [];
 foreach my $e (@$daten) {
     push(@$verbrauch, $e->{stromverbrauch_in_w});
 }
-# TODO - Grundverbrauch: Tag und Nacht trennen, Durchschnitt aller Werte -> nur wenn Laden=aus (bzw das rausrechnen)
-# va3 und vb3 enthalten erst die sinnvollen angaben, vorher nicht
 print "Grundverbrauch(via Median): " . (sort(@$verbrauch))[int(scalar(@$verbrauch) / 2)] . " W\n";
 
 my $min_i_in_ma = 0;
@@ -111,7 +109,6 @@ foreach my $e (@$daten) {
 print "Vollzyklen des Akkus: " . sprintf("%.2f", $akku_ladezyklen_in_promille / 1000) . "\n";
 my $prognose_akku_haltbar_in_tagen = $prognostizierte_vollzyklen / ($akku_ladezyklen_in_promille / 1000) * $logdaten_in_tagen;
 print "Haltbarkeit des Akkus(gesamt; bei max. $prognostizierte_vollzyklen Vollzyklen): " . sprintf("%.1f", $prognose_akku_haltbar_in_tagen / 365) . " Jahre\n";
-# TODO 20-80% ist weniger schlimm, 40-60 am wenigsten. Das hier mit einem zusätzlichen Wert angeben
 
 my $strahlungsdaten = {};
 foreach my $monat (1..12) {

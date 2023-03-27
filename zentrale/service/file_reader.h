@@ -3,11 +3,6 @@
 #include <SD.h>
 #include <Regexp.h>
 
-// TODO persistence-Objekt benutzen, um die Daten im RAM und nicht auf der SD zu halten
-// Das enthält Write/Read und hat selber extra Funktionen, um die Daten im RAM zu halten (als Char*)
-// Will man explizit schreiben/lesen von FS, muss das im Code auch explizit sein
-// RAM ist dann Default, SD der Fallback, wenn bei neustart der RAM leer ist
-// Schreiben der SD alle x Minuten sicherstellen
 namespace Local::Service {
 	class FileReader {
 	protected:
