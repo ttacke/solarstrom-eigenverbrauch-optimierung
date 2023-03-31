@@ -25,7 +25,6 @@ namespace Local::Api {
 
 		const char* auto_relay_zustand_seit_filename = "auto_relay.zustand_seit";
 		const char* auto_ladestatus_filename = "auto.ladestatus";
-		const char* auto_leistung_filename = "auto_leistung.status";
 		const char* auto_leistung_log_filename = "auto_leistung.log";
 
 		const char* verbrauch_leistung_log_filename = "verbrauch_leistung.log";
@@ -201,28 +200,12 @@ namespace Local::Api {
 			);
 		}
 
-		int _gib_auto_benoetigte_ladeleistung_in_w() {
-			int leistung = cfg->auto_benoetigte_leistung_gering_in_w;
-			if(file_reader->open_file_to_read(auto_leistung_filename)) {
-				while(file_reader->read_next_block_to_buffer()) {
-					if(file_reader->find_in_buffer((char*) "([0-9]+)")) {
-						int i = atoi(file_reader->finding_buffer);
-						if(i > 0) {
-							leistung = i;
-						}
-					}
-				}
-				file_reader->close_file();
-			}
-			return leistung;
-		}
-
 		void _schalte_roller_relay(bool ein) {
 			_schalte_shellyplug(
 				ein, cfg->roller_relay_host, cfg->roller_relay_port,
 				web_reader->default_timeout_in_hundertstel_s
 			);
-			if(roller_benoetigte_ladeleistung_in_w_cache == cfg->auto_benoetigte_leistung_gering_in_w) {
+			if(roller_benoetigte_ladeleistung_in_w_cache == cfg->roller_benoetigte_leistung_gering_in_w) {
 				_schalte_shellyplug(
 					ein, cfg->roller_aussen_relay_host, cfg->roller_aussen_relay_port,
 					web_reader->kurzer_timeout_in_hundertstel_s
@@ -400,7 +383,7 @@ namespace Local::Api {
 		void _load_shelly_roller_cache() {
 			roller_benoetigte_ladeleistung_in_w_cache = _gib_roller_benoetigte_ladeleistung_in_w();
 			bool senden_erfolgreich = false;
-			if(roller_benoetigte_ladeleistung_in_w_cache == cfg->auto_benoetigte_leistung_gering_in_w) {
+			if(roller_benoetigte_ladeleistung_in_w_cache == cfg->roller_benoetigte_leistung_gering_in_w) {
 				senden_erfolgreich = web_reader->send_http_get_request(
 					cfg->roller_aussen_relay_host,
 					cfg->roller_aussen_relay_port,
@@ -465,7 +448,7 @@ namespace Local::Api {
 				auto_leistung_log_filename,
 				5
 			);
-			verbraucher.auto_benoetigte_ladeleistung_in_w = _gib_auto_benoetigte_ladeleistung_in_w();
+			verbraucher.auto_benoetigte_ladeleistung_in_w = cfg->auto_benoetigte_leistung_in_w;
 
 			verbraucher.aktuelle_roller_ladeleistung_in_w = shelly_roller_cache_power;
 			_lies_verbraucher_log(
@@ -735,20 +718,6 @@ namespace Local::Api {
 				file_writer.close_file();
 			}
 			file_writer.delete_file(auto_leistung_log_filename);
-		}
-
-		void wechsle_auto_ladeleistung() {
-			_log((char*) "wechsle_auto_ladeleistung");
-			int auto_benoetigte_ladeleistung_in_w = _gib_auto_benoetigte_ladeleistung_in_w();
-			if(auto_benoetigte_ladeleistung_in_w == cfg->auto_benoetigte_leistung_hoch_in_w) {
-				auto_benoetigte_ladeleistung_in_w = cfg->auto_benoetigte_leistung_gering_in_w;
-			} else {
-				auto_benoetigte_ladeleistung_in_w = cfg->auto_benoetigte_leistung_hoch_in_w;
-			}
-			if(file_writer.open_file_to_overwrite(auto_leistung_filename)) {
-				file_writer.write_formated("%d", auto_benoetigte_ladeleistung_in_w);
-				file_writer.close_file();
-			}
 		}
 
 		void wechsle_roller_ladeleistung() {

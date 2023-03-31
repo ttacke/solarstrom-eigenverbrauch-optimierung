@@ -153,8 +153,6 @@ namespace Local {
 					verbraucher_api.setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::force);
 				} else if(strcmp(val, "solar") == 0) {
 					verbraucher_api.setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
-				} else if(strcmp(val, "change_power") == 0) {
-					verbraucher_api.wechsle_auto_ladeleistung();
 				}
 			} else if(strcmp(key, "roller") == 0) {
 				if(strcmp(val, "force") == 0) {

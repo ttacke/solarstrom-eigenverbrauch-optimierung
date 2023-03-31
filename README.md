@@ -24,9 +24,9 @@ Konkret:
   - schwarze Balken bedeuten in beiden Fällen, das potentiell zu viel Energie vorhanden sein wird (passt nicht mehr in Pufferakku = Netzeinspeisung)
   - Die Balken sind via Fibonacci-Folge gestaffelt. Helle Balken, ganz unten, stellen bis 20% Akkustand dar, die etwas dunkleren bis 100%.
 - Unterer Bereich: Schalter der Ladesteuerung
-  - 5x (langsames) tippen auf "Roller" bzw "Auto" schaltet die Ladeleistung um
-    - es existiert kein Rückkanal für diese Info, so dass Änderungen an den Ladeleistungen hier manuell eingestellt werden müssen
-    - beim Roller wird dann die zweite, externe Ladedose aktiviert und diese genutzt; die "normale" dient dann nur als Fallback 
+  - 5x (langsames) tippen auf "Roller" schaltet die Ladeleistung um
+    - die zweite, externe Ladedose wird aktiviert und diese wird genutzt (beide Akkus im Roller mit einem Lader)
+    - die "normale" dient dann nur als Fallback 
   - Klick auf Button &#9889; (Blitz) = Egal was ist kommt, es wird geladen
     - Ist der Button schwarz, ist erzwungenes Laden aktiv bis kein Strom mehr abgenommen wird. Dann schaltet er automatisch zurück auf Überschussladen.
     - Ansonsten ist Überschussladen aktiv und der Pufferakku-Zielwert von 80% bis zum Sonnenuntergang wird angestrebt
@@ -105,8 +105,6 @@ die Geräte nicht.
 - Grundverbrauch und Solarstrahlungs-Umrechnung via SD-Config verwalten, damit man die Werte von außen vorgeben kann
 -- Solarstrahlungs-Umrechnung umstellen, dass jeden Monat ein anderer Wert genutzt werden kann. Die Werte Schwanken über das Jahr.
 -- Grundverbrauch in Tag und Nacht trennen (und Ladevorgänge herausrechnen) um bessere Vorhersagen zu haben
-- Falls die UI nochmal hängen bleibt: index.html in einem iFrame zeigen und vom umgebenen Frame neu laden, wenn Fehler erkannt werden
 - Akku-Haltbarkeit: Laden zwischen 20-80% ist weniger schlimm, 40-60 am wenigsten. Diese Bereiche zusätzlich mit angeben (x% 20-80%, x% 40-60%) 
 - Button für "Pufferakku leeren": Wenn frü Morgens klar ist, dass alles überläuft und das Auto noch Platz hat, dann alles ins Auto pumpen bevor man weg fährt
-- AutoLadeleistungsUmschalter entfernen - weil unnötig
 - Letztes Überladen einbauen (großer Shelly)

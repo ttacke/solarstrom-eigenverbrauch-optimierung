@@ -26,7 +26,6 @@ foreach my $filename (qw/
     roller_leistung.log
     auto_relay.zustand_seit
     auto.ladestatus
-    auto_leistung.status
     auto_leistung.log
     verbrauch_leistung.log
     erzeugung_leistung.log
