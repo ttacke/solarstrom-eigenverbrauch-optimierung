@@ -108,3 +108,5 @@ die Geräte nicht.
 - Falls die UI nochmal hängen bleibt: index.html in einem iFrame zeigen und vom umgebenen Frame neu laden, wenn Fehler erkannt werden
 - Akku-Haltbarkeit: Laden zwischen 20-80% ist weniger schlimm, 40-60 am wenigsten. Diese Bereiche zusätzlich mit angeben (x% 20-80%, x% 40-60%) 
 - Button für "Pufferakku leeren": Wenn frü Morgens klar ist, dass alles überläuft und das Auto noch Platz hat, dann alles ins Auto pumpen bevor man weg fährt
+- AutoLadeleistungsUmschalter entfernen - weil unnötig
+- Letztes Überladen einbauen (großer Shelly)
