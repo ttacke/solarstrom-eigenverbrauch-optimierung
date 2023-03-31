@@ -295,6 +295,10 @@ namespace Local {
 					verbraucher.heizung_relay_ist_an ? "true" : "false"
 				);
 				file_writer.write_formated(
+					"\"verbrennen\":%s,",
+					verbraucher.verbrennen_relay_ist_an ? "true" : "false"
+				);
+				file_writer.write_formated(
 					"\"auto_laden\":%s,\"roller_laden\":%s,",
 					verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
 						? "\"force\"" : "\"solar\"",

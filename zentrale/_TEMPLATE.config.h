@@ -19,6 +19,8 @@ namespace Local {
 		int auto_relay_port = 80;
 		const char* heizung_relay_host = "192.168.2.33";
 		const int heizung_relay_port = 80;
+		const char* verbrennen_relay_host = "192.168.2.36";
+		const int verbrennen_relay_port = 80;
 
 		int roller_benoetigte_leistung_gering_in_w = 420;
 		int roller_benoetigte_leistung_hoch_in_w = 840;
@@ -29,6 +31,7 @@ namespace Local {
 		int wasser_min_schaltzeit_in_min = 60;
 		int heizung_benoetigte_leistung_in_w = 420;
 		int heizung_min_schaltzeit_in_min = 60;
+		int verbrennen_min_schaltzeit_in_min = 5;
 
 		// TODO diesen configwert als SD_File ablegen, dann kann das von außen aktualisiert werden
 		int grundverbrauch_in_w_pro_h = 238;

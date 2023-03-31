@@ -126,6 +126,8 @@
 			_setze_ladewunsch('roller_laden', daten['roller_laden'], daten['timestamp']);
 			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
 			
+			document.getElementById('verbrennen').className = daten['verbrennen'] ? 'on' : 'off';
+			document.getElementById('verbrennen').getElementsByClassName('ladestatus')[0].innerHTML = daten['verbrennen'] ? "an" : "aus";
 			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : 'off';
 			document.getElementById('wasser_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_ueberladen'] ? "l&auml;dt" : "aus";
 			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : 'off';
@@ -428,7 +430,7 @@
 		}
 		
 		.zusatzinfo {
-			font-size: 1.2rem;
+			font-size: 1.1rem;
 			text-align: center;
 		}
 			.zusatzinfo>span {
@@ -525,6 +527,10 @@
 	</span>
 	<span id="heizung_ueberladen">
 		HEIZUNG
+		<br><span class="ladestatus">-</span>
+	</span>
+	<span id="verbrennen">
+		&Delta;
 		<br><span class="ladestatus">-</span>
 	</span>
 </div>

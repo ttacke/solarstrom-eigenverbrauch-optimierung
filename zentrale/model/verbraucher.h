@@ -30,6 +30,9 @@ namespace Local::Model {
 		bool heizung_relay_ist_an = false;
 		int heizung_relay_zustand_seit = 0;
 
+		bool verbrennen_relay_ist_an = false;
+		int verbrennen_relay_zustand_seit = 0;
+
 		Ladestatus auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 		int auto_benoetigte_ladeleistung_in_w = 0;
 		int aktuelle_auto_ladeleistung_in_w = 0;
@@ -145,13 +148,14 @@ namespace Local::Model {
 				wasser_relay_ist_an ? "an" : "aus"
 			);
 			file_writer.write_formated(
-				",vb3,%s,%s,%d,%d,%d,%s",
+				",vb4,%s,%s,%d,%d,%d,%s,%s",
 				(roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force ? "force" : "solar"),
 				roller_laden_ist_an() ? "an" : "aus",
 				roller_benoetigte_ladeleistung_in_w,
 				aktuelle_roller_ladeleistung_in_w,
 				_gib_genutzte_roller_ladeleistung_in_w(),
-				heizung_relay_ist_an ? "an" : "aus"
+				heizung_relay_ist_an ? "an" : "aus",
+				verbrennen_relay_ist_an ? "an" : "aus"
 			);
 		}
 	};

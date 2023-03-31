@@ -17,7 +17,8 @@ Konkret:
   - Rechts: Pufferakku-Ladestand
 - Zweite Zeile (v.l.n.r; schwarz=aktiv, grau=inaktiv):
   - Status Solarerzeugung incl relative Verteilung der Leistung der beiden Dachhälften
-  - Ladestatus von Auto-Wallbox, Roller-Lader, Warmwasser-Überladen und Heizungs-Überladen
+  - Ladestatus von Auto-Wallbox, Roller-Lader, Warmwasser-Überladen, Heizungs-Überladen und "Verbrennen" (&Delta;)
+    - Verbrennen = extra Schalt-Dose, die nur bei akkutem Pufferakku-Überlauf aktiviert wird.
 - Dritte Zeile:
   - Links: Vorhersage des Pufferakku-Ladestandes der nächsten 12 Stunden
   - Rechts: Vorhersage der Sonnenenergie der nächsten 5 Tage
@@ -39,9 +40,14 @@ Konkret:
 - 3x "3V Relais Power Switch Board"
   - Werden verwendet, um die potentialfreihen Eingänge der Wärmepumpen und der Wallbox zu schalten
   - Da die ESPs nur sehr wenig Leistung abgeben können, wird jedes Relais von einem weiteren ESP8266-E12 betrieben. Die Steuerung erfolgt via Netzwerk.
-- 1x "Shelly Plug S"
-  - Wird genutzt, um den Roller-Lader zu schalten
+- 2x "Shelly Plug S"
+  - Wird genutzt, um den Roller-Lader zu schalten (1x innen und 1x aussen)
   - wird per WLAN gesteuert
+- "Shelly Plug" 3,5kW
+  - Wird genutzt, um Überschuss irgendwie zu nutzen (z.B. für eine Elektro-Heizung)
+  - wird per WLAN gesteuert
+- Ein "Shelly Button"
+  - aktiviert das Forcierte Laden des Autos (macht die UI obsolet; kann im Auto bleiben)
 - Ein (ausgedienter) KindlePaperwhite der ersten Generation als Anzeige
   - Der genutzte Beta-Browser hat einige Eigenheiten, wewegen die UI auf anderen Geräte schräg aussieht
   - Auf dem Kindle wurde der Bildschirm dauerhaft eingeschaltet via "~ds" im Suchfeld eingeben
@@ -59,7 +65,6 @@ Konkret:
 - Warmwasser-Wärmepumpe "Viessmann Vitocal 060-A, Typ TOS-ze Umluft 254L"
   - via potentialfeiem Eingang kann es "überladen" werden (Zieltemperatur wird temporär auf Maximum gesetzt)
   - [PV-Anschluss Doku](https://www.viessmann-community.com/t5/Waermepumpe-Hybridsysteme/Funktion-PV-Anlage-mit-Vitocal-262-A-und-Vitocal-060-A/m-p/303739/emcs_t/S2h8ZW1haWx8dG9waWNfc3Vic2NyaXB0aW9ufExENDlMU0w2VVlVREtCfDMwMzczOXxTVUJTQ1JJUFRJT05TfGhL#M64397)
-
 Kommt noch:
 - Warmwasser-Wärmepumpe "Viessmann Vitocal 060-A, Typ TOE-ze Umluft 178L" als Heizung
   - Steuerung baugleich wie Warmwasser
@@ -106,5 +111,4 @@ die Geräte nicht.
 -- Solarstrahlungs-Umrechnung umstellen, dass jeden Monat ein anderer Wert genutzt werden kann. Die Werte Schwanken über das Jahr.
 -- Grundverbrauch in Tag und Nacht trennen (und Ladevorgänge herausrechnen) um bessere Vorhersagen zu haben
 - Akku-Haltbarkeit: Laden zwischen 20-80% ist weniger schlimm, 40-60 am wenigsten. Diese Bereiche zusätzlich mit angeben (x% 20-80%, x% 40-60%) 
-- Button für "Pufferakku leeren": Wenn frü Morgens klar ist, dass alles überläuft und das Auto noch Platz hat, dann alles ins Auto pumpen bevor man weg fährt
-- Letztes Überladen einbauen (großer Shelly)
+- Button für "Pufferakku leeren": Wenn früh Morgens klar ist, dass alles überläuft und das Auto noch Platz hat, dann alles ins Auto pumpen bevor man weg fährt
