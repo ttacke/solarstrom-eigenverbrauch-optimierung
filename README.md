@@ -1,7 +1,7 @@
 # Solarstrom-Eigenverbrauch-Optimierung
 
 Steuerung, um aus der solaren Stromerzeugung so viel Nutzen zu ziehen, wie irgendwie geht,
-und die Solar-Batterie dabei weitgehend schonend zu behandeln.
+und die Solar-Batterie dabei weitgehend schonend behandeln.
 
 Konkret:
 - Pufferbatterie beim Laden anderer Verbraucher am besten zwischen 40% und 60% "bewegen"
@@ -9,12 +9,12 @@ Konkret:
 - Pufferbatterie-Zielladestand am Ende des Tages: 80%
   - Bei potentiellem Überschreiten des Pufferbatterie-Zielladestandes:
     - Laden von Auto und Roller
-    - einmaliges, morgendliches Leeren der Puffer-Batterie auf 25% in Auto und Roller, da das Auto tagsüber potentiell nicht da ist
+    - einmaliges, morgendliches Leeren der Puffer-Batterie auf 25% in Auto und Roller, da beides tagsüber potentiell nicht da ist
 - Bei potentieller Einspeisung: frühzeitiges Überladen der Warmwasser- und Heizungsanlage
 - Bei akkuter Einspeisung: aktivieren eines weiteren (Groß-)Verbrauchers
   - der muss Schaltzeiten von ~5min ertragen können
 
-## Steuerungs-UI
+## Steuerungs-UI (optional)
 
 ![Screenshot der UI](ui-screenshot.png)
 
@@ -85,7 +85,7 @@ Kommt noch:
   - in der Bibliotheksverwaltung die Module "SD", "Regexp" und "Time" installieren
 - Die IPs der ESPs im Netzwerk einrichten, dass diese immer auf die gleiche Art erreichbar sind
 - unter /netz-relay und /zentrale jeweils die _TEMPLATE.config.h in config.h kopieren und dort sinnvolle Werte eintragen
-  - nach 14 Tagen laufzeit kann man mit diesen Scripten ermitteln lassen, wie der "grundverbrauch_in_w_pro_h". Werte für "solarstrahlungs_vorhersage_umrechnungsfaktor" wird nach ca. einem Monat irgend etwas stabiles ergeben.
+  - nach 14 Tagen Laufzeit kann man mit diesen Scripten ermitteln lassen, wie der "grundverbrauch_in_w_pro_h". Werte für "solarstrahlungs_vorhersage_umrechnungsfaktor" wird nach ca. einem Monat irgend etwas stabiles ergeben.
     ```
     cd /script/
     perl download_der_daten_der_zentrale.pl [IP-DER-ZENTRALE]
