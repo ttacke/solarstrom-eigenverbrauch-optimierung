@@ -107,6 +107,9 @@ namespace Local::Api {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(
 				verbraucher, benoetigte_leistung_in_w
 			);
+			// TODO
+			//		verbraucher.akku_groesse_in_wh
+			// relay_ist_an, benoetigte_leistung_in_w, min_schaltzeit_in_min
 			bool akku_erreicht_zielladestand = verbraucher.akku_erreicht_ladestand_in_promille(
 				akku_zielladestand_in_promille
 			);
@@ -125,6 +128,17 @@ namespace Local::Api {
 			if(verbraucher.zeitpunkt_sonnenuntergang > 0) {
 				sonnenuntergang_abstand_in_s = verbraucher.zeitpunkt_sonnenuntergang - timestamp;
 			}
+
+			// TODO E-Laden hier einfügen
+//			verbraucher.akku_groesse_in_wh
+//			if(
+//				akku_erreicht_zielladestand
+//				&& hour(timestamp) >= 4
+//				&& e_lade_startzeitpunkt < timestamp - 3600
+//			) {
+//				//Nur 1x am Tag starten (wenn AkkuVoll oder Ausschalter erreicht, dann ist es inaktiv)
+//			}
+
 
 			if(
 				!relay_ist_an
@@ -520,6 +534,7 @@ namespace Local::Api {
 			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
 			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);
 			_fuelle_akkuladestands_vorhersage(verbraucher, wetter);
+			verbraucher.akku_groesse_in_wh = cfg->akku_groesse_in_wh;
 		}
 
 		void fuehre_schaltautomat_aus(Local::Model::Verbraucher& verbraucher) {
