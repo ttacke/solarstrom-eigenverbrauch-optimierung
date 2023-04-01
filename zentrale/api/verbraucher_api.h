@@ -13,6 +13,8 @@ namespace Local::Api {
 		bool shelly_roller_cache_ison = false;
 		int shelly_roller_cache_power = 0;
 		int roller_benoetigte_ladeleistung_in_w_cache = 0;
+		bool frueh_leeren_lief_heute = true;
+		bool frueh_leeren_ist_aktiv = false;
 
 		const char* heizung_relay_zustand_seit_filename = "heizung_relay.status";
 
@@ -33,6 +35,43 @@ namespace Local::Api {
 		const char* erzeugung_leistung_log_filename = "erzeugung_leistung.log";
 
 		const char* log_filename = "verbraucher_automatisierung.log";
+		const char* frueh_leeren_status_filename_template = "frueh_laden_%s.status";
+
+		void _lese_frueh_leeren_status(char* key) {
+			char filename[32];
+			sprintf(filename, frueh_leeren_status_filename_template, key);
+			frueh_leeren_lief_heute = true;
+			frueh_leeren_ist_aktiv = false;
+			if(file_reader->open_file_to_read(filename)) {
+				while(file_reader->read_next_block_to_buffer()) {
+					if(file_reader->find_in_buffer((char*) "([0-9-]+);")) {
+						char heute[16] = "";
+						sprintf(heute, "%4d-%02d-%02d", year(timestamp), month(timestamp), day(timestamp));
+						if(strcmp(file_reader->finding_buffer, heute) == 0) {
+							// DoNothing
+						} else {
+							frueh_leeren_lief_heute = false;
+						}
+					}
+					if(file_reader->find_in_buffer((char*) "(an)")) {
+						frueh_leeren_ist_aktiv = true;
+					}
+				}
+				file_reader->close_file();
+			}
+		}
+
+		void _schreibe_frueh_leeren_status(char* key, bool ist_aktiv) {
+			char filename[32];
+			sprintf(filename, frueh_leeren_status_filename_template, key);
+			if(file_writer.open_file_to_overwrite(filename)) {
+				file_writer.write_formated(
+					"%4d-%02d-%02d;%s", year(timestamp), month(timestamp), day(timestamp),
+					ist_aktiv ? "an" : "aus"
+				);
+				file_writer.close_file();
+			}
+		}
 
 		void _log(char* msg) {
 			if(file_writer.open_file_to_append(log_filename)) {
@@ -131,9 +170,7 @@ namespace Local::Api {
 				sonnenuntergang_abstand_in_s = verbraucher.zeitpunkt_sonnenuntergang - timestamp;
 			}
 
-			// TODO diese 3 Werte noch sinnvoll erstellen
-			bool frueh_leeren_lief_heute = true;// TODO damit es so nie startet
-			bool frueh_leeren_ist_aktiv = false;
+			_lese_frueh_leeren_status(log_key);
 			if(
 				!frueh_leeren_lief_heute
 				&& !frueh_leeren_ist_aktiv
@@ -146,6 +183,7 @@ namespace Local::Api {
 					cfg->frueh_leeren_akku_zielladestand_in_promille + start_puffer_in_promille
 			) {
 				_log(log_key, (char*) "-solar>FruehLeerenAn");
+				_schreibe_frueh_leeren_status(log_key, true);
 				schalt_func(true);
 				return true;
 			}
@@ -162,6 +200,7 @@ namespace Local::Api {
 				)
 			) {
 				_log(log_key, (char*) "-solar>FruehLeerenAus");
+				_schreibe_frueh_leeren_status(log_key, false);
 				schalt_func(false);
 				return true;
 			}
