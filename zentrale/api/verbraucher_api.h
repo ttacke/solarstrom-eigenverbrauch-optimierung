@@ -107,10 +107,10 @@ namespace Local::Api {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(
 				verbraucher, benoetigte_leistung_in_w
 			);
+			float start_puffer_in_wh = ((float) min_schaltzeit_in_min / 60) * (float) benoetigte_leistung_in_w;
+			int start_puffer_in_promille = round((float) start_puffer_in_wh / (cfg->akku_groesse_in_wh / 1000));
 			if(!relay_ist_an) {
-				float puffer_in_wh = ((float) min_schaltzeit_in_min / 60) * (float) benoetigte_leistung_in_w;
-				int puffer_in_promille = round((float) puffer_in_wh / (cfg->akku_groesse_in_wh / 1000));
-				akku_zielladestand_in_promille += puffer_in_promille;
+				akku_zielladestand_in_promille += start_puffer_in_promille;
 			}
 			bool akku_erreicht_zielladestand = verbraucher.akku_erreicht_ladestand_in_promille(
 				akku_zielladestand_in_promille
@@ -131,16 +131,40 @@ namespace Local::Api {
 				sonnenuntergang_abstand_in_s = verbraucher.zeitpunkt_sonnenuntergang - timestamp;
 			}
 
-			// TODO E-Laden hier einfügen
-//			cfg->akku_groesse_in_wh
-//			if(
-//				akku_erreicht_zielladestand
-//				&& hour(timestamp) >= 4
-//				&& e_lade_startzeitpunkt < timestamp - 3600
-//			) {
-//				//Nur 1x am Tag starten (wenn AkkuVoll oder Ausschalter erreicht, dann ist es inaktiv)
-//			}
+			// TODO diese 3 Werte noch sinnvoll erstellen
+			bool frueh_leeren_lief_heute = true;// TODO damit es so nie startet
+			bool frueh_leeren_ist_aktiv = false;
+			if(
+				!frueh_leeren_lief_heute
+				&& !frueh_leeren_ist_aktiv
+				&& !relay_ist_an
+				&& hour(timestamp) >= 4
+				&& akku_erreicht_zielladestand
+				&&
+					verbraucher.aktueller_akku_ladenstand_in_promille
+					>=
+					cfg->frueh_leeren_akku_zielladestand_in_promille + start_puffer_in_promille
+			) {
+				_log(log_key, (char*) "-solar>FruehLeerenAn");
+				schalt_func(true);
+				return true;
+			}
 
+			if(
+				frueh_leeren_ist_aktiv
+				&& relay_ist_an
+				&& (
+					!akku_erreicht_zielladestand
+					||
+						verbraucher.aktueller_akku_ladenstand_in_promille
+						<
+						cfg->frueh_leeren_akku_zielladestand_in_promille
+				)
+			) {
+				_log(log_key, (char*) "-solar>FruehLeerenAus");
+				schalt_func(false);
+				return true;
+			}
 
 			if(
 				!relay_ist_an

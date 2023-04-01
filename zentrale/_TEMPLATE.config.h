@@ -40,6 +40,7 @@ namespace Local {
 		float solarstrahlungs_vorhersage_umrechnungsfaktor = 4.65;
 		int akku_groesse_in_wh = 7680;
 		int akku_zielladestand_in_promille = 800;
+		int frueh_leeren_akku_zielladestand_in_promille = 250;
 
 		const int webserver_port = 80;
 
