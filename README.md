@@ -1,17 +1,18 @@
 # Solarstrom-Eigenverbrauch-Optimierung
 
-Steuerung, um aus der Solaren Stromerzeugung so viel Nutzen zu ziehen, wie irgendwie geht
+Steuerung, um aus der solaren Stromerzeugung so viel Nutzen zu ziehen, wie irgendwie geht,
 und die Solar-Batterie dabei weitgehend schonend zu behandeln.
 
 Konkret:
-- Pufferbatterie beim Laden anderer Verbraucher am besten nur, wenn überhaupt, zwischen 40% und 60% zu "bewegen"
+- Pufferbatterie beim Laden anderer Verbraucher am besten zwischen 40% und 60% "bewegen"
 - Pufferbatterie-Ladestände versuchen zwischen 20% und 80% zu halten
 - Pufferbatterie-Zielladestand am Ende des Tages: 80%
   - Bei potentiellem Überschreiten des Pufferbatterie-Zielladestandes:
-    - Morgendliches Leeren der Puffer-Batterie auf 25% in Auto und Roller, da das Auto tagsüber potentiell nicht da ist
     - Laden von Auto und Roller
+    - einmaliges, morgendliches Leeren der Puffer-Batterie auf 25% in Auto und Roller, da das Auto tagsüber potentiell nicht da ist
 - Bei potentieller Einspeisung: frühzeitiges Überladen der Warmwasser- und Heizungsanlage
-- Bei akkuter Einspeisung: aktivieren eines weiteren (Groß-)Verbrauchers; was man dran hängt, soll nur schaltzeiten von ~5min ertragen können
+- Bei akkuter Einspeisung: aktivieren eines weiteren (Groß-)Verbrauchers
+  - der muss Schaltzeiten von ~5min ertragen können
 
 ## Steuerungs-UI
 
