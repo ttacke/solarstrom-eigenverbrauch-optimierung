@@ -56,7 +56,6 @@ namespace Local::Model {
 		int solarerzeugung_in_w = 0;
 		int zeitpunkt_sonnenuntergang = 0;
 		bool ersatzstrom_ist_aktiv = false;
-		int akku_groesse_in_wh = 0;
 
 		int gib_stundenvorhersage_akku_ladestand_als_fibonacci(int index) {
 			int max_promille = 0;
