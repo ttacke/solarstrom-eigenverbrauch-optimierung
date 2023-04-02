@@ -175,7 +175,7 @@ namespace Local::Api {
 				!frueh_leeren_lief_heute
 				&& !frueh_leeren_ist_aktiv
 				&& !relay_ist_an
-				&& hour(timestamp) >= 4
+				&& hour(timestamp) == cfg->frueh_leeren_starte_in_stunde_utc
 				&& akku_erreicht_zielladestand
 				&&
 					verbraucher.aktueller_akku_ladenstand_in_promille

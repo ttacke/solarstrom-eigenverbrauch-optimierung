@@ -41,6 +41,7 @@ namespace Local {
 		int akku_groesse_in_wh = 7680;
 		int akku_zielladestand_in_promille = 800;
 		int frueh_leeren_akku_zielladestand_in_promille = 250;
+		int frueh_leeren_starte_in_stunde_utc = 4;
 
 		const int webserver_port = 80;
 
