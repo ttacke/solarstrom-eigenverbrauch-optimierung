@@ -9,7 +9,7 @@ Konkret:
 - Pufferbatterie-Zielladestand am Ende des Tages: 80%
   - Bei potentiellem Überschreiten des Pufferbatterie-Zielladestandes:
     - Laden von Auto und Roller
-    - einmaliges, morgendliches Leeren der Puffer-Batterie auf 25% in Auto und Roller, da beides tagsüber potentiell nicht da ist
+    - einmaliges, morgendliches (4 Uhr UTC) Leeren der Puffer-Batterie auf 25% in Auto und Roller, da beides potentiell tagsüber nicht da ist
 - Bei potentieller Einspeisung: frühzeitiges Überladen der Warmwasser- und Heizungsanlage
 - Bei akkuter Einspeisung: aktivieren eines weiteren (Groß-)Verbrauchers
   - der muss Schaltzeiten von ~5min ertragen können
