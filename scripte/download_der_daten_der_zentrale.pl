@@ -30,6 +30,8 @@ foreach my $filename (qw/
     verbrauch_leistung.log
     erzeugung_leistung.log
     verbraucher_automatisierung.log
+    frueh_laden_auto.status
+    frueh_laden_roller.status
 /) {
     print "$filename...";
     my $target = "../sd-karteninhalt/$filename";

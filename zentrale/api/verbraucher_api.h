@@ -40,7 +40,7 @@ namespace Local::Api {
 		void _lese_frueh_leeren_status(char* key) {
 			char filename[32];
 			sprintf(filename, frueh_leeren_status_filename_template, key);
-			frueh_leeren_lief_heute = true;
+			frueh_leeren_lief_heute = false;
 			frueh_leeren_ist_aktiv = false;
 			if(file_reader->open_file_to_read(filename)) {
 				while(file_reader->read_next_block_to_buffer()) {
@@ -48,9 +48,7 @@ namespace Local::Api {
 						char heute[16] = "";
 						sprintf(heute, "%4d-%02d-%02d", year(timestamp), month(timestamp), day(timestamp));
 						if(strcmp(file_reader->finding_buffer, heute) == 0) {
-							// DoNothing
-						} else {
-							frueh_leeren_lief_heute = false;
+							frueh_leeren_lief_heute = true;
 						}
 					}
 					if(file_reader->find_in_buffer((char*) "(an)")) {
