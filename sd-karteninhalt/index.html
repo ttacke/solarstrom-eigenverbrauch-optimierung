@@ -129,13 +129,13 @@
 			document.getElementById('verbrennen').className = daten['verbrennen'] ? 'on' : 'off';
 			document.getElementById('verbrennen').getElementsByClassName('ladestatus')[0].innerHTML = daten['verbrennen'] ? "an" : "aus";
 			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : 'off';
-			document.getElementById('wasser_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_ueberladen'] ? "l&auml;dt" : "aus";
+			document.getElementById('wasser_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_ueberladen'] ? "an" : "aus";
 			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : 'off';
-			document.getElementById('heizung_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_ueberladen'] ? "l&auml;dt" : "aus";
+			document.getElementById('heizung_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_ueberladen'] ? "an" : "aus";
 			document.getElementById('roller_laden_an').className = daten['roller_laden_an'] ? 'on' : 'off';
-			document.getElementById('roller_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['roller_laden_an'] ? "l&auml;dt" : "aus";
+			document.getElementById('roller_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['roller_relay_an'] ? "an" : "aus";
 			document.getElementById('auto_laden_an').className = daten['auto_laden_an'] ? 'on' : 'off';
-			document.getElementById('auto_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['auto_laden_an'] ? "l&auml;dt" : "aus";
+			document.getElementById('auto_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['auto_relay_an'] ? "an" : "aus";
 			document.getElementById('solarerzeugung_ist_aktiv').className = daten['solarerzeugung_ist_aktiv'] ? 'on' : 'off';
 		
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];

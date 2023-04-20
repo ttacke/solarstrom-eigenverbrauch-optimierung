@@ -169,6 +169,15 @@ namespace Local::Api {
 			}
 
 			_lese_frueh_leeren_status(log_key);
+			// TODO DEBUG
+			_log((char*) "debug#liefHeute", (char*) (frueh_leeren_lief_heute ? "1" : "0"));
+			_log((char*) "debug-ist_aktiv", (char*) (frueh_leeren_ist_aktiv ? "1" : "0"));
+			_log((char*) "debug-relay_an", (char*) (relay_ist_an ? "1" : "0"));
+			_log((char*) "debug-hour-ist", (char*) hour(timestamp));
+			_log((char*) "debug-hour-soll", (char*) cfg->frueh_leeren_starte_in_stunde_utc);
+			_log((char*) "debug-akku_fuellt_sich", (char*) (akku_erreicht_zielladestand ? "1" : "0"));
+			_log((char*) "debug-akku_ist", (char*) verbraucher.aktueller_akku_ladenstand_in_promille);
+			_log((char*) "debug-akku_soll", (char*) (cfg->frueh_leeren_akku_zielladestand_in_promille + start_puffer_in_promille));
 			if(
 				!frueh_leeren_lief_heute
 				&& !frueh_leeren_ist_aktiv

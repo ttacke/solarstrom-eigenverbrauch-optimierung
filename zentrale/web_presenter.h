@@ -285,9 +285,14 @@ namespace Local {
 					tagesvorhersage[4]
 				);
 				file_writer.write_formated(
-					"\"auto_laden_an\":%s,\"roller_laden_an\":%s,",
+					"\"auto_laden_an\":%s,\"auto_relay_an\":%s,",
 					verbraucher.auto_laden_ist_an() ? "true" : "false",
-					verbraucher.roller_laden_ist_an() ? "true" : "false"
+					verbraucher.auto_relay_ist_an ? "true" : "false"
+				);
+				file_writer.write_formated(
+					"\"roller_laden_an\":%s,\"roller_relay_an\":%s,",
+					verbraucher.roller_laden_ist_an() ? "true" : "false",
+					verbraucher.roller_relay_ist_an ? "true" : "false"
 				);
 				file_writer.write_formated(
 					"\"wasser_ueberladen\":%s,\"heizung_ueberladen\":%s,",
