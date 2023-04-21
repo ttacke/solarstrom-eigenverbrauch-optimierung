@@ -496,22 +496,31 @@ namespace Local::Api {
 
 		void _load_shelly_roller_cache() {
 			roller_benoetigte_ladeleistung_in_w_cache = _gib_roller_benoetigte_ladeleistung_in_w();
-			bool senden_erfolgreich = false;
+			bool erfolgreich = false;
 			if(roller_benoetigte_ladeleistung_in_w_cache == cfg->roller_benoetigte_leistung_gering_in_w) {
-				senden_erfolgreich = web_reader->send_http_get_request(
+				erfolgreich = web_reader->send_http_get_request(
 					cfg->roller_aussen_relay_host,
 					cfg->roller_aussen_relay_port,
 					"/status"
 				);
+				if(erfolgreich){
+					erfolgreich = _read_shelly_roller_content();
+					if(!erfolgreich) {
+						Serial.println("Abfrage des Roller-Aussen-Shellys fehlgeschlagen");
+					}
+				}
 			}
-			if(!senden_erfolgreich) {// Internen immer abfragen, damit min. ein Datensatz da ist
+			if(!erfolgreich) {// Internen immer abfragen, damit min. ein Datensatz da ist
 				web_reader->send_http_get_request(
 					cfg->roller_relay_host,
 					cfg->roller_relay_port,
 					"/status"
 				);
+				_read_shelly_roller_content();
 			}
+		}
 
+		bool _read_shelly_roller_content() {
 			shelly_roller_cache_timestamp = 0;
 			shelly_roller_cache_ison = false;
 			shelly_roller_cache_power = 0;
@@ -526,6 +535,10 @@ namespace Local::Api {
 					shelly_roller_cache_power = atoi(web_reader->finding_buffer);
 				}
 			}
+			if(shelly_roller_cache_timestamp != 0) {
+				return true;
+			}
+			return false;
 		}
 
 	public:
