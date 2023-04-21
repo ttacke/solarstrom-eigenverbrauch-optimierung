@@ -298,7 +298,6 @@ namespace Local::Api {
 				host,
 				port,
 				(ein ? "/relay/0?turn=on" : "/relay/0?turn=off"),
-				cfg->shellyplug_base_authorization,
 				timeout
 			);
 		}

@@ -12,7 +12,6 @@ namespace Local {
 		int roller_relay_port = 80;
 		const char* roller_aussen_relay_host = "192.168.2.34";
 		int roller_aussen_relay_port = 80;
-		const char* shellyplug_base_authorization = "[DEFINIEREN]";// echo -n "username:pwd"|base64
 		const char* wasser_relay_host = "192.168.2.31";
 		int wasser_relay_port = 80;
 		const char* auto_relay_host = "192.168.2.32";

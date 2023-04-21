@@ -16,23 +16,18 @@ namespace Local::Service {
 		char search_buffer[128];
 
 		bool _send_request(
-			const char* host, const char* request_uri, const char* base_authorization,
-			int timeout_in_hundertstel_s
+			const char* host, const char* request_uri, int timeout_in_hundertstel_s
 		) {
 			wlan_client.print("GET ");
 			wlan_client.print(request_uri);
 			wlan_client.print(" HTTP/1.1\r\nHost: ");
 			wlan_client.print(host);
-			if(strlen(base_authorization) > 0) {
-				wlan_client.print("\r\nAuthorization: Basic ");// Fuer ShellyPlugRollerAussen
-				wlan_client.print(base_authorization);
-			}
 			wlan_client.print("\r\nConnection: close\r\n\r\n");
 
 			int i = 0;
 			while(!wlan_client.available()) {
 				i++;
-				if(i > timeout_in_hundertstel_s) {// 20s timeout
+				if(i > timeout_in_hundertstel_s) {
 					return false;
 				}
 				delay(10);
@@ -82,15 +77,13 @@ namespace Local::Service {
 		}
 
 		bool send_http_get_request(const char* host, const int port, const char* request_uri) {
-			const char* base_authorization = "";
 			return send_http_get_request(
-				host, port, request_uri, base_authorization, default_timeout_in_hundertstel_s
+				host, port, request_uri, default_timeout_in_hundertstel_s
 			);
 		}
 
 		bool send_http_get_request(
-			const char* host, const int port, const char* request_uri, const char* base_authorization,
-			int timeout_in_hundertstel_s
+			const char* host, const int port, const char* request_uri, int timeout_in_hundertstel_s
 		) {
 			first_body_part_exist = false;
 			content_length = 0;
@@ -99,7 +92,7 @@ namespace Local::Service {
 			if(!wlan_client.connect(host, port)) {
 				return false;
 			}
-			if(!_send_request(host, request_uri, base_authorization, timeout_in_hundertstel_s)) {
+			if(!_send_request(host, request_uri, timeout_in_hundertstel_s)) {
 				return false;
 			}
 
