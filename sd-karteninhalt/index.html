@@ -14,7 +14,7 @@
 				zeitpunkt_letzte_daten
 				&& zeitpunkt_letzte_daten < new Date().getTime() - (5 * 60 * 1000)
 			) {
-				_zaehle_fehler(true);
+				_zaehle_fehler(true, 0);
 			}
 		}, 2000);
 
@@ -153,10 +153,13 @@
 				el.className = '';
 			}
 		}
-		function _zaehle_fehler(fehler_vorhanden) {
+		function _zaehle_fehler(fehler_vorhanden, seit_timestamp) {
 			if(fehler_vorhanden) {
 				if(!zeit_des_ersten_fehlers) {
 					zeit_des_ersten_fehlers = new Date().getTime();
+					if(seit_timestamp && seit_timestamp * 1000 < zeit_des_ersten_fehlers) {
+						zeit_des_ersten_fehlers = seit_timestamp * 1000;
+					}
 				}
 				document.getElementsByTagName('body')[0].className = "fehler";
 				var minuten_seit_fehler = Math.round((new Date().getTime() - zeit_des_ersten_fehlers) / 1000 / 60);
@@ -235,7 +238,7 @@
 						try {
 							daten = JSON.parse(this.responseText);
 						} catch(err) {
-							_zaehle_fehler(true);
+							_zaehle_fehler(true, 0);
 							console.log(err);
 							return;
 						}
@@ -245,17 +248,17 @@
 						var now = Math.floor(new Date().getTime() / 1000);
 						if(now - daten['timestamp'] > 120) {
 							console.log("Daten zu alt: " + (now - daten['timestamp']) + "s");
-							_zaehle_fehler(true);
+							_zaehle_fehler(true, daten['timestamp']);
 							return;
 						}
-						_zaehle_fehler(false);
+						_zaehle_fehler(false, 0);
 					} else {
-						_zaehle_fehler(true);
+						_zaehle_fehler(true, 0);
 					}
 				}
 			};
 			xhr.ontimeout = function(args) {
-				_zaehle_fehler(true);
+				_zaehle_fehler(true, 0);
 				done_func();
 			}
 			xhr.open(
@@ -493,8 +496,6 @@
 <div id="fehler">
 	<h1>FEHLER</h1>
 	<p>Seit <span id="fehler_seit"></span> Minuten gab es keine Daten mehr.</p>
-
-	<p>Einfach warten, was wird schon...</p>
 </div>
 
 <div id="elektrische_daten">
