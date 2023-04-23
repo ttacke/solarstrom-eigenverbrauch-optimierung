@@ -32,8 +32,8 @@ my @files = qw/
 /;
 # TODO einfuegen mit Tagesstempel
 # wenn keine Date lokal vorhanden, dann nur heute
-# sonst die nehmen, die vorhanden ist +1 tag (heute aber immer laden)
-#    anlage_log-04d-02d-02d.csv
+# sonst die nehmen, die vorhanden ist +1 monat (heute aber immer laden)
+#    anlage_log-04d-02d.csv
 #    verbraucher_automatisierung-04d-02d-02d.log
 
 foreach my $filename (@files) {
