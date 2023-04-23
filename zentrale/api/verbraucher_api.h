@@ -34,7 +34,7 @@ namespace Local::Api {
 		const char* verbrauch_leistung_log_filename = "verbrauch_leistung.log";
 		const char* erzeugung_leistung_log_filename = "erzeugung_leistung.log";
 
-		const char* log_filename = "verbraucher_automatisierung.log";
+		const char* automatisierung_log_filename_template = "verbraucher_automatisierung-%4d-%02d-%02d.log";
 		const char* frueh_leeren_status_filename_template = "frueh_laden_%s.status";
 
 		void _lese_frueh_leeren_status(char* key) {
@@ -72,14 +72,18 @@ namespace Local::Api {
 		}
 
 		void _log(char* msg) {
-			if(file_writer.open_file_to_append(log_filename)) {
+			char filename[32];
+			sprintf(filename, automatisierung_log_filename_template, year(timestamp), month(timestamp), day(timestamp));
+			if(file_writer.open_file_to_append(filename)) {
 				file_writer.write_formated("%d:%s\n", timestamp, msg);
 				file_writer.close_file();
 			}
 		}
 
 		void _log(char* key, char* msg) {
-			if(file_writer.open_file_to_append(log_filename)) {
+			char filename[32];
+			sprintf(filename, automatisierung_log_filename_template, year(timestamp), month(timestamp), day(timestamp));
+			if(file_writer.open_file_to_append(filename)) {
 				file_writer.write_formated("%d:%s>%s\n", timestamp, key, msg);
 				file_writer.close_file();
 			}

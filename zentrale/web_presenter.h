@@ -34,7 +34,7 @@ namespace Local {
 		const char* system_status_filename = "system_status.csv";
 		int stunden_wettervorhersage_letzter_abruf;
 		int tages_wettervorhersage_letzter_abruf;
-		const char* anlagen_log_filename = "anlage_log.csv";
+		const char* anlagen_log_filename_template = "anlage_log-%4d-%02d-%02d.csv";
 		const char* ui_filename = "index.html";
 		char log_buffer[64];
 
@@ -67,7 +67,9 @@ namespace Local {
 		}
 
 		void _write_log_data(int now_timestamp) {
-			if(file_writer.open_file_to_append(anlagen_log_filename)) {
+			char filename[32];
+			sprintf(filename, anlagen_log_filename_template, year(now_timestamp), month(now_timestamp), day(now_timestamp));
+			if(file_writer.open_file_to_append(filename)) {
 				file_writer.write_formated("%d,", now_timestamp);
 				elektroanlage.write_log_data(file_writer);
 				file_writer.write_formated(",");
