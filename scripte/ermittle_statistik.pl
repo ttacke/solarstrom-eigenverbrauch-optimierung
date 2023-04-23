@@ -17,6 +17,7 @@ sub _hole_daten {
     my $daten = [];
     opendir(my $dh, '../sd-karteninhalt') or die $!;
     while(my $filename = readdir($dh)) {
+        # TODO Wochenweise!
         next if($filename !~ m/^anlage_log\.csv/);
 
         my $fh;

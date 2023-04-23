@@ -10,10 +10,8 @@ if(!$ARGV[0]) {
     $ARGV[0] = '192.168.0.30';
     print "Benutzte IP des ESP8266-12E-Controllers(zentrale): $ARGV[0]\n";
 }
-
-foreach my $filename (qw/
+my @files = qw/
     system_status.csv
-    anlage_log.csv
     wetter_stundenvorhersage.json
     wetter_stundenvorhersage.csv
     wetter_tagesvorhersage.json
@@ -29,10 +27,16 @@ foreach my $filename (qw/
     auto_leistung.log
     verbrauch_leistung.log
     erzeugung_leistung.log
-    verbraucher_automatisierung.log
     frueh_laden_auto.status
     frueh_laden_roller.status
-/) {
+/;
+# TODO einfuegen mit Tagesstempel
+# wenn keine Date lokal vorhanden, dann nur heute
+# sonst die nehmen, die vorhanden ist +1 tag (heute aber immer laden)
+#    anlage_log-04d-02d-02d.csv
+#    verbraucher_automatisierung-04d-02d-02d.log
+
+foreach my $filename (@files) {
     print "$filename...";
     my $target = "../sd-karteninhalt/$filename";
     if(system("wget -q 'http://$ARGV[0]/download_file?name=$filename' -O $target") == 0) {
