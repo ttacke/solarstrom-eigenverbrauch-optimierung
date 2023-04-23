@@ -30,7 +30,7 @@ my @files = qw/
     frueh_laden_auto.status
     frueh_laden_roller.status
 /;
-# TODO einfuegen mit Tagesstempel
+# TODO einfuegen mit Monatsstempel
 # wenn keine Date lokal vorhanden, dann nur heute
 # sonst die nehmen, die vorhanden ist +1 monat (heute aber immer laden)
 #    anlage_log-04d-02d.csv
