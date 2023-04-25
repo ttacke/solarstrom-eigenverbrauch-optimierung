@@ -190,21 +190,23 @@ namespace Local::Api {
 				return true;
 			}
 
-			if(
-				frueh_leeren_ist_aktiv
-				&& relay_ist_an
-				&& (
-					!akku_erreicht_zielladestand
-					||
-						verbraucher.aktueller_akku_ladenstand_in_promille
-						<
-						cfg->frueh_leeren_akku_zielladestand_in_promille
-				)
-			) {
-				_log(log_key, (char*) "-solar>FruehLeerenAus");
-				_schreibe_frueh_leeren_status(log_key, false);
-				schalt_func(false);
-				return true;
+			if(frueh_leeren_ist_aktiv) {
+				if(
+					relay_ist_an
+					&& (
+						!akku_erreicht_zielladestand
+						||
+							verbraucher.aktueller_akku_ladenstand_in_promille
+							<
+							cfg->frueh_leeren_akku_zielladestand_in_promille
+					)
+				) {
+					_log(log_key, (char*) "-solar>FruehLeerenAus");
+					_schreibe_frueh_leeren_status(log_key, false);
+					schalt_func(false);
+					return true;
+				}
+				return false;// Weitere Steuerung in der Zeit unterbinden
 			}
 
 			if(
