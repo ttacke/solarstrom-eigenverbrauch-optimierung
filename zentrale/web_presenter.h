@@ -37,6 +37,8 @@ namespace Local {
 		const char* anlagen_log_filename_template = "anlage_log-%4d-%02d.csv";
 		const char* ui_filename = "index.html";
 		char log_buffer[64];
+		float temperature = 0;
+		float humidity = 0;
 
 		void _lese_systemstatus_daten() {
 			if(file_reader.open_file_to_read(system_status_filename)) {
@@ -118,6 +120,19 @@ namespace Local {
 				webserver.server.send(404, "text/plain", "Not found");
 			}
 		}
+
+		void set_temperature_and_humidity(float temp, float hum) {
+		    temperature = temp;
+		    humidity = hum;
+		    webserver.server.send(200, "text/plain", "ok");
+		}
+
+		void get_temperature_and_humidity() {
+    		char output[16];
+    		sprintf(output, "T:%.1f H:%.1f", temperature, humidity);
+    		webserver.server.send(200, "text/plain", output);
+        }
+
 
 		void upload_file() {
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
