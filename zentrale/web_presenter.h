@@ -78,6 +78,7 @@ namespace Local {
 				wetter.write_log_data(file_writer);
 				file_writer.write_formated(",");
 				verbraucher.write_log_data(file_writer);
+				file_writer.write_formated(",k1%.1f,%.1f", temperature, humidity);
 				file_writer.write_formated("\n");
 				file_writer.close_file();
 			}
@@ -127,12 +128,12 @@ namespace Local {
 		    webserver.server.send(200, "text/plain", "ok");
 		}
 
+        // TODO DEPRECATED
 		void get_temperature_and_humidity() {
     		char output[16];
     		sprintf(output, "T:%.1f H:%.1f", temperature, humidity);
     		webserver.server.send(200, "text/plain", output);
         }
-
 
 		void upload_file() {
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
@@ -342,6 +343,11 @@ namespace Local {
 				file_writer.write_formated(
 					"\"ersatzstrom_ist_aktiv\":%s,",
 					elektroanlage.ersatzstrom_ist_aktiv ? "true" : "false"
+				);
+				file_writer.write_formated(
+					"\"keller_temperatur\":%.1f,\"keller_luftfeuchtigkeit\":%.1f,",
+					temperature,
+					humidity
 				);
 				file_writer.write_formated(
 					"\"timestamp\":%i}",
