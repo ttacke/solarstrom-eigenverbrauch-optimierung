@@ -128,13 +128,6 @@ namespace Local {
 		    webserver.server.send(200, "text/plain", "ok");
 		}
 
-        // TODO DEPRECATED
-		void get_temperature_and_humidity() {
-    		char output[16];
-    		sprintf(output, "T:%.1f H:%.1f", temperature, humidity);
-    		webserver.server.send(200, "text/plain", output);
-        }
-
 		void upload_file() {
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 

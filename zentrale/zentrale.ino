@@ -47,10 +47,6 @@ void setup(void) {
 		    atof(web_presenter.webserver.server.arg("hum").c_str())
 		);
 	});
-	// TODO DEPRECATED
-	web_presenter.webserver.add_http_get_handler("/get_temperature_and_humidity", []() {
-		web_presenter.get_temperature_and_humidity();
-	});
 	web_presenter.webserver.start();
 	Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
 }
