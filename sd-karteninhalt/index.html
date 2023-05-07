@@ -42,7 +42,7 @@
 					val = e.val;
 					button_element = e.el;
 				}
-				
+
 				if(action == 'change') {
 					_fuehre_aktion_aus(key, val, function() {
 						if(val == 'force') {
@@ -84,7 +84,7 @@
 			}
 			tmp_list.push({action: action, key: key, val: val, time: now});
 			secure_action_list = tmp_list;
-			
+
 			if(secure_action_list.length >= 5) {
 				secure_action_list = [];
 				refresh(action, key, val);
@@ -119,13 +119,13 @@
 			_setze_balkentabelle_tage_label('balkenanzeige', 13, 5, daten);
 			_setze_balkentabelle_daten(daten['tage_balkenanzeige'], 'balkenanzeige', 13, 5);
 			_setze_elektrische_daten(daten);
-			
+
 			_setze_ladewunsch('auto_laden', daten['auto_laden'], daten['timestamp']);
 			document.getElementById('auto_ladeleistung').innerHTML = daten['auto_benoetigte_ladeleistung_in_w'] + " W";
 
 			_setze_ladewunsch('roller_laden', daten['roller_laden'], daten['timestamp']);
 			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
-			
+
 			document.getElementById('verbrennen').className = daten['verbrennen'] ? 'on' : 'off';
 			document.getElementById('verbrennen').getElementsByClassName('ladestatus')[0].innerHTML = daten['verbrennen'] ? "an" : "aus";
 			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : 'off';
@@ -137,9 +137,12 @@
 			document.getElementById('auto_laden_an').className = daten['auto_laden_an'] ? 'on' : 'off';
 			document.getElementById('auto_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['auto_relay_an'] ? "an" : "aus";
 			document.getElementById('solarerzeugung_ist_aktiv').className = daten['solarerzeugung_ist_aktiv'] ? 'on' : 'off';
-		
+
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
+
+			document.getElementById('keller_temperatur').innerHTML = daten['keller_temperatur'];
+			document.getElementById('keller_luftfeuchtigkeit').innerHTML = daten['keller_luftfeuchtigkeit'];
 		}
 		function _setze_ladewunsch(id, typ, timestamp) {
 			var el = document.getElementById(id).getElementsByTagName("button")[0];
@@ -242,7 +245,7 @@
 							console.log(err);
 							return;
 						}
-						
+
 						zeitpunkt_letzte_daten = daten['timestamp'] * 1000;
 						_setze_daten_ein(daten);
 						var now = Math.floor(new Date().getTime() / 1000);
@@ -431,7 +434,7 @@
 			font-weight: normal;
 			text-align: center;
 		}
-		
+
 		.zusatzinfo {
 			font-size: 1.0rem;
 			text-align: center;
@@ -457,7 +460,7 @@
 			.zusatzinfo .off,
 			.zusatzinfo .off * {
 			}
-		
+
 		.schalter {
 			vertical-align: bottom;
 			text-align: right;
@@ -471,7 +474,7 @@
 				left: 0rem;
 				width: 9.0rem;
 				text-align: right;
-				font-size: 2.8rem;
+				font-size: 2.5rem;
 				font-weight: bold;
 			}
 			.schalter .ladeleistung {
@@ -480,7 +483,7 @@
 			}
 			.schalter button {
 				border-radius: 1rem;
-				font-size: 5.5rem;
+				font-size: 4.5rem;
 				min-width: 13rem;
 				border: solid 0.2rem black;
 			}
@@ -488,6 +491,13 @@
 				background-color: black;
 				color: white;
 			}
+	.keller_klima {
+		text-align: center;
+	}
+		.keller_klima span {
+			display: inline-block;
+			font-weight: bold;
+		}
 	</style>
 </head>
 <body onload="refresh('', '', '');">
@@ -547,6 +557,11 @@
 	<span onclick="secure_action('change', 'roller', 'change_power')">Roller<br>
 	<span class="ladeleistung" id="roller_ladeleistung"></span></span>
 	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'solar' : 'force', this)">&#9889;</button>
+</div>
+
+<div class="keller_klima">
+	Temp: <span id="keller_temperatur"></span> &#8451;
+	Hum: <span id="keller_luftfeuchtigkeit"></span> %
 </div>
 
 </body>
