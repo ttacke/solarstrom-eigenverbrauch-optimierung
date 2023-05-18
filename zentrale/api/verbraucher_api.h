@@ -625,6 +625,7 @@ namespace Local::Api {
 			int roller_min_schaltzeit_in_min = cfg->roller_min_schaltzeit_in_min;
 			int akku_zielladestand_fuer_ueberladen_in_promille = 1000;
 			if(verbraucher.ersatzstrom_ist_aktiv) {
+			    // TODO hier muss auch noch die Maximalleistung des Wechselrichters beachtet werden
 				verbraucher.auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 				verbraucher.roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 				ausschalter_auto_relay_zustand_seit = 0;
@@ -787,7 +788,7 @@ namespace Local::Api {
 			F1 && schalt_func
 		) {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
-			bool akku_laeuft_potentiell_in_3h_ueber = verbraucher.akku_erreicht_ladestand_in_stunden(akku_zielladestand_in_promille) <= 3;
+			bool akku_laeuft_potentiell_in_5h_ueber = verbraucher.akku_erreicht_ladestand_in_stunden(akku_zielladestand_in_promille) <= 5;
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			bool unerfuellter_ladewunsch = _es_besteht_ein_unerfuellter_ladewunsch(verbraucher);
 			if(!schalt_mindestdauer_ist_erreicht) {
@@ -802,7 +803,7 @@ namespace Local::Api {
 			if(
 				!relay_ist_an
 				&& verbraucher.solarerzeugung_ist_aktiv()
-				&& akku_laeuft_potentiell_in_3h_ueber
+				&& akku_laeuft_potentiell_in_5h_ueber
 				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
 				&& (
 					(
@@ -822,7 +823,7 @@ namespace Local::Api {
 					schalt_func(false);
 					return true;
 				}
-				if(!akku_laeuft_potentiell_in_3h_ueber || !verbraucher.solarerzeugung_ist_aktiv()) {
+				if(!akku_laeuft_potentiell_in_5h_ueber || !verbraucher.solarerzeugung_ist_aktiv()) {
 					_log(log_key, (char*) "-ueberladen>AusWeilAkkuVorhersage");
 					schalt_func(false);
 					return true;
