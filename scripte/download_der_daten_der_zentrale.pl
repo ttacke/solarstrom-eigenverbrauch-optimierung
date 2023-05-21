@@ -13,7 +13,7 @@ BEGIN {
     }
     if(!$ARGV[1]) {
         $ARGV[1] = 0;
-        print "Anzahl der Monate, die die Log aus der Vergqangenheit geholt wird: $ARGV[1]\n";
+        print "Anzahl der Monate, die die Log aus der Vergangenheit geholt wird: $ARGV[1]\n";
     }
     if($ARGV[1] > 0) {
         require Date::Calc;
@@ -39,14 +39,26 @@ my @files = qw/
     frueh_laden_auto.status
     frueh_laden_roller.status
 /;
+sub _backup_file {
+    my($filename) = _;
+    my $source = "../sd-karteninhalt/$filename";
+    if(-e($source) && stat($source)[7] > 0) {
+        my $time = time();
+        `cp $source ../sd-karteninhalt/$filename.bak.$time`;
+    }
+}
 @files = ();
 for(my $i = 0; $i <= $ARGV[1]; $i++) {
     my @d = localtime();
     my $year = $d[5] + 1900;
     my $month = $d[4] + 1;
     ($year, $month, undef) = Date::Calc::Add_Delta_YM($year, $month, 1, 0, $i * -1);
-    push(@files, sprintf("anlage_log-%04d-%02d.csv", $year, $month));
-    push(@files, sprintf("verbraucher_automatisierung-%04d-%02d.log", $year, $month));
+    my $anlage_log = sprintf("anlage_log-%04d-%02d.csv", $year, $month);
+    _backup_file($anlage_log);
+    my $verbraucher_log = sprintf("verbraucher_automatisierung-%04d-%02d.log", $year, $month);
+    _backup_file($verbraucher_log);
+    push(@files, $anlage_log);
+    push(@files, $verbraucher_log);
 }
 foreach my $filename (@files) {
     print "$filename...";
