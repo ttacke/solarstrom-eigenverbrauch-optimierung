@@ -27,6 +27,7 @@ sub _hole_daten {
         die "Bitte erst 'download_der_daten_der_zentrale.pl [IP]' ausfuehren\n";
     }
 
+    my $fehler = 0;
     foreach my $filename (sort(@files)) {
         my $fh;
         if(!open($fh, '<', "../sd-karteninhalt/$filename")) {
@@ -37,39 +38,48 @@ sub _hole_daten {
             chomp($line);
             my @e = $line =~ m/^(\d{10,}),e[2],([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),(\d+),/;
             if(!scalar(@e)) {
-                warn $line;
+                # warn $line;
+                $fehler++;
                 next;
             }
 
             my @w = $line =~ m/,w[2],(\d+),(\d+)/;
             if(!scalar(@w)) {
-                warn $line;
+                # warn $line;
+                $fehler++;
                 next;
             }
 
+            my @t = $line =~ m/,k1([\-\d\.]+),([\d\.]+)/;
+
             my @d = gmtime($e[0]);
             my $neu = {
-                zeitpunkt => $e[0],
-                datum => sprintf("%04d-%02d-%02d", $d[5] + 1900, $d[4] + 1, $d[3]),
-                stunde => $d[2],
-                monat => $d[4] + 1,
-                netzbezug_in_w => $e[1],
-                solarakku_zuschuss_in_w => $e[2],
-                solarerzeugung_in_w => $e[3],
-                stromverbrauch_in_w => $e[4],
+                zeitpunkt                       => $e[0],
+                datum                           => sprintf("%04d-%02d-%02d", $d[5] + 1900, $d[4] + 1, $d[3]),
+                stunde                          => $d[2],
+                monat                           => $d[4] + 1,
+                netzbezug_in_w                  => $e[1],
+                solarakku_zuschuss_in_w         => $e[2],
+                solarerzeugung_in_w             => $e[3],
+                stromverbrauch_in_w             => $e[4],
                 solarakku_ladestand_in_promille => $e[5],
-                l1_strom_ma => $e[6],
-                l2_strom_ma => $e[7],
-                l3_strom_ma => $e[8],
-                gib_anteil_pv1_in_prozent => $e[9],
-                ersatzstrom_ist_aktiv => $e[10] ? 1 : 0,
+                l1_strom_ma                     => $e[6],
+                l2_strom_ma                     => $e[7],
+                l3_strom_ma                     => $e[8],
+                gib_anteil_pv1_in_prozent       => $e[9],
+                ersatzstrom_ist_aktiv           => $e[10] ? 1 : 0,
 
-                stunden_solarstrahlung => $w[0],
-                tages_solarstrahlung => $w[1],
+                stunden_solarstrahlung          => $w[0],
+                tages_solarstrahlung            => $w[1],
+                temperatur                      => $t[0],
+                feuchtigkeit                    => $t[1],
             };
             push(@$daten, $neu);
         }
         close($fh);
+    }
+    if($fehler) {
+        warn "ACHTUNG: $fehler Fehler!\n";
     }
     return $daten;
 }
@@ -141,7 +151,8 @@ foreach my $monat (1..12) {
     }
 }
 
-print "Umrechnungsfakrot Solarstrahlung pro h -> Leistung in W (Monatsweise):\n";
+# Temperatur!
+print "Umrechnungsfaktor Solarstrahlung pro h -> Leistung in W (Monatsweise):\n";
 my $globaler_faktor = [];
 foreach my $monat (1..12) {
     my $faktor_liste = [];
@@ -160,5 +171,31 @@ foreach my $monat (1..12) {
     printf(" $monat: %.2f\n", _gib_duchschnitt($faktor_liste) / 100);
 }
 printf("Gesamt: %.2f\n", _gib_duchschnitt($globaler_faktor) / 100);
+
+my $min_temp = 999;
+my $min_time = 0;
+my $max_temp = 0;
+my $max_time = 0;
+my $delta_temp = 0;
+my $delta_time = 0;
+foreach my $e (@$daten) {
+    if($e->{"temperatur"}) {
+        if($e->{'temperatur'} < $max_temp) {
+            if($max_temp && $min_temp + 0.8 < $max_temp && $max_temp - $min_temp < 10) {
+                $delta_temp += $max_temp - $min_temp;
+                $delta_time += ($max_time - $min_time) / 3600;
+                # printf("Delta: %.1f K in %.2f h \n", $max_temp - $min_temp, ($max_time - $min_time) / 3600);
+            }
+            $min_temp = $e->{'temperatur'};
+            $min_time = $e->{'zeitpunkt'};
+            $max_temp = $e->{'temperatur'};
+            $max_time = $e->{'zeitpunkt'};
+        } elsif($e->{'temperatur'} > $max_temp) {
+            $max_temp = $e->{'temperatur'};
+            $max_time = $e->{'zeitpunkt'};
+        }
+    }
+}
+printf("Temperaturertrag: %.2f K/h\n", $delta_temp / $delta_time);
 
 print "\n";
