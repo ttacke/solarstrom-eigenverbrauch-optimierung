@@ -40,9 +40,10 @@ my @files = qw/
     frueh_laden_roller.status
 /;
 sub _backup_file {
-    my($filename) = _;
+    my ($filename) = @_;
+
     my $source = "../sd-karteninhalt/$filename";
-    if(-e($source) && stat($source)[7] > 0) {
+    if(-f($source) && [stat($source)]->[7] > 0) {
         my $time = time();
         `cp $source ../sd-karteninhalt/$filename.bak.$time`;
     }
@@ -63,7 +64,7 @@ for(my $i = 0; $i <= $ARGV[1]; $i++) {
 foreach my $filename (@files) {
     print "$filename...";
     my $target = "../sd-karteninhalt/$filename";
-    if(system("wget -q 'http://$ARGV[0]/download_file?name=$filename' -O $target") == 0) {
+    if(system("wget -q --read-timeout=30 'http://$ARGV[0]/download_file?name=$filename' -O $target") == 0) {
         print "ok\n";
     } else {
         print "FEHLER\n";

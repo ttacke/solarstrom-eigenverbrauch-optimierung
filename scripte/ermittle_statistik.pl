@@ -15,28 +15,37 @@ sub _gib_duchschnitt {
 }
 sub _hole_daten {
     my $daten = [];
+    my @files = ();
     opendir(my $dh, '../sd-karteninhalt') or die $!;
     while(my $filename = readdir($dh)) {
-        # TODO Monatsweise!
-        next if($filename !~ m/^anlage_log\.csv/);
+        next if($filename !~ m/^anlage_log\-\d{4}\-\d{2}\.csv$/);
 
+        push(@files, $filename);
+    }
+    closedir($dh);
+    if(!scalar(@files)) {
+        die "Bitte erst 'download_der_daten_der_zentrale.pl [IP]' ausfuehren\n";
+    }
+
+    foreach my $filename (sort(@files)) {
         my $fh;
         if(!open($fh, '<', "../sd-karteninhalt/$filename")) {
-            if($filename eq 'anlage_log.csv') {
-                die "Bitte erst 'download_der_daten_der_zentrale.pl [IP]' ausfuehren\n";
-            } else {
-                next;
-            }
+            die "Fehler: $!\n";
         }
         $/ = "\n";
         while(my $line = <$fh>) {
             chomp($line);
+            my @e = $line =~ m/^(\d{10,}),e[2],([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),(\d+),/;
+            if(!scalar(@e)) {
+                warn $line;
+                next;
+            }
 
-            my @e = $line =~ m/^(\d{10,}),e[12],([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),w[12],(\d+),(\d+)(?:,(\d+)|)/;
-            next if(!scalar(@e));
-
-            my @w = $line =~ m/,w[12],(\d+),(\d+)/;
-            next if(!scalar(@w));
+            my @w = $line =~ m/,w[2],(\d+),(\d+)/;
+            if(!scalar(@w)) {
+                warn $line;
+                next;
+            }
 
             my @d = gmtime($e[0]);
             my $neu = {
@@ -62,12 +71,10 @@ sub _hole_daten {
         }
         close($fh);
     }
-    closedir($dh);
     return $daten;
 }
 my $daten = _hole_daten();
 $daten = [sort { $a->{zeitpunkt} <=> $b->{zeitpunkt} } @$daten];
-
 print "\nAnzahl der Log-Datensaetze: " . scalar(@$daten) . "\n";
 my $logdaten_in_tagen = ($daten->[$#$daten]->{'zeitpunkt'} - $daten->[0]->{'zeitpunkt'}) / 86400;
 print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n";
