@@ -2,13 +2,22 @@
 use strict;
 use warnings;
 
-if(system("wget --version 1>/dev/null 2>&1") != 0) {
-    print "Bitte das Tool 'wget' installieren\n";
-    exit(1);
-}
-if(!$ARGV[0]) {
-    $ARGV[0] = '192.168.0.30';
-    print "Benutzte IP des ESP8266-12E-Controllers(zentrale): $ARGV[0]\n";
+BEGIN {
+    if(system("wget --version 1>/dev/null 2>&1") != 0) {
+        print "Bitte das Tool 'wget' installieren\n";
+        exit(1);
+    }
+    if(!$ARGV[0]) {
+        $ARGV[0] = '192.168.0.30';
+        print "Benutzte IP des ESP8266-12E-Controllers(zentrale): $ARGV[0]\n";
+    }
+    if(!$ARGV[1]) {
+        $ARGV[1] = 0;
+        print "Anzahl der Monate, die die Log aus der Vergqangenheit geholt wird: $ARGV[1]\n";
+    }
+    if($ARGV[1] > 0) {
+        require Date::Calc;
+    }
 }
 my @files = qw/
     system_status.csv
@@ -30,12 +39,15 @@ my @files = qw/
     frueh_laden_auto.status
     frueh_laden_roller.status
 /;
-# TODO einfuegen mit Monatsstempel
-# wenn keine Date lokal vorhanden, dann nur heute
-# sonst die nehmen, die vorhanden ist +1 monat (heute aber immer laden)
-#    anlage_log-04d-02d.csv
-#    verbraucher_automatisierung-04d-02d-02d.log
-
+@files = ();
+for(my $i = 0; $i <= $ARGV[1]; $i++) {
+    my @d = localtime();
+    my $year = $d[5] + 1900;
+    my $month = $d[4] + 1;
+    ($year, $month, undef) = Date::Calc::Add_Delta_YM($year, $month, 1, 0, $i * -1);
+    push(@files, sprintf("anlage_log-%04d-%02d.csv", $year, $month));
+    push(@files, sprintf("verbraucher_automatisierung-%04d-%02d.log", $year, $month));
+}
 foreach my $filename (@files) {
     print "$filename...";
     my $target = "../sd-karteninhalt/$filename";
@@ -48,7 +60,7 @@ foreach my $filename (@files) {
 
 print "daten.json...";
 my $target = "../sd-karteninhalt/daten.json";
-if(system("wget -q 'http://$ARGV[0]/daten.json?time=" . time() . "' -O $target") == 0) {
+if(system("wget -q 'http://$ARGV[0]/daten.json' -O $target") == 0) {
     print "ok\n";
 } else {
     print "FEHLER\n";
