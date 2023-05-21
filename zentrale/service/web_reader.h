@@ -96,6 +96,8 @@ namespace Local::Service {
 				return false;
 			}
 
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+
 			int max_read_size = sizeof(buffer) - 1;
 			while(wlan_client.available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
@@ -148,6 +150,8 @@ namespace Local::Service {
 			if(content_length <= 0) {
 				return false;
 			}
+
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			if(wlan_client.available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
