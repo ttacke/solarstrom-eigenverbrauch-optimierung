@@ -179,12 +179,16 @@ my $max_time = 0;
 my $delta_temp = 0;
 my $delta_time = 0;
 foreach my $e (@$daten) {
-    if($e->{"temperatur"}) {
+    if($e->{"temperatur"} && $e->{"temperatur"} != 0 && $e->{'zeitpunkt'} > 1684689496) {
         if($e->{'temperatur'} < $max_temp) {
-            if($max_temp && $min_temp + 0.8 < $max_temp && $max_temp - $min_temp < 10) {
+            if(
+                $max_temp
+                && $min_temp < $max_temp
+                && sprintf("%.1f", $max_temp - $min_temp) >= 0.4
+            ) {
                 $delta_temp += $max_temp - $min_temp;
                 $delta_time += ($max_time - $min_time) / 3600;
-                # printf("Delta: %.1f K in %.2f h \n", $max_temp - $min_temp, ($max_time - $min_time) / 3600);
+                printf("Delta: %.1f K in %.2f h $min_temp $max_temp\n", $max_temp - $min_temp, ($max_time - $min_time) / 3600);
             }
             $min_temp = $e->{'temperatur'};
             $min_time = $e->{'zeitpunkt'};
