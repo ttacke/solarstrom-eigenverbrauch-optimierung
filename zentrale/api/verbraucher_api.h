@@ -156,6 +156,9 @@ namespace Local::Api {
 			bool akku_erreicht_zielladestand = verbraucher.akku_erreicht_ladestand_in_promille(
 				akku_zielladestand_in_promille
 			);
+			bool akku_unterschreitet_minimalladestand = verbraucher.akku_unterschreitet_ladestand_in_promille(
+				cfg->minimaler_akku_ladestand
+			);
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			float nicht_laden_unter_akkuladestand = 400;
 			float einschaltschwelle = _ermittle_solarladen_einschaltschwelle(
@@ -179,10 +182,11 @@ namespace Local::Api {
 				&& !relay_ist_an
 				&& hour(timestamp) == cfg->frueh_leeren_starte_in_stunde_utc
 				&& akku_erreicht_zielladestand
+				&& !akku_unterschreitet_minimalladestand
 				&&
 					verbraucher.aktueller_akku_ladenstand_in_promille
 					>=
-					cfg->frueh_leeren_akku_zielladestand_in_promille + start_puffer_in_promille
+					cfg->minimaler_akku_ladestand + start_puffer_in_promille
 			) {
 				_log(log_key, (char*) "-solar>FruehLeerenAn");
 				_schreibe_frueh_leeren_status(log_key, true);
@@ -195,10 +199,11 @@ namespace Local::Api {
 					relay_ist_an
 					&& (
 						!akku_erreicht_zielladestand
+						|| akku_unterschreitet_minimalladestand
 						||
 							verbraucher.aktueller_akku_ladenstand_in_promille
 							<
-							cfg->frueh_leeren_akku_zielladestand_in_promille
+							cfg->minimaler_akku_ladestand
 					)
 				) {
 					_log(log_key, (char*) "-solar>FruehLeerenAus");
@@ -214,6 +219,7 @@ namespace Local::Api {
 				&& verbraucher.solarerzeugung_ist_aktiv()
 				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
 				&& akku_erreicht_zielladestand
+				&& !akku_unterschreitet_minimalladestand
 				&& min_bereitgestellte_leistung > einschaltschwelle
 			) {
 				_log(log_key, (char*) "-solar>AnWeilGenug");
@@ -221,7 +227,11 @@ namespace Local::Api {
 				return true;
 			}
 			if(relay_ist_an) {
-				if(!akku_erreicht_zielladestand || !verbraucher.solarerzeugung_ist_aktiv()) {
+				if(
+					!akku_erreicht_zielladestand
+					|| akku_unterschreitet_minimalladestand
+					|| !verbraucher.solarerzeugung_ist_aktiv()
+				) {
 					_log(log_key, (char*) "-aus>AusWegenZielladestand");
 					schalt_func(false);
 					return true;
@@ -626,6 +636,7 @@ namespace Local::Api {
 			int akku_zielladestand_fuer_ueberladen_in_promille = 1000;
 			if(verbraucher.ersatzstrom_ist_aktiv) {
 			    // TODO hier muss auch noch die Maximalleistung des Wechselrichters beachtet werden
+			    // Grund: damit wird verhindert, dass der Haushalt die 8kW erreicht und der Wechselrichter abbricht (nur im Ersatzstromfall)
 				verbraucher.auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 				verbraucher.roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 				ausschalter_auto_relay_zustand_seit = 0;
@@ -789,6 +800,9 @@ namespace Local::Api {
 		) {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
 			bool akku_laeuft_potentiell_in_5h_ueber = verbraucher.akku_erreicht_ladestand_in_stunden(akku_zielladestand_in_promille) <= 5;
+			bool akku_unterschreitet_minimalladestand = verbraucher.akku_unterschreitet_ladestand_in_promille(
+				cfg->minimaler_akku_ladestand
+			);
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			bool unerfuellter_ladewunsch = _es_besteht_ein_unerfuellter_ladewunsch(verbraucher);
 			if(!schalt_mindestdauer_ist_erreicht) {
@@ -804,6 +818,7 @@ namespace Local::Api {
 				!relay_ist_an
 				&& verbraucher.solarerzeugung_ist_aktiv()
 				&& akku_laeuft_potentiell_in_5h_ueber
+				&& !akku_unterschreitet_minimalladestand
 				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
 				&& (
 					(
@@ -823,7 +838,11 @@ namespace Local::Api {
 					schalt_func(false);
 					return true;
 				}
-				if(!akku_laeuft_potentiell_in_5h_ueber || !verbraucher.solarerzeugung_ist_aktiv()) {
+				if(
+					!akku_laeuft_potentiell_in_5h_ueber
+					|| akku_unterschreitet_minimalladestand
+					|| !verbraucher.solarerzeugung_ist_aktiv()
+				) {
 					_log(log_key, (char*) "-ueberladen>AusWeilAkkuVorhersage");
 					schalt_func(false);
 					return true;

@@ -33,13 +33,13 @@ namespace Local {
 		int verbrennen_min_schaltzeit_in_min = 5;
 
 		// TODO diesen configwert als SD_File ablegen, dann kann das von außen aktualisiert werden
-		int grundverbrauch_in_w_pro_h = 238;
+		int grundverbrauch_in_w_pro_h = 263;
 		// TODO diesen configwert als SD_File ablegen, dann kann das von außen aktualisiert werden
 		// TODO Monatsweise setzen, denn das ist jeden Monat anders
 		float solarstrahlungs_vorhersage_umrechnungsfaktor = 4.65;
 		int akku_groesse_in_wh = 7680;
 		int akku_zielladestand_in_promille = 800;
-		int frueh_leeren_akku_zielladestand_in_promille = 250;
+		int minimaler_akku_ladestand = 200;
 		int frueh_leeren_starte_in_stunde_utc = 4;
 
 		const int webserver_port = 80;

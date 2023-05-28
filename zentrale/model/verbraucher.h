@@ -89,6 +89,15 @@ namespace Local::Model {
 			return false;
 		}
 
+		bool akku_unterschreitet_ladestand_in_promille(int ladestand_in_promille) {
+			for(int i = 0; i < 48; i++) {
+				if(akku_ladestandsvorhersage_in_promille[i] < ladestand_in_promille) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		float akku_erreicht_ladestand_in_stunden(int ladestand_in_promille) {
 			for(int i = 0; i < 48; i++) {
 				if(akku_ladestandsvorhersage_in_promille[i] >= ladestand_in_promille) {
