@@ -95,7 +95,7 @@ namespace Local {
 		{}
 
 		void zeige_ui() {
-			web_writer.init_for_write(200, "text/html");
+			web_writer.init_for_write("text/html");
 			if(file_reader.open_file_to_read(ui_filename)) {
 				while(file_reader.read_next_block_to_buffer()) {
 					web_writer.write(file_reader.buffer, strlen(file_reader.buffer));
@@ -105,17 +105,17 @@ namespace Local {
 				char* text = (char*) "<h1>Bitte im Projekt 'cd code/scripte;perl schreibe_indexdatei.pl [IP]' ausf&uuml;hren</h1>";
 				web_writer.write(text, strlen(text));
 			}
-			web_writer.flush_write_buffer();
+			web_writer.flush_write_buffer_and_close_transfer();
 		}
 
 		void download_file(const char* filename) {
 			if(file_reader.open_file_to_read(filename)) {
-				web_writer.init_for_write(200, "text/plain", file_reader.get_file_size());
+				web_writer.init_for_write("text/plain");
 				while(file_reader.read_next_block_to_buffer()) {
 					web_writer.write(file_reader.buffer, strlen(file_reader.buffer));
 					yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				}
-				web_writer.flush_write_buffer();
+				web_writer.flush_write_buffer_and_close_transfer();
 				file_reader.close_file();
 			} else {
 				webserver.server.send(404, "text/plain", "Not found");
