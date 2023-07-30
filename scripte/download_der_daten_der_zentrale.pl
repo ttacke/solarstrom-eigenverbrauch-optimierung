@@ -16,12 +16,12 @@ BEGIN {
     }
     if(!$ARGV[0]) {
         $ARGV[0] = '192.168.0.30';
-        print "Benutzte IP des ESP8266-12E-Controllers(zentrale): $ARGV[0]\n";
     }
+    print "Benutzte IP des ESP8266-12E-Controllers(zentrale): $ARGV[0]\n";
     if(!$ARGV[1]) {
         $ARGV[1] = 0;
-        print "Anzahl der Monate, die die Log aus der Vergangenheit geholt wird: $ARGV[1]\n";
     }
+    print "Anzahl der Monate, die die Log aus der Vergangenheit geholt wird: $ARGV[1]\n";
 }
 my @files = qw/
     system_status.csv
