@@ -213,6 +213,18 @@ namespace Local::Api {
 				}
 				return false;// Weitere Steuerung in der Zeit unterbinden
 			}
+			// TODO DEBUG: 30.7. 11:50 Warum läd das Auto nicht automatisch (88% Akku, Sonne scheint, Kein Verbrauch)?
+			char log_buffer[64];
+			sprintf(
+				log_buffer, "-solar>DEBUG:%d/%d/%.2f/%.2f/%d/%d",
+				akku_erreicht_zielladestand ? 1 : 0,
+				akku_unterschreitet_minimalladestand ? 1 : 0,
+				min_bereitgestellte_leistung,
+				einschaltschwelle,
+				sonnenuntergang_abstand_in_s,
+				verbraucher.solarerzeugung_ist_aktiv() ? 1 : 0
+			);
+			_log(log_key, log_buffer);
 
 			if(
 				!relay_ist_an
