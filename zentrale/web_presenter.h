@@ -95,14 +95,15 @@ namespace Local {
 		{}
 
 		void zeige_ui() {
-			web_writer.init_for_write("text/html");
 			if(file_reader.open_file_to_read(ui_filename)) {
+				web_writer.init_for_write("text/html", file_reader.get_file_size());
 				while(file_reader.read_next_block_to_buffer()) {
 					web_writer.write(file_reader.buffer, strlen(file_reader.buffer));
 				}
 				file_reader.close_file();
 			} else {
 				char* text = (char*) "<h1>Bitte im Projekt 'cd code/scripte;perl schreibe_indexdatei.pl [IP]' ausf&uuml;hren</h1>";
+				web_writer.init_for_write("text/html", strlen(text));
 				web_writer.write(text, strlen(text));
 			}
 			web_writer.flush_write_buffer_and_close_transfer();
@@ -110,7 +111,7 @@ namespace Local {
 
 		void download_file(const char* filename) {
 			if(file_reader.open_file_to_read(filename)) {
-				web_writer.init_for_write("text/plain");
+				web_writer.init_for_write("text/plain", file_reader.get_file_size());
 				while(file_reader.read_next_block_to_buffer()) {
 					web_writer.write(file_reader.buffer, strlen(file_reader.buffer));
 				}
