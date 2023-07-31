@@ -24,5 +24,20 @@ namespace Local {
 			WiFi.setAutoReconnect(true);
 			WiFi.persistent(true);
 		}
+
+		bool is_connected() {
+			return WiFi.isConnected();
+		}
+
+		void reconnect() {
+			WiFi.reconnect();
+			while (WiFi.status() != WL_CONNECTED) {
+			  delay(500);
+			  Serial.print(".");
+			}
+			Serial.println("\nWLAN ReConnected, IP address: " + WiFi.localIP().toString() + "\n");
+			WiFi.setAutoReconnect(true);
+			WiFi.persistent(true);
+		}
 	};
 }
