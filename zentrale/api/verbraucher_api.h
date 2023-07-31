@@ -669,6 +669,16 @@ namespace Local::Api {
 					verbraucher.auto_laden_ist_an()
 				)
 			) {
+				// TODO DEBUG: 15.7. 5:05 Warum geht force wieder aus, ohne zu laden?
+				char log_buffer[64];
+				sprintf(
+					log_buffer, "auto-solar>DEBUG2:%d/%d/%d",
+					verbraucher.auto_relay_ist_an ? 1 : 0,
+					verbraucher.debug_auto_benoetigte_ladeleistung_in_w(),
+					verbraucher.auto_benoetigte_ladeleistung_in_w
+				);
+				_log(log_buffer);
+
 				setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
 				return;
 			}
