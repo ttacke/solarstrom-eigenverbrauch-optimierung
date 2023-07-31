@@ -53,14 +53,33 @@ void setup(void) {
 
 void(* resetFunc) (void) = 0;// Reset the board via software
 
+bool _check_network_connection() {
+	if(!wlan.is_connected()) {
+		return false;
+	}
+	if(!web_reader.send_http_get_request(
+		cfg.network_connection_check_host,
+		80,
+		cfg.network_connection_check_path
+	)) {
+		return false;
+	}
+	while(web_reader.read_next_block_to_buffer()) {
+		if(web_reader.find_in_buffer(strdup(cfg.network_connection_check_content))) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void loop(void) {
 	runtime = millis();// Will overflow after ~50 days, but this is not a problem
 	if(last_runtime == 0 || runtime - last_runtime > 60000) {// initial || 1min
-		Serial.println("heartbeat!");
-		// TODO cfg.ensure_network_connection_check_url
-		if(!wlan.is_connected()) {
+		while(!_check_network_connection()) {
 			wlan.reconnect();
+			delay(500);
 		}
+		Serial.println("heartbeat!");
 		web_presenter.heartbeat(daten_filename);
 		last_runtime = runtime;
 		return;
