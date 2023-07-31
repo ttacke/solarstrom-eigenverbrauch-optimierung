@@ -113,7 +113,6 @@ namespace Local {
 				web_writer.init_for_write("text/plain");
 				while(file_reader.read_next_block_to_buffer()) {
 					web_writer.write(file_reader.buffer, strlen(file_reader.buffer));
-					yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				}
 				web_writer.flush_write_buffer_and_close_transfer();
 				file_reader.close_file();

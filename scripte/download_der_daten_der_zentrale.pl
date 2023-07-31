@@ -68,7 +68,7 @@ for(my $i = 0; $i <= $ARGV[1]; $i++) {
 foreach my $filename (@files) {
     print "$filename...";
     my $target = "../sd-karteninhalt/$filename";
-    if(system("wget -q --read-timeout=30 'http://$ARGV[0]/download_file?name=$filename' -O $target") == 0) {
+    if(system("wget --read-timeout=30 'http://$ARGV[0]/download_file?name=$filename' -O $target") == 0) {
         print "ok\n";
     } else {
         print "FEHLER\n";
