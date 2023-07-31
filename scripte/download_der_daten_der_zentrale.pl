@@ -68,7 +68,7 @@ for(my $i = 0; $i <= $ARGV[1]; $i++) {
 foreach my $filename (@files) {
     print "$filename...";
     my $target = "../sd-karteninhalt/$filename";
-    if(system("wget --read-timeout=30 'http://$ARGV[0]/download_file?name=$filename' -O $target") == 0) {
+    if(system("wget --tries=1 --read-timeout=30 'http://$ARGV[0]/download_file?name=$filename' -O $target") == 0) {
         print "ok\n";
     } else {
         print "FEHLER\n";
@@ -77,7 +77,7 @@ foreach my $filename (@files) {
 
 print "daten.json...";
 my $target = "../sd-karteninhalt/daten.json";
-if(system("wget -q 'http://$ARGV[0]/daten.json' -O $target") == 0) {
+if(system("wget --tries=1 --read-timeout=30 'http://$ARGV[0]/daten.json' -O $target") == 0) {
     print "ok\n";
 } else {
     print "FEHLER\n";
