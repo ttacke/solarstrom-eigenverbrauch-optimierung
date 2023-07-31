@@ -10,6 +10,7 @@ Local::WebPresenter web_presenter(cfg, wlan);
 unsigned long runtime;
 unsigned long last_runtime;
 const char* daten_filename = "daten.json";
+int beat_count = 0;
 
 void setup(void) {
 	runtime = 0;
@@ -75,11 +76,15 @@ bool _check_network_connection() {
 void loop(void) {
 	runtime = millis();// Will overflow after ~50 days, but this is not a problem
 	if(last_runtime == 0 || runtime - last_runtime > 60000) {// initial || 1min
-		while(!_check_network_connection()) {
-			wlan.reconnect();
-			delay(500);
-		}
 		Serial.println("heartbeat!");
+		beat_count++;
+		if(beat_count >=5) {// Nur alle 5 Beats pruefen (derzeit 5min)
+			while(!_check_network_connection()) {
+				wlan.reconnect();
+				delay(500);
+			}
+			beat_count = 0;
+		}
 		web_presenter.heartbeat(daten_filename);
 		last_runtime = runtime;
 		return;
