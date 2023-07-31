@@ -57,6 +57,10 @@ void loop(void) {
 	runtime = millis();// Will overflow after ~50 days, but this is not a problem
 	if(last_runtime == 0 || runtime - last_runtime > 60000) {// initial || 1min
 		Serial.println("heartbeat!");
+		// TODO cfg.ensure_network_connection_check_url
+		if(!wlan.is_connected()) {
+			wlan.reconnect();
+		}
 		web_presenter.heartbeat(daten_filename);
 		last_runtime = runtime;
 		return;
