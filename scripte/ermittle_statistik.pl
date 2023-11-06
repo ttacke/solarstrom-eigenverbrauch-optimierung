@@ -135,42 +135,34 @@ foreach my $monat (1..12) {
     foreach my $e (@$daten) {
         next if($e->{monat} != $monat);
 
-        my $key = $e->{stunden_solarstrahlung};
-        $tmp_strahlungsdaten->{$key} ||= {
-            solarerzeugung_in_w   => [],
-            stunden_solarstrahlung => [],
-        };
-        push(@{$tmp_strahlungsdaten->{$key}->{stunden_solarstrahlung}}, $e->{stunden_solarstrahlung});
-        if(
-            !$e->{stunden_solarstrahlung}
-            || $e->{solarerzeugung_in_w} / $e->{stunden_solarstrahlung} > 100
-        ) {
-            next;
-        }
-        push(@{$tmp_strahlungsdaten->{$key}->{solarerzeugung_in_w}}, $e->{solarerzeugung_in_w});
+        next if(!$e->{stunden_solarstrahlung});
+
+        $tmp_strahlungsdaten->{solarerzeugung_in_w} ||= [];
+        $tmp_strahlungsdaten->{stunden_solarstrahlung} ||= [];
+        push(@{$tmp_strahlungsdaten->{stunden_solarstrahlung}}, $e->{stunden_solarstrahlung});
+        push(@{$tmp_strahlungsdaten->{solarerzeugung_in_w}}, $e->{solarerzeugung_in_w});
     }
 }
 
-# Temperatur!
+
 print "Umrechnungsfaktor Solarstrahlung pro h -> Leistung in W (Monatsweise):\n";
 my $globaler_faktor = [];
 foreach my $monat (1..12) {
-    my $faktor_liste = [];
     my $tmp_strahlungsdaten = $strahlungsdaten->{$monat};
-    foreach my $key (sort { int($a) <=> int($b) } keys(%$tmp_strahlungsdaten)) {
-        my $e = $tmp_strahlungsdaten->{$key};
-        my $stunden_solarstrahlung = _gib_duchschnitt($e->{stunden_solarstrahlung});
-        next if(!$stunden_solarstrahlung);
 
-        my $erzeugung_in_w = _gib_duchschnitt($e->{solarerzeugung_in_w});
-        next if(!$erzeugung_in_w);
+    my $stunden_solarstrahlung = _gib_duchschnitt($tmp_strahlungsdaten->{stunden_solarstrahlung});
+    next if(!$stunden_solarstrahlung);
 
-        push(@$faktor_liste, $erzeugung_in_w / $stunden_solarstrahlung * 100);
-        push(@$globaler_faktor, $faktor_liste->[$#$faktor_liste]);
-    }
-    printf(" $monat: %.2f\n", _gib_duchschnitt($faktor_liste) / 100);
+    my $erzeugung_in_w = _gib_duchschnitt($tmp_strahlungsdaten->{solarerzeugung_in_w});
+    next if(!$erzeugung_in_w);
+
+    my $faktor = $erzeugung_in_w / $stunden_solarstrahlung;
+    push(@$globaler_faktor, $faktor);
+
+    printf("$monat: %.2f\n", $faktor);
 }
-printf("Gesamt: %.2f\n", _gib_duchschnitt($globaler_faktor) / 100);
+printf("Gesamt-Faktor: %.2f\n", _gib_duchschnitt($globaler_faktor));
+
 
 my $min_temp = 999;
 my $min_time = 0;
@@ -188,7 +180,12 @@ foreach my $e (@$daten) {
             ) {
                 $delta_temp += $max_temp - $min_temp;
                 $delta_time += ($max_time - $min_time) / 3600;
-                printf("Delta: %.1f K in %.2f h $min_temp $max_temp\n", $max_temp - $min_temp, ($max_time - $min_time) / 3600);
+                # printf(
+                #     "Delta: %.1f K in %.2f h $min_temp -> $max_temp; %s\n",
+                #     $max_temp - $min_temp,
+                #     ($max_time - $min_time) / 3600,
+                #     '' . localtime($e->{'zeitpunkt'})
+                # );
             }
             $min_temp = $e->{'temperatur'};
             $min_time = $e->{'zeitpunkt'};
@@ -200,6 +197,6 @@ foreach my $e (@$daten) {
         }
     }
 }
-printf("Temperaturertrag: %.2f K/h\n", $delta_temp / $delta_time);
+printf("\nTemperaturertrag: %.2f K/h\n", $delta_temp / $delta_time);
 
 print "\n";
