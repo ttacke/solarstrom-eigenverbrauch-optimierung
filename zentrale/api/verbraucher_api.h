@@ -101,10 +101,13 @@ namespace Local::Api {
 				_log(log_key, (char*) "_laden_ist_beendet>schaltdauerNichtErreicht");
 				return false;
 			}
+			// TODO das hier ist abgefallen bei einem Fehler in der Nacht. Wieso? Wlan-Neustart vielleicht?
 			if(!relay_ist_an) {
+				// TODO: den korrekten Schaltzustand wiederherstellen
 				_log(log_key, (char*) "_laden_ist_beendet>StatusFehlerKorrigiert");
 				return true;
 			}
+			// TODO schalter für neue Ladeart? Automatisches Laden in bei < 4kw Leistung?
 			if(!es_laedt) {
 				_log(log_key, (char*) "_laden_ist_beendet>AusWeilBeendet");
 				return true;
@@ -213,18 +216,6 @@ namespace Local::Api {
 				}
 				return false;// Weitere Steuerung in der Zeit unterbinden
 			}
-			// TODO DEBUG: 30.7. 11:50 Warum läd das Auto nicht automatisch (88% Akku, Sonne scheint, Kein Verbrauch)?
-			char log_buffer[64];
-			sprintf(
-				log_buffer, "-solar>DEBUG:%d/%d/%.2f/%.2f/%d/%d",
-				akku_erreicht_zielladestand ? 1 : 0,
-				akku_unterschreitet_minimalladestand ? 1 : 0,
-				min_bereitgestellte_leistung,
-				einschaltschwelle,
-				sonnenuntergang_abstand_in_s,
-				verbraucher.solarerzeugung_ist_aktiv() ? 1 : 0
-			);
-			_log(log_key, log_buffer);
 
 			if(
 				!relay_ist_an
@@ -669,16 +660,6 @@ namespace Local::Api {
 					verbraucher.auto_laden_ist_an()
 				)
 			) {
-				// TODO DEBUG: 15.7. 5:05 Warum geht force wieder aus, ohne zu laden?
-				char log_buffer[64];
-				sprintf(
-					log_buffer, "auto-solar>DEBUG2:%d/%d/%d",
-					verbraucher.auto_relay_ist_an ? 1 : 0,
-					verbraucher.debug_auto_benoetigte_ladeleistung_in_w(),
-					verbraucher.auto_benoetigte_ladeleistung_in_w
-				);
-				_log(log_buffer);
-
 				setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
 				return;
 			}

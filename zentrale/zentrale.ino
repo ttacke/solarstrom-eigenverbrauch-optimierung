@@ -32,10 +32,6 @@ void setup(void) {
 	web_presenter.webserver.add_http_get_handler("/daten.json", []() {
 		web_presenter.download_file(daten_filename);
 	});
-	web_presenter.webserver.add_http_get_handler("/debug-erzeuge-daten.json", []() {
-		web_presenter.heartbeat(daten_filename);
-		web_presenter.download_file(daten_filename);
-	});
 	web_presenter.webserver.add_http_get_handler("/download_file", []() {
 		web_presenter.download_file((const char*) web_presenter.webserver.server.arg("name").c_str());
 	});

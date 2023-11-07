@@ -120,10 +120,6 @@ namespace Local::Model {
 			}
 			return false;
 		}
-		// TODO DEBUG
-		int debug_auto_benoetigte_ladeleistung_in_w() {
-			return _gib_genutzte_auto_ladeleistung_in_w();
-		}
 
 		bool roller_laden_ist_an() {
 			if(
