@@ -117,3 +117,9 @@ die Geräte nicht.
 -- Solarstrahlungs-Umrechnung umstellen, dass jeden Monat ein anderer Wert genutzt werden kann. Die Werte Schwanken über das Jahr.
 -- Grundverbrauch in Tag und Nacht trennen (und Ladevorgänge herausrechnen) um bessere Vorhersagen zu haben
 - Akku-Haltbarkeit: Laden zwischen 20-80% ist weniger schlimm, 40-60 am wenigsten. Diese Bereiche zusätzlich mit angeben (x% 20-80%, x% 40-60%) 
+- Abbruch bei Force beheben: das Relay faellt ab, ggf wegen Netzproblemen
+-- das im Relay selber beheben: den Restart anders gestalten und den Schaltzustand im Speicher behalten
+-- ggf auch mehrfach die Netzprüfung machen. Erst, wenn x-mal fehler, dann neu verbinden
+- Auto-Lademodus "nachts + unter 4kW bleiben"
+-- ist ein Automatikmodus und startet erst ab 20 Uhr bis 6 Uhr. Kann "umgeschalten" werden (Winter-Modus)
+

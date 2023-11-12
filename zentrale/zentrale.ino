@@ -67,7 +67,7 @@ bool _check_network_connection() {
 	)) {
 		return false;
 	}
-//	TODO hier wird nix gelesen. Wieso?
+//	Die Test-URL hat keinen ContentLengthAngabe und schlaegt beim Lesen deshalb fehl
 //	while(web_reader.read_next_block_to_buffer()) {
 //		Serial.println(web_reader.buffer);
 //		if(web_reader.find_in_buffer(strdup(cfg.network_connection_check_content))) {
