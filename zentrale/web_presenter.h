@@ -343,6 +343,10 @@ namespace Local {
 					verbraucher.roller_benoetigte_ladeleistung_in_w
 				);
 				file_writer.write_formated(
+					"\"ladeverhalten_wintermodus\":%i,",
+					verbraucher.ladeverhalten_wintermodus ? "true" : "false"
+				);
+				file_writer.write_formated(
 					"\"solarerzeugung_ist_aktiv\":%s,",
 					verbraucher.solarerzeugung_ist_aktiv() ? "true" : "false"
 				);

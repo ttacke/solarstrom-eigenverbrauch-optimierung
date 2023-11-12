@@ -122,7 +122,7 @@
 
 			_setze_ladewunsch('auto_laden', daten['auto_laden'], daten['timestamp']);
 			document.getElementById('auto_ladeleistung').innerHTML = daten['auto_benoetigte_ladeleistung_in_w'] + " W";
-			document.getElementById('ladeverhalten').innerHTML = daten['ladeverhalten'] == 'winter' ? 'W' : 'S';
+			document.getElementById('ladeverhalten').innerHTML = daten['ladeverhalten_wintermodus'] ? 'W' : 'S';
 
 			_setze_ladewunsch('roller_laden', daten['roller_laden'], daten['timestamp']);
 			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
