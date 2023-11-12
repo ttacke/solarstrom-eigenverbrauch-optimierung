@@ -56,6 +56,7 @@ namespace Local::Model {
 		int solarerzeugung_in_w = 0;
 		int zeitpunkt_sonnenuntergang = 0;
 		bool ersatzstrom_ist_aktiv = false;
+		bool ladeverhalten_wintermodus = false;
 
 		int gib_stundenvorhersage_akku_ladestand_als_fibonacci(int index) {
 			int max_promille = 0;
@@ -157,14 +158,15 @@ namespace Local::Model {
 				wasser_relay_ist_an ? "an" : "aus"
 			);
 			file_writer.write_formated(
-				",vb4,%s,%s,%d,%d,%d,%s,%s",
+				",vb5,%s,%s,%d,%d,%d,%s,%s,%s",
 				(roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force ? "force" : "solar"),
 				roller_laden_ist_an() ? "an" : "aus",
 				roller_benoetigte_ladeleistung_in_w,
 				aktuelle_roller_ladeleistung_in_w,
 				_gib_genutzte_roller_ladeleistung_in_w(),
 				heizung_relay_ist_an ? "an" : "aus",
-				verbrennen_relay_ist_an ? "an" : "aus"
+				verbrennen_relay_ist_an ? "an" : "aus",
+				ladeverhalten_wintermodus ? "an" : "aus"
 			);
 		}
 	};

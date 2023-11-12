@@ -13,6 +13,8 @@ namespace Local::Api {
 		bool shelly_roller_cache_ison = false;
 		int shelly_roller_cache_power = 0;
 		int roller_benoetigte_ladeleistung_in_w_cache = 0;
+		bool ladeverhalten_wintermodus_cache = false;
+		const char* ladeverhalten_wintermodus_filename = "ladeverhalten_wintermodus.status";
 		bool frueh_leeren_lief_heute = true;
 		bool frueh_leeren_ist_aktiv = false;
 
@@ -385,6 +387,22 @@ namespace Local::Api {
 			return leistung;
 		}
 
+		void _load_ladeverhalten_wintermodus_cache() {
+			ladeverhalten_wintermodus_cache = false;
+			if(file_reader->open_file_to_read(ladeverhalten_wintermodus_filename)) {
+				while(file_reader->read_next_block_to_buffer()) {
+					if(file_reader->find_in_buffer((char*) "([0-9]+)")) {
+						int i = atoi(file_reader->finding_buffer);
+						if(i == 1) {
+							ladeverhalten_wintermodus_cache = true;
+						}
+						break;
+					}
+				}
+				file_reader->close_file();
+			}
+		}
+
 		void _lies_verbraucher_log(int* liste, const char* log_filename, int length) {
 			for(int i = 0; i < length; i++) {
 				liste[i] = 0;
@@ -552,6 +570,7 @@ namespace Local::Api {
 			Local::Service::FileWriter& file_writer
 		): BaseAPI(cfg, web_reader), file_reader(&file_reader), file_writer(file_writer) {
 			_load_shelly_roller_cache();
+			_load_ladeverhalten_wintermodus_cache();
 			timestamp = shelly_roller_cache_timestamp;
 		}
 
@@ -591,6 +610,8 @@ namespace Local::Api {
 				5
 			);
 			verbraucher.roller_benoetigte_ladeleistung_in_w = roller_benoetigte_ladeleistung_in_w_cache;
+
+			verbraucher.ladeverhalten_wintermodus = ladeverhalten_wintermodus_cache;
 
 			verbraucher.aktueller_verbrauch_in_w = elektroanlage.stromverbrauch_in_w;
 			_lies_verbraucher_log(
@@ -927,6 +948,17 @@ namespace Local::Api {
 
 		void wechsle_ladeverhalten() {
 			// TODO iplementieren +output in daten-> ladeverhalten=sommer/winter
+			_log((char*) "wechsle_ladeverhalten");
+			int ladeverhalten_wintermodus = ladeverhalten_wintermodus_cache;
+			if(ladeverhalten_wintermodus) {
+				ladeverhalten_wintermodus = 0;
+			} else {
+				ladeverhalten_wintermodus = 1;
+			}
+			if(file_writer.open_file_to_overwrite(ladeverhalten_wintermodus_filename)) {
+				file_writer.write_formated("%d", ladeverhalten_wintermodus);
+				file_writer.close_file();
+			}
 		}
 	};
 }
