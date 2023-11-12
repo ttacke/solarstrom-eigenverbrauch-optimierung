@@ -147,6 +147,37 @@ namespace Local::Api {
 			int akku_zielladestand_in_promille,
 			F1 && schalt_func
 		) {
+			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
+			if(
+				ladeverhalten_wintermodus_cache
+				&& (
+					hour(timestamp) >= 19 // UTC > im Winter also 20 Uhr
+					|| hour(timestamp) <= 4 // UTC > im Winter also 5 Uhr
+				)
+			) {
+				if(relay_ist_an) {
+					if(verbraucher.netzbezug_in_w > cfg->maximaler_netzbezug_in_w) {
+						_log(log_key, (char*) "-solar>winterLadenAus");
+						schalt_func(false);
+						return true;
+					}
+				} else {
+					if(!schalt_mindestdauer_ist_erreicht) {
+						_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
+						return false;
+					}
+					if(verbraucher.netzbezug_in_w < cfg->maximaler_netzbezug_in_w - benoetigte_leistung_in_w) {
+						_log(log_key, (char*) "-solar>winterLadenAn");
+						schalt_func(true);
+						return true;
+					}
+				}
+			}
+			if(!schalt_mindestdauer_ist_erreicht) {
+				_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
+				return false;
+			}
+
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(
 				verbraucher, benoetigte_leistung_in_w
 			);
@@ -161,16 +192,11 @@ namespace Local::Api {
 			bool akku_unterschreitet_minimalladestand = verbraucher.akku_unterschreitet_ladestand_in_promille(
 				cfg->minimaler_akku_ladestand
 			);
-			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			float nicht_laden_unter_akkuladestand = 400;
 			float einschaltschwelle = _ermittle_solarladen_einschaltschwelle(
 				verbraucher.aktueller_akku_ladenstand_in_promille,
 				nicht_laden_unter_akkuladestand
 			);
-			if(!schalt_mindestdauer_ist_erreicht) {
-				_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
-				return false;
-			}
 
 			int sonnenuntergang_abstand_in_s = 0;
 			if(verbraucher.zeitpunkt_sonnenuntergang > 0) {
@@ -612,6 +638,7 @@ namespace Local::Api {
 			verbraucher.roller_benoetigte_ladeleistung_in_w = roller_benoetigte_ladeleistung_in_w_cache;
 
 			verbraucher.ladeverhalten_wintermodus = ladeverhalten_wintermodus_cache;
+			verbraucher.netzbezug_in_w = elektroanlage.netzbezug_in_w;
 
 			verbraucher.aktueller_verbrauch_in_w = elektroanlage.stromverbrauch_in_w;
 			_lies_verbraucher_log(
@@ -947,7 +974,6 @@ namespace Local::Api {
 		}
 
 		void wechsle_ladeverhalten() {
-			// TODO iplementieren +output in daten-> ladeverhalten=sommer/winter
 			_log((char*) "wechsle_ladeverhalten");
 			int ladeverhalten_wintermodus = ladeverhalten_wintermodus_cache;
 			if(ladeverhalten_wintermodus) {

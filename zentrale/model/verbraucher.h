@@ -57,6 +57,7 @@ namespace Local::Model {
 		int zeitpunkt_sonnenuntergang = 0;
 		bool ersatzstrom_ist_aktiv = false;
 		bool ladeverhalten_wintermodus = false;
+		int netzbezug_in_w = 0;
 
 		int gib_stundenvorhersage_akku_ladestand_als_fibonacci(int index) {
 			int max_promille = 0;
