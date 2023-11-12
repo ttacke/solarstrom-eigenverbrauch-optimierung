@@ -174,18 +174,20 @@ namespace Local::Api {
 				return false;
 			}
 
-			if(
-				ladeverhalten_wintermodus_cache
-				&& !relay_ist_an
-				&& verbraucher.netzbezug_in_w < cfg->maximaler_netzbezug_in_w - benoetigte_leistung_in_w
-				&& (
-					hour(timestamp) >= 19 // UTC > im Winter also 20 Uhr
-					|| hour(timestamp) <= 4 // UTC > im Winter also 5 Uhr
-				)
-			) {
-				_log(log_key, (char*) "-solar>winterLadenAn");
-				schalt_func(true);
-				return true;
+			if(ladeverhalten_wintermodus_cache) {
+				if(relay_ist_an) {
+					return false;
+				} else if(
+					verbraucher.netzbezug_in_w < cfg->maximaler_netzbezug_in_w - benoetigte_leistung_in_w
+					&& (
+						hour(timestamp) >= 19 // UTC > im Winter also 20 Uhr
+						|| hour(timestamp) <= 4 // UTC > im Winter also 5 Uhr
+					)
+				) {
+					_log(log_key, (char*) "-solar>winterLadenAn");
+					schalt_func(true);
+					return true;
+				}
 			}
 
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(
