@@ -122,6 +122,7 @@
 
 			_setze_ladewunsch('auto_laden', daten['auto_laden'], daten['timestamp']);
 			document.getElementById('auto_ladeleistung').innerHTML = daten['auto_benoetigte_ladeleistung_in_w'] + " W";
+			document.getElementById('ladeverhalten').innerHTML = daten['ladeverhalten'] == 'winter' ? 'W' : 'S';
 
 			_setze_ladewunsch('roller_laden', daten['roller_laden'], daten['timestamp']);
 			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
@@ -483,6 +484,12 @@
 				font-size: 1.8rem;
 				line-height: 4.5rem;
 			}
+			.schalter #ladeverhalten {
+				color: #666;
+				font-size: 1.0rem;
+				padding-top: 2.5rem;
+				padding-left: 0.8rem;
+			}
 			.schalter button {
 				border-radius: 1rem;
 				font-size: 4.5rem;
@@ -552,8 +559,8 @@
 <table class="balkentabelle" id="balkenanzeige"></table>
 
 <div class="schalter" id="auto_laden">
-	<span>Auto<br>
-	<span class="ladeleistung" id="auto_ladeleistung"></span></span>
+	<span onclick="secure_action('change', 'ladeverhalten', 'sommer_winter')">Auto<br>
+	<span class="ladeleistung" id="auto_ladeleistung"></span><span id="ladeverhalten"></span></span>
 	<button onclick="refresh('change', 'auto', this.className == 'on' ? 'solar' : 'force', this)">&#9889;</button>
 </div>
 <div class="schalter" id="roller_laden">
@@ -563,8 +570,8 @@
 </div>
 
 <div class="keller_klima">
-	Keller Boden: <span id="keller_temperatur"></span> &#8451; / <span id="keller_luftfeuchtigkeit"></span> %
-	Luft: <span id="keller_luft_temperatur"></span> &#8451; / <span id="keller_luft_luftfeuchtigkeit"></span> %
+	Keller Luft: <span id="keller_luft_temperatur"></span> &#8451; / <span id="keller_luft_luftfeuchtigkeit"></span> %
+	Boden: <span id="keller_temperatur"></span> &#8451; / <span id="keller_luftfeuchtigkeit"></span> %
 </div>
 
 </body>
