@@ -50,7 +50,8 @@ namespace Local {
 		// Fronius Gen24 8kW mit FromiusSmartMeter
 		const char* wechselrichter_host = "192.168.2.14";
 		const int wechselrichter_port = 80;
-		const int maximaler_netzbezug_in_w = 4000;
+		const int maximale_wechselrichterleistung_in_w = 7000;
+		const int maximaler_netzbezug_in_w = 4000;// Syna-Vorgabe: 3kW
 
 		const char* accuweather_api_key = "[API-KEY VON developer.accuweather.com]";
 		const int accuweather_location_id = 1008813;// Ermittelt via https://developer.accuweather.com/accuweather-locations-api/apis/get/locations/v1/search

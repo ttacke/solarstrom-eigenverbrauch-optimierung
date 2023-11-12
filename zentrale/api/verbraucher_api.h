@@ -147,35 +147,45 @@ namespace Local::Api {
 			int akku_zielladestand_in_promille,
 			F1 && schalt_func
 		) {
+			if(relay_ist_an) {
+				if(verbraucher.netzbezug_in_w > cfg->maximaler_netzbezug_in_w) {
+					_log(log_key, (char*) "-solar>ausLastSchutz");
+					schalt_func(false);
+					return true;
+				}
+				if(verbraucher.aktueller_verbrauch_in_w > cfg->maximale_wechselrichterleistung_in_w) {
+					_log(log_key, (char*) "-solar>ausWrGrenze");
+					schalt_func(false);
+					return true;
+				}
+				if(
+					verbraucher.ersatzstrom_ist_aktiv
+					&& verbraucher.aktueller_verbrauch_in_w > (float) cfg->maximale_wechselrichterleistung_in_w * 0.8
+				) {
+					_log(log_key, (char*) "-solar>ausWrGrenzeE");
+					schalt_func(false);
+					return true;
+				}
+			}
+
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
+			if(!schalt_mindestdauer_ist_erreicht) {
+				_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
+				return false;
+			}
+
 			if(
 				ladeverhalten_wintermodus_cache
+				&& !relay_ist_an
+				&& verbraucher.netzbezug_in_w < cfg->maximaler_netzbezug_in_w - benoetigte_leistung_in_w
 				&& (
 					hour(timestamp) >= 19 // UTC > im Winter also 20 Uhr
 					|| hour(timestamp) <= 4 // UTC > im Winter also 5 Uhr
 				)
 			) {
-				if(relay_ist_an) {
-					if(verbraucher.netzbezug_in_w > cfg->maximaler_netzbezug_in_w) {
-						_log(log_key, (char*) "-solar>winterLadenAus");
-						schalt_func(false);
-						return true;
-					}
-				} else {
-					if(!schalt_mindestdauer_ist_erreicht) {
-						_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
-						return false;
-					}
-					if(verbraucher.netzbezug_in_w < cfg->maximaler_netzbezug_in_w - benoetigte_leistung_in_w) {
-						_log(log_key, (char*) "-solar>winterLadenAn");
-						schalt_func(true);
-						return true;
-					}
-				}
-			}
-			if(!schalt_mindestdauer_ist_erreicht) {
-				_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
-				return false;
+				_log(log_key, (char*) "-solar>winterLadenAn");
+				schalt_func(true);
+				return true;
 			}
 
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(
@@ -683,9 +693,7 @@ namespace Local::Api {
 			int roller_min_schaltzeit_in_min = cfg->roller_min_schaltzeit_in_min;
 			int akku_zielladestand_fuer_ueberladen_in_promille = 1000;
 			if(verbraucher.ersatzstrom_ist_aktiv) {
-			    // TODO hier muss auch noch die Maximalleistung des Wechselrichters beachtet werden
-			    // Grund: damit wird verhindert, dass der Haushalt die 8kW erreicht und der Wechselrichter abbricht (nur im Ersatzstromfall)
-				verbraucher.auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
+			    verbraucher.auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 				verbraucher.roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 				ausschalter_auto_relay_zustand_seit = 0;
 				ausschalter_roller_relay_zustand_seit = 0;
