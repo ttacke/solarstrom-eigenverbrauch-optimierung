@@ -101,13 +101,10 @@ namespace Local::Api {
 				_log(log_key, (char*) "_laden_ist_beendet>schaltdauerNichtErreicht");
 				return false;
 			}
-			// TODO das hier ist abgefallen bei einem Fehler in der Nacht. Wieso? Wlan-Neustart vielleicht?
 			if(!relay_ist_an) {
-				// TODO: den korrekten Schaltzustand wiederherstellen
-				_log(log_key, (char*) "_laden_ist_beendet>StatusFehlerKorrigiert");
+				_log(log_key, (char*) "_laden_ist_beendet>RelayAbfall");
 				return true;
 			}
-			// TODO schalter für neue Ladeart? Automatisches Laden in bei < 4kw Leistung?
 			if(!es_laedt) {
 				_log(log_key, (char*) "_laden_ist_beendet>AusWeilBeendet");
 				return true;
@@ -660,6 +657,11 @@ namespace Local::Api {
 					verbraucher.auto_laden_ist_an()
 				)
 			) {
+				if(!verbraucher.auto_relay_ist_an) {
+					_log((char*) "auto_laden_wieder_an>AbfallKorrektur");
+					_schalte_auto_relay(true);
+					return;
+				}
 				setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
 				return;
 			}
@@ -674,6 +676,11 @@ namespace Local::Api {
 					verbraucher.roller_laden_ist_an()
 				)
 			) {
+				if(!verbraucher.roller_relay_ist_an) {
+					_log((char*) "roller_laden_wieder_an>AbfallKorrektur");
+					_schalte_roller_relay(true);
+					return;
+				}
 				setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
 				return;
 			}
