@@ -50,7 +50,7 @@ bool _check_network_connection() {
 	)) {
 		return false;
 	}
-//	TODO hier wird nix gelesen. Wieso?
+//	Die Test-URL hat keinen ContentLengthAngabe und schlaegt beim Lesen deshalb fehl
 //	while(web_reader.read_next_block_to_buffer()) {
 //		Serial.println(web_reader.buffer);
 //		if(web_reader.find_in_buffer(strdup(cfg.network_connection_check_content))) {
@@ -63,7 +63,7 @@ bool _check_network_connection() {
 
 void loop(void) {
 	runtime = millis();// Will overflow after ~50 days, but this is not a problem
-	if(last_runtime == 0 || runtime - last_runtime > 5 * 60000) {// initial || 5min
+	if(last_runtime < 50 || runtime - last_runtime > 5 * 60000) {// initial || 5min
 		Serial.println("heartbeat!");
 		while(!_check_network_connection()) {
 			wlan.reconnect();
