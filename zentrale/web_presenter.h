@@ -182,6 +182,10 @@ namespace Local {
 				} else if(strcmp(val, "change_power") == 0) {
 					verbraucher_api.wechsle_roller_ladeleistung();
 				}
+			} else if(strcmp(key, "ladeverhalten") == 0) {
+				if(strcmp(val, "sommer_winter") == 0) {
+					verbraucher_api.wechsle_ladeverhalten();
+				}
 			}
 			webserver.server.send(204, "text/plain", "");
 		}

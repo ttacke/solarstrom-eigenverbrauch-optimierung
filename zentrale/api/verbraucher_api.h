@@ -924,5 +924,9 @@ namespace Local::Api {
 				file_writer.close_file();
 			}
 		}
+
+		void wechsle_ladeverhalten() {
+			// TODO iplementieren +output in daten-> ladeverhalten=sommer/winter
+		}
 	};
 }
