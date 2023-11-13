@@ -487,10 +487,13 @@
 			#ladeverhalten {
 				position: absolute;
 				width: 9rem;
-				text-align: right;
+				height: 1.2rem;
+				text-align: center;
 				color: #666;
 				font-size: 0.9rem;
-				padding-top: 0.6rem;
+				padding-top: 0.2rem;
+				border: solid 0.2rem #CCC;
+				border-radius: 1rem;
 			}
 			.schalter button {
 				border-radius: 1rem;
@@ -561,14 +564,14 @@
 <table class="balkentabelle" id="balkenanzeige"></table>
 
 <div class="schalter" id="auto_laden">
-	<span onclick="secure_action('change', 'ladeverhalten', 'sommer_winter')">Auto<br>
+	<span>Auto<br>
 	<span class="ladeleistung" id="auto_ladeleistung"></span></span>
 	<button onclick="refresh('change', 'auto', this.className == 'on' ? 'solar' : 'force', this)">&#9889;</button>
 </div>
 <div onclick="secure_action('change', 'ladeverhalten', 'sommer_winter')" id="ladeverhalten"></div>
 <div class="schalter" id="roller_laden">
 	<!-- onclick="secure_action('change', 'roller', 'change_power')" -->
-	<span onclick="secure_action('change', 'ladeverhalten', 'sommer_winter')">Roller<br>
+	<span>Roller<br>
 	<span class="ladeleistung" id="roller_ladeleistung"></span></span>
 	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'solar' : 'force', this)">&#9889;</button>
 </div>
