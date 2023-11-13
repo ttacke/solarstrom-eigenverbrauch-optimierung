@@ -179,12 +179,13 @@ namespace Local {
 					verbraucher_api.setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::force);
 				} else if(strcmp(val, "solar") == 0) {
 					verbraucher_api.setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
-				} else if(strcmp(val, "change_power") == 0) {
-					verbraucher_api.wechsle_roller_ladeleistung();
+//				} else if(strcmp(val, "change_power") == 0) {
+//					verbraucher_api.wechsle_roller_ladeleistung();
 				}
 			} else if(strcmp(key, "ladeverhalten") == 0) {
 				if(strcmp(val, "sommer_winter") == 0) {
 					verbraucher_api.wechsle_ladeverhalten();
+					verbraucher_api.wechsle_roller_ladeleistung();
 				}
 			}
 			webserver.server.send(204, "text/plain", "");

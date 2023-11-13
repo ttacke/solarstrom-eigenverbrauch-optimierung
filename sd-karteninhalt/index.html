@@ -122,7 +122,7 @@
 
 			_setze_ladewunsch('auto_laden', daten['auto_laden'], daten['timestamp']);
 			document.getElementById('auto_ladeleistung').innerHTML = daten['auto_benoetigte_ladeleistung_in_w'] + " W";
-			document.getElementById('ladeverhalten').innerHTML = daten['ladeverhalten_wintermodus'] ? 'W' : 'S';
+			document.getElementById('ladeverhalten').innerHTML = daten['ladeverhalten_wintermodus'] ? 'Winter:nachts Laden' : 'Sommer:nur Solar';
 
 			_setze_ladewunsch('roller_laden', daten['roller_laden'], daten['timestamp']);
 			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
@@ -484,11 +484,13 @@
 				font-size: 1.8rem;
 				line-height: 4.5rem;
 			}
-			.schalter #ladeverhalten {
+			#ladeverhalten {
+				position: absolute;
+				width: 9rem;
+				text-align: right;
 				color: #666;
-				font-size: 1.0rem;
-				padding-top: 2.5rem;
-				padding-left: 0.8rem;
+				font-size: 0.9rem;
+				padding-top: 0.6rem;
 			}
 			.schalter button {
 				border-radius: 1rem;
@@ -560,11 +562,13 @@
 
 <div class="schalter" id="auto_laden">
 	<span onclick="secure_action('change', 'ladeverhalten', 'sommer_winter')">Auto<br>
-	<span class="ladeleistung" id="auto_ladeleistung"></span><span id="ladeverhalten"></span></span>
+	<span class="ladeleistung" id="auto_ladeleistung"></span></span>
 	<button onclick="refresh('change', 'auto', this.className == 'on' ? 'solar' : 'force', this)">&#9889;</button>
 </div>
+<div onclick="secure_action('change', 'ladeverhalten', 'sommer_winter')" id="ladeverhalten"></div>
 <div class="schalter" id="roller_laden">
-	<span onclick="secure_action('change', 'roller', 'change_power')">Roller<br>
+	<!-- onclick="secure_action('change', 'roller', 'change_power')" -->
+	<span onclick="secure_action('change', 'ladeverhalten', 'sommer_winter')">Roller<br>
 	<span class="ladeleistung" id="roller_ladeleistung"></span></span>
 	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'solar' : 'force', this)">&#9889;</button>
 </div>
