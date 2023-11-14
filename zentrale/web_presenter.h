@@ -335,16 +335,21 @@ namespace Local {
 					verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force
 						? "\"force\"" : "\"solar\""
 				);
+//				file_writer.write_formated(
+//					"\"auto_benoetigte_ladeleistung_in_w\":%i,",
+//					verbraucher.auto_benoetigte_ladeleistung_in_w
+//				);
+//				file_writer.write_formated(
+//					"\"roller_benoetigte_ladeleistung_in_w\":%i,",
+//					verbraucher.roller_benoetigte_ladeleistung_in_w
+//				);
 				file_writer.write_formated(
-					"\"auto_benoetigte_ladeleistung_in_w\":%i,",
-					verbraucher.auto_benoetigte_ladeleistung_in_w
+					"\"roller_ladeverhalten_wintermodus\":%s,",
+					verbraucher.roller_benoetigte_ladeleistung_in_w == cfg->roller_benoetigte_leistung_gering_in_w
+					? "false" : "true"
 				);
 				file_writer.write_formated(
-					"\"roller_benoetigte_ladeleistung_in_w\":%i,",
-					verbraucher.roller_benoetigte_ladeleistung_in_w
-				);
-				file_writer.write_formated(
-					"\"ladeverhalten_wintermodus\":%s,",
+					"\"auto_ladeverhalten_wintermodus\":%s,",
 					verbraucher.ladeverhalten_wintermodus ? "true" : "false"
 				);
 				file_writer.write_formated(

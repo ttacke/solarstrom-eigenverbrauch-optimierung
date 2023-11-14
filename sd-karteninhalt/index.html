@@ -121,11 +121,12 @@
 			_setze_elektrische_daten(daten);
 
 			_setze_ladewunsch('auto_laden', daten['auto_laden'], daten['timestamp']);
-			document.getElementById('auto_ladeleistung').innerHTML = daten['auto_benoetigte_ladeleistung_in_w'] + " W";
-			document.getElementById('ladeverhalten').innerHTML = daten['ladeverhalten_wintermodus'] ? 'Winter:nachts Laden' : 'Sommer:nur Solar';
+			// document.getElementById('auto_ladeleistung').innerHTML = daten['auto_benoetigte_ladeleistung_in_w'] + " W";
+			document.getElementById('auto_ladeverhalten').innerHTML = daten['auto_ladeverhalten_wintermodus'] ? "&#10052;Nachts&#10052;" : "&#9728;Sonne&#9728;";
 
 			_setze_ladewunsch('roller_laden', daten['roller_laden'], daten['timestamp']);
-			document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
+			// document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
+			document.getElementById('roller_ladeort').innerHTML = daten['roller_ladeverhalten_wintermodus'] ? "&#10052;Keller&#10052;" : "&#9728;Au&szlig;en&#9728;";;
 
 			document.getElementById('verbrennen').className = daten['verbrennen'] ? 'on' : 'off';
 			document.getElementById('verbrennen').getElementsByClassName('ladestatus')[0].innerHTML = daten['verbrennen'] ? "an" : "aus";
@@ -471,7 +472,7 @@
 			position: relative;
 			padding-right: 2rem;
 		}
-			.schalter span {
+			.schalter .label {
 				position: absolute;
 				top: 1.4rem;
 				left: 0rem;
@@ -479,21 +480,16 @@
 				text-align: right;
 				font-size: 2.5rem;
 				font-weight: bold;
-			}
-			.schalter .ladeleistung {
-				font-size: 1.8rem;
-				line-height: 4.5rem;
-			}
-			#ladeverhalten {
-				position: absolute;
-				width: 9rem;
-				height: 1.2rem;
-				text-align: center;
-				color: black;
-				font-size: 0.9rem;
-				padding-top: 0.2rem;
 				border: solid 0.2rem black;
 				border-radius: 1rem;
+				padding: 0 0.3rem;
+			}
+			/*.schalter .ladeleistung {
+				font-size: 1.8rem;
+				line-height: 4.5rem;
+			}*/
+			.schalter .ladeverhalten {
+				font-size: 1.8rem;
 			}
 			.schalter button {
 				border-radius: 1rem;
@@ -564,21 +560,25 @@
 <table class="balkentabelle" id="balkenanzeige"></table>
 
 <div class="schalter" id="auto_laden">
-	<span>Auto<br>
-	<span class="ladeleistung" id="auto_ladeleistung"></span></span>
+	<div class="label" onclick="secure_action('change', 'ladeverhalten', 'sommer_winter')">
+		Auto
+		<!--span class="ladeleistung" id="auto_ladeleistung"></span-->
+		<div class="ladeverhalten" id="auto_ladeverhalten"></div>
+	</div>
 	<button onclick="refresh('change', 'auto', this.className == 'on' ? 'solar' : 'force', this)">&#9889;</button>
 </div>
-<div onclick="secure_action('change', 'ladeverhalten', 'sommer_winter')" id="ladeverhalten"></div>
 <div class="schalter" id="roller_laden">
-	<!-- onclick="secure_action('change', 'roller', 'change_power')" -->
-	<span>Roller<br>
-	<span class="ladeleistung" id="roller_ladeleistung"></span></span>
+	<div class="label" onclick="secure_action('change', 'roller', 'change_power')">
+		Roller
+		<!--span class="ladeleistung" id="roller_ladeleistung"></span-->
+		<div class="ladeverhalten" id="roller_ladeort"></div>
+	</div>
 	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'solar' : 'force', this)">&#9889;</button>
 </div>
 
 <div class="keller_klima">
-	Keller Luft: <span id="keller_luft_temperatur"></span> &#8451; / <span id="keller_luft_luftfeuchtigkeit"></span> %
-	Boden: <span id="keller_temperatur"></span> &#8451; / <span id="keller_luftfeuchtigkeit"></span> %
+	<div>Keller Luft: <span id="keller_luft_temperatur"></span> &#8451; / <span id="keller_luft_luftfeuchtigkeit"></span> %</div>
+	<div>Keller Erde: <span id="keller_temperatur"></span> &#8451; / <span id="keller_luftfeuchtigkeit"></span> %</div>
 </div>
 
 </body>
