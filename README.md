@@ -14,6 +14,14 @@ Konkret:
 - Bei akkuter Einspeisung: aktivieren eines weiteren (Groß-)Verbrauchers
   - der muss Schaltzeiten von ~5min ertragen können
 
+Zusätzliche Features:
+- Winter-Ladeverhalten fürs Auto: wenn aktiviert, lädt das Auto immer Nachts zwischen 20 Uhr und 5 Uhr früh (19 - 4 Uhr UTC!).
+- Winter-Standort des Rollers: wenn aktiviert, wird die Keller-Steckdose genutzt, an der beide Akkus parallel geladen werden
+- Lastschutz: Grundsätzlich wird kein hier gesteuerter Verbraucher aktiviert, wenn...
+  - incl. der dann zusätzlich verbrauchten Leistung der Netzbezug 4kW überschreitet
+  - incl. der dann zusätzlich verbrauchten Leistung der Wechselrichter mehr als 7kW Leistung bereitstellen müsste
+  - Ausnahme: "Force"-Laden startet immer und ignoriert die Lastgrenzen.
+
 ## Steuerungs-UI (optional)
 
 ![Screenshot der UI](ui-screenshot.png)
@@ -71,10 +79,8 @@ Konkret:
 - Warmwasser-Wärmepumpe "Viessmann Vitocal 060-A, Typ TOS-ze Umluft 254L"
   - via potentialfeiem Eingang kann es "überladen" werden (Zieltemperatur wird temporär auf Maximum gesetzt)
   - [PV-Anschluss Doku](https://www.viessmann-community.com/t5/Waermepumpe-Hybridsysteme/Funktion-PV-Anlage-mit-Vitocal-262-A-und-Vitocal-060-A/m-p/303739/emcs_t/S2h8ZW1haWx8dG9waWNfc3Vic2NyaXB0aW9ufExENDlMU0w2VVlVREtCfDMwMzczOXxTVUJTQ1JJUFRJT05TfGhL#M64397)
-Kommt noch:
 - Warmwasser-Wärmepumpe "Viessmann Vitocal 060-A, Typ TOE-ze Umluft 178L" als Heizung
   - Steuerung baugleich wie Warmwasser
-- Heizungs-Mischer - noch unbekannt
 
 ## Einrichtung
 - Die Zentrale mit der SD-Karte versehen
