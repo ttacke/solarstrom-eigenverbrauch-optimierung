@@ -122,11 +122,11 @@
 
 			_setze_ladewunsch('auto_laden', daten['auto_laden'], daten['timestamp']);
 			// document.getElementById('auto_ladeleistung').innerHTML = daten['auto_benoetigte_ladeleistung_in_w'] + " W";
-			document.getElementById('auto_ladeverhalten').innerHTML = daten['auto_ladeverhalten_wintermodus'] ? "&#10052;Nachts&#10052;" : "&#9728;Sonne&#9728;";
+			document.getElementById('auto_ladeverhalten').innerHTML = daten['auto_ladeverhalten_wintermodus'] ? "&#10052;&nbsp;Nachts" : "&#9728;&nbsp;Sonne";
 
 			_setze_ladewunsch('roller_laden', daten['roller_laden'], daten['timestamp']);
 			// document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
-			document.getElementById('roller_ladeort').innerHTML = daten['roller_ladeverhalten_wintermodus'] ? "&#10052;Keller&#10052;" : "&#9728;Au&szlig;en&#9728;";;
+			document.getElementById('roller_ladeort').innerHTML = daten['roller_ladeverhalten_wintermodus'] ? "&#10052;&nbsp;Keller" : "&#9728;&nbsp;Au&szlig;en";
 
 			document.getElementById('verbrennen').className = daten['verbrennen'] ? 'on' : 'off';
 			document.getElementById('verbrennen').getElementsByClassName('ladestatus')[0].innerHTML = daten['verbrennen'] ? "an" : "aus";
@@ -474,15 +474,16 @@
 		}
 			.schalter .label {
 				position: absolute;
-				top: 1.4rem;
+				top: 0rem;
 				left: 0rem;
 				width: 9.0rem;
 				text-align: right;
 				font-size: 2.5rem;
 				font-weight: bold;
-				border: solid 0.2rem black;
+				border: solid 0.2rem #666;
 				border-radius: 1rem;
-				padding: 0 0.3rem;
+				padding: 0 0.5rem;
+				height: 5.7rem;
 			}
 			/*.schalter .ladeleistung {
 				font-size: 1.8rem;
@@ -496,6 +497,7 @@
 				font-size: 4.5rem;
 				min-width: 13rem;
 				border: solid 0.2rem black;
+				height: 6.0rem;
 			}
 			.schalter button.on {
 				background-color: black;
