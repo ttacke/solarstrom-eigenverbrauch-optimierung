@@ -173,18 +173,15 @@ namespace Local {
 					verbraucher_api.setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::force);
 				} else if(strcmp(val, "solar") == 0) {
 					verbraucher_api.setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
+				} else if(strcmp(val, "ladeverhalten") == 0) {
+					verbraucher_api.wechsle_auto_ladeverhalten();
 				}
 			} else if(strcmp(key, "roller") == 0) {
 				if(strcmp(val, "force") == 0) {
 					verbraucher_api.setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::force);
 				} else if(strcmp(val, "solar") == 0) {
 					verbraucher_api.setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
-//				} else if(strcmp(val, "change_power") == 0) {
-//					verbraucher_api.wechsle_roller_ladeleistung();
-				}
-			} else if(strcmp(key, "ladeverhalten") == 0) {
-				if(strcmp(val, "sommer_winter") == 0) {
-					verbraucher_api.wechsle_ladeverhalten();
+				} else if(strcmp(val, "ladeleistung") == 0) {
 					verbraucher_api.wechsle_roller_ladeleistung();
 				}
 			}
@@ -350,7 +347,7 @@ namespace Local {
 				);
 				file_writer.write_formated(
 					"\"auto_ladeverhalten_wintermodus\":%s,",
-					verbraucher.ladeverhalten_wintermodus ? "true" : "false"
+					verbraucher.auto_ladeverhalten_wintermodus ? "true" : "false"
 				);
 				file_writer.write_formated(
 					"\"solarerzeugung_ist_aktiv\":%s,",
