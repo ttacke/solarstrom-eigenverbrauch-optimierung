@@ -136,6 +136,25 @@ namespace Local::Api {
 			return einschaltschwelle;
 		}
 
+		bool _ausschalten_wegen_lastgrenzen(char* log_key, Local::Model::Verbraucher& verbraucher) {
+			if(verbraucher.netzbezug_in_w > cfg->maximaler_netzbezug_in_w) {
+				_log(log_key, (char*) "-lastschutz>maxNetz");
+				return true;
+			}
+			if(verbraucher.aktueller_verbrauch_in_w > cfg->maximale_wechselrichterleistung_in_w) {
+				_log(log_key, (char*) "-lastschutz>maxWR");
+				return true;
+			}
+			if(
+				verbraucher.ersatzstrom_ist_aktiv
+				&& verbraucher.aktueller_verbrauch_in_w > (float) cfg->maximale_wechselrichterleistung_in_w * 0.8
+			) {
+				_log(log_key, (char*) "-lastschutz>ersatz");
+				return true;
+			}
+			return false;
+		}
+
 		template<typename F1>
 		bool _schalte_automatisch(
 			char* log_key,
@@ -147,25 +166,9 @@ namespace Local::Api {
 			int akku_zielladestand_in_promille,
 			F1 && schalt_func
 		) {
-			if(relay_ist_an) {
-				if(verbraucher.netzbezug_in_w > cfg->maximaler_netzbezug_in_w) {
-					_log(log_key, (char*) "-solar>ausLastSchutz");
-					schalt_func(false);
-					return true;
-				}
-				if(verbraucher.aktueller_verbrauch_in_w > cfg->maximale_wechselrichterleistung_in_w) {
-					_log(log_key, (char*) "-solar>ausWrGrenze");
-					schalt_func(false);
-					return true;
-				}
-				if(
-					verbraucher.ersatzstrom_ist_aktiv
-					&& verbraucher.aktueller_verbrauch_in_w > (float) cfg->maximale_wechselrichterleistung_in_w * 0.8
-				) {
-					_log(log_key, (char*) "-solar>ausWrGrenzeE");
-					schalt_func(false);
-					return true;
-				}
+			if(relay_ist_an && _ausschalten_wegen_lastgrenzen(log_key, verbraucher)) {
+				schalt_func(false);
+				return true;
 			}
 
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
@@ -711,6 +714,12 @@ namespace Local::Api {
 			}
 			// TODO Start
 			// Hier force umbauen
+//			if(
+//				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
+//				verbraucher.roller_ladestatus_seit < timestamp - (3600*12)
+//			)
+			// verbraucher.roller_ladestatus_seit < timestamp - (3600*12)
+			// verbraucher.auto_ladestatus_seit < timestamp - (3600*12)
 			if(
 				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
 				&& _laden_ist_beendet(
