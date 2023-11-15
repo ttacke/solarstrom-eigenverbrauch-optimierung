@@ -11,16 +11,20 @@ Konkret:
     - Laden von Auto und Roller
     - einmaliges, morgendliches (4 Uhr UTC) Leeren der Puffer-Batterie auf 25% in Auto und Roller, da beides potentiell tagsüber nicht da ist
 - Bei potentieller Einspeisung: frühzeitiges Überladen der Warmwasser- und Heizungsanlage
-- Bei akkuter Einspeisung: aktivieren eines weiteren (Groß-)Verbrauchers
+- Bei akuter Einspeisung: aktivieren eines weiteren (Groß-)Verbrauchers
   - der muss Schaltzeiten von ~5min ertragen können
-
+ 
 Zusätzliche Features:
-- Winter-Ladeverhalten fürs Auto: wenn aktiviert, lädt das Auto immer Nachts zwischen 20 Uhr und 5 Uhr früh (19 - 4 Uhr UTC!).
-- Winter-Standort des Rollers: wenn aktiviert, wird die Keller-Steckdose genutzt, an der beide Akkus parallel geladen werden
-- Lastschutz: Grundsätzlich wird kein hier gesteuerter Verbraucher aktiviert, wenn...
-  - incl. der dann zusätzlich verbrauchten Leistung der Netzbezug 4kW überschreitet
-  - incl. der dann zusätzlich verbrauchten Leistung der Wechselrichter mehr als 7kW Leistung bereitstellen müsste
-  - Ausnahme: "Force"-Laden startet immer und ignoriert die Lastgrenzen.
+- Winter-Ladeverhalten für Auto und Roller
+  - wenn aktiviert, lädt das Auto immer Nachts zwischen 20 Uhr und 5 Uhr früh (19 - 4 Uhr UTC!)
+- Winter-Standort des Rollers
+  - wenn aktiviert, wird die Keller-Steckdose genutzt, an der beide Akkus parallel geladen werden. Sonst die Außendose.
+- Last sofort wird abgeworfen um...
+  - nur maximal 4kW aus dem Netz zu ziehen
+  - den Wechselrichter nicht über 80% seiner Leistung zu betreiben
+  - wenn Ersatzstrom aktiv und kein Überschuss vorhanden ist
+- Bei Ersatzstrom ist nur Überschussladen möglich
+  - dann wird der Akku-Zielladestand auf 120% gesetzt, so dass nur bei akutem Überschuss geladen wird
 
 ## Steuerungs-UI (optional)
 
@@ -39,12 +43,14 @@ Zusätzliche Features:
   - schwarze Balken bedeuten in beiden Fällen, das potentiell zu viel Energie vorhanden sein wird (passt nicht mehr in Pufferakku = Netzeinspeisung)
   - Die Balken sind via Fibonacci-Folge gestaffelt. Helle Balken, ganz unten, stellen bis 20% Akkustand dar, die etwas dunkleren bis 100%.
 - Unterer Bereich: Schalter der Ladesteuerung
+  - 5x (langsames) tippen auf "Auto" schaltet das Nachtladen für Auto und Roller um
+    - Ist Sonne und mond zu sehen = Nachtladen
+    - Ist nur die Sonne zu sehen = Überschussladen 
   - 5x (langsames) tippen auf "Roller" schaltet die Ladeleistung um
-    - die zweite, externe Ladedose wird aktiviert und diese wird genutzt (beide Akkus im Roller mit einem Lader)
-    - die "normale" dient dann nur als Fallback 
-  - Klick auf Button &#9889; (Blitz) = Egal was ist kommt, es wird geladen
-    - Ist der Button schwarz, ist erzwungenes Laden aktiv bis kein Strom mehr abgenommen wird. Dann schaltet er automatisch zurück auf Überschussladen.
-    - Ansonsten ist Überschussladen aktiv und der Pufferakku-Zielwert von 80% bis zum Sonnenuntergang wird angestrebt
+    - "Keller": beide Akkus ja an einem Ladegerät an der Kellerdose
+    - "Außen": beide Akkus im Roller mit nur einem Ladegerät
+  - Tippen auf Button &#9889; (Blitz)
+    - Ist der Button schwarz, ist erzwungenes Laden für 12 Stunden aktiv und fällt anschließend zurück auf Überschussladen.
 
 ## Systembestandteile:
 - ein ESP8266-E12 als Zentrale
@@ -123,8 +129,3 @@ die Geräte nicht.
 -- Solarstrahlungs-Umrechnung umstellen, dass jeden Monat ein anderer Wert genutzt werden kann. Die Werte Schwanken über das Jahr.
 -- Grundverbrauch in Tag und Nacht trennen (und Ladevorgänge herausrechnen) um bessere Vorhersagen zu haben
 - Akku-Haltbarkeit: Laden zwischen 20-80% ist weniger schlimm, 40-60 am wenigsten. Diese Bereiche zusätzlich mit angeben (x% 20-80%, x% 40-60%) 
-
-- Force -> so ändern, dass es wie der Wintermodus, aber ohne Zeitbeschränkung funktioniert
--- Screenshot aktualisieren
--- Doku auch
-  - Force = x Stunden ist das Laden auf Winter-ohne-Zeitlimit gestellt. Kein "Laden ist beendet" - das ist zu kompliziert ohne nutzen
