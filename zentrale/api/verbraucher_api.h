@@ -712,52 +712,60 @@ namespace Local::Api {
 				auto_min_schaltzeit_in_min = 5;
 				roller_min_schaltzeit_in_min = 5;
 			}
-			// TODO Start
-			// Hier force umbauen
-//			if(
-//				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
-//				verbraucher.roller_ladestatus_seit < timestamp - (3600*12)
-//			)
-			// verbraucher.roller_ladestatus_seit < timestamp - (3600*12)
-			// verbraucher.auto_ladestatus_seit < timestamp - (3600*12)
-			if(
-				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
-				&& _laden_ist_beendet(
-					(char*) "auto",
-					ausschalter_auto_relay_zustand_seit,
-					cfg->auto_min_schaltzeit_in_min,
-					verbraucher.auto_relay_ist_an,
-					verbraucher.auto_laden_ist_an()
-				)
-			) {
-				if(!verbraucher.auto_relay_ist_an) {
-					_log((char*) "auto_laden_wieder_an>AbfallKorrektur");
+			// TODO lastschutz vor allem? Weil: das kann nicht auf Grenzwerte warten
+			// WP sind eh nie betroffen
+			if(verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force) {
+				// TODO Zeit as Config
+				if(verbraucher.auto_ladestatus_seit < timestamp - (3600 * 12)) {
+					_log((char*) "AutoForceAbgelaufen");
+					setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
+					_schalte_auto_relay(false);
+					return;
+				}
+				bool ausschalten_wegen_lastgrenzen = _ausschalten_wegen_lastgrenzen((char*) "autoForce", verbraucher);
+				if(
+					verbraucher.auto_relay_ist_an
+					&& ausschalten_wegen_lastgrenzen
+				) {
+					_log((char*) "AutoForcePause");
+					_schalte_auto_relay(false);
+					return;
+				}
+				if(
+					!verbraucher.auto_relay_ist_an
+					&& !ausschalten_wegen_lastgrenzen
+				) {
+					_log((char*) "AutoForceStart");
 					_schalte_auto_relay(true);
 					return;
 				}
-				setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
-				return;
 			}
-
-			if(
-				verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force
-				&& _laden_ist_beendet(
-					(char*) "roller",
-					ausschalter_roller_relay_zustand_seit,
-					cfg->roller_min_schaltzeit_in_min,
-					verbraucher.roller_relay_ist_an,
-					verbraucher.roller_laden_ist_an()
-				)
-			) {
-				if(!verbraucher.roller_relay_ist_an) {
-					_log((char*) "roller_laden_wieder_an>AbfallKorrektur");
+			if(verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force) {
+				// TODO Zeit as Config
+				if(verbraucher.roller_ladestatus_seit < timestamp - (3600 * 12)) {
+					_log((char*) "RollerForceAbgelaufen");
+					setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
+					_schalte_roller_relay(false);
+					return;
+				}
+				bool ausschalten_wegen_lastgrenzen = _ausschalten_wegen_lastgrenzen((char*) "rollerForce", verbraucher);
+				if(
+					verbraucher.roller_relay_ist_an
+					&& ausschalten_wegen_lastgrenzen
+				) {
+					_log((char*) "RollerForcePause");
+					_schalte_roller_relay(false);
+					return;
+				}
+				if(
+					!verbraucher.roller_relay_ist_an
+					&& !ausschalten_wegen_lastgrenzen
+				) {
+					_log((char*) "RollerForceStart");
 					_schalte_roller_relay(true);
 					return;
 				}
-				setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
-				return;
 			}
-			// TODO ENDE
 
 			int karenzzeit = (7 * 60);// in Sekunden, muss >5min sein, da die LadeLog 5min betraegt
 			if(
@@ -954,7 +962,6 @@ namespace Local::Api {
 		void setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus status) {
 			char stat[6];
 			if(status == Local::Model::Verbraucher::Ladestatus::force) {
-				_schalte_roller_relay(true);
 				strcpy(stat, "force");
 				_log((char*) "setze_roller_ladestatus>force");
 			} else {
@@ -971,7 +978,6 @@ namespace Local::Api {
 		void setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus status) {
 			char stat[6];
 			if(status == Local::Model::Verbraucher::Ladestatus::force) {
-				_schalte_auto_relay(true);
 				strcpy(stat, "force");
 				_log((char*) "setze_auto_ladestatus>force");
 			} else {
