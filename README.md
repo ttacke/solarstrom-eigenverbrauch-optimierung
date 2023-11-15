@@ -124,3 +124,6 @@ die Geräte nicht.
 -- Grundverbrauch in Tag und Nacht trennen (und Ladevorgänge herausrechnen) um bessere Vorhersagen zu haben
 - Akku-Haltbarkeit: Laden zwischen 20-80% ist weniger schlimm, 40-60 am wenigsten. Diese Bereiche zusätzlich mit angeben (x% 20-80%, x% 40-60%) 
 
+- Force -> so ändern, dass es wie der Wintermodus, aber ohne Zeitbeschränkung funktioniert
+-- Screenshot aktualisieren
+-- Doku auch
