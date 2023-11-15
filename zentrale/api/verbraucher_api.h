@@ -13,8 +13,8 @@ namespace Local::Api {
 		bool shelly_roller_cache_ison = false;
 		int shelly_roller_cache_power = 0;
 		int roller_benoetigte_ladeleistung_in_w_cache = 0;
-		bool auto_ladeverhalten_wintermodus_cache = false;
-		const char* auto_ladeverhalten_wintermodus_filename = "auto_ladeverhalten_wintermodus.status";
+		bool ladeverhalten_wintermodus_cache = false;
+		const char* ladeverhalten_wintermodus_filename = "ladeverhalten_wintermodus.status";
 		bool frueh_leeren_lief_heute = true;
 		bool frueh_leeren_ist_aktiv = false;
 
@@ -173,9 +173,8 @@ namespace Local::Api {
 				_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
 				return false;
 			}
-			// TODO das ladeverhalten gilt fuer beide, so muss das dann auch heissen und in der UI sein
 			if(
-				auto_ladeverhalten_wintermodus_cache
+				ladeverhalten_wintermodus_cache
 				&& (
 					hour(timestamp) >= 19 // UTC > im Winter also 20 Uhr
 					|| hour(timestamp) <= 4 // UTC > im Winter also 5 Uhr
@@ -425,14 +424,14 @@ namespace Local::Api {
 			return leistung;
 		}
 
-		void _load_auto_ladeverhalten_wintermodus_cache() {
-			auto_ladeverhalten_wintermodus_cache = false;
-			if(file_reader->open_file_to_read(auto_ladeverhalten_wintermodus_filename)) {
+		void _load_ladeverhalten_wintermodus_cache() {
+			ladeverhalten_wintermodus_cache = false;
+			if(file_reader->open_file_to_read(ladeverhalten_wintermodus_filename)) {
 				while(file_reader->read_next_block_to_buffer()) {
 					if(file_reader->find_in_buffer((char*) "([0-9]+)")) {
 						int i = atoi(file_reader->finding_buffer);
 						if(i == 1) {
-							auto_ladeverhalten_wintermodus_cache = true;
+							ladeverhalten_wintermodus_cache = true;
 						}
 						break;
 					}
@@ -608,7 +607,7 @@ namespace Local::Api {
 			Local::Service::FileWriter& file_writer
 		): BaseAPI(cfg, web_reader), file_reader(&file_reader), file_writer(file_writer) {
 			_load_shelly_roller_cache();
-			_load_auto_ladeverhalten_wintermodus_cache();
+			_load_ladeverhalten_wintermodus_cache();
 			timestamp = shelly_roller_cache_timestamp;
 		}
 
@@ -649,7 +648,7 @@ namespace Local::Api {
 			);
 			verbraucher.roller_benoetigte_ladeleistung_in_w = roller_benoetigte_ladeleistung_in_w_cache;
 
-			verbraucher.auto_ladeverhalten_wintermodus = auto_ladeverhalten_wintermodus_cache;
+			verbraucher.ladeverhalten_wintermodus = ladeverhalten_wintermodus_cache;
 			verbraucher.netzbezug_in_w = elektroanlage.netzbezug_in_w;
 
 			verbraucher.aktueller_verbrauch_in_w = elektroanlage.stromverbrauch_in_w;
@@ -984,15 +983,15 @@ namespace Local::Api {
 		}
 
 		void wechsle_auto_ladeverhalten() {
-			_log((char*) "wechsle_auto_ladeverhalten");
-			int auto_ladeverhalten_wintermodus = auto_ladeverhalten_wintermodus_cache;
-			if(auto_ladeverhalten_wintermodus) {
-				auto_ladeverhalten_wintermodus = 0;
+			_log((char*) "wechsle_ladeverhalten_wintermodus");
+			int ladeverhalten_wintermodus = ladeverhalten_wintermodus_cache;
+			if(ladeverhalten_wintermodus) {
+				ladeverhalten_wintermodus = 0;
 			} else {
-				auto_ladeverhalten_wintermodus = 1;
+				ladeverhalten_wintermodus = 1;
 			}
-			if(file_writer.open_file_to_overwrite(auto_ladeverhalten_wintermodus_filename)) {
-				file_writer.write_formated("%d", auto_ladeverhalten_wintermodus);
+			if(file_writer.open_file_to_overwrite(ladeverhalten_wintermodus_filename)) {
+				file_writer.write_formated("%d", ladeverhalten_wintermodus);
 				file_writer.close_file();
 			}
 		}

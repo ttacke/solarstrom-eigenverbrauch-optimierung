@@ -341,13 +341,13 @@ namespace Local {
 //					verbraucher.roller_benoetigte_ladeleistung_in_w
 //				);
 				file_writer.write_formated(
-					"\"roller_ladeverhalten_wintermodus\":%s,",
+					"\"roller_ladeort_ist_keller\":%s,",
 					verbraucher.roller_benoetigte_ladeleistung_in_w == cfg->roller_benoetigte_leistung_gering_in_w
 					? "false" : "true"
 				);
 				file_writer.write_formated(
-					"\"auto_ladeverhalten_wintermodus\":%s,",
-					verbraucher.auto_ladeverhalten_wintermodus ? "true" : "false"
+					"\"ladeverhalten_wintermodus\":%s,",
+					verbraucher.ladeverhalten_wintermodus ? "true" : "false"
 				);
 				file_writer.write_formated(
 					"\"solarerzeugung_ist_aktiv\":%s,",
