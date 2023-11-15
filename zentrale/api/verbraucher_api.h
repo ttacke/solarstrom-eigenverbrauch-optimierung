@@ -174,14 +174,14 @@ namespace Local::Api {
 			if(
 				ladeverhalten_wintermodus_cache
 				&& (
-					hour(timestamp) >= 19 // UTC > im Winter also 20 Uhr
-					|| hour(timestamp) <= 4 // UTC > im Winter also 5 Uhr
+					hour(timestamp) >= cfg->winter_laden_abend_ab_stunde
+					|| hour(timestamp) <= cfg->winter_laden_frueh_bis_stunde
 				)
 			) {
 				if(relay_ist_an) {
 					return false;
 				} else if(verbraucher.netzbezug_in_w < cfg->maximaler_netzbezug_in_w - benoetigte_leistung_in_w) {
-					_log(log_key, (char*) "-solar>winterLadenAn");
+					_log(log_key, (char*) "-winter>anWeilZeit");
 					schalt_func(true);
 					return true;
 				}
@@ -697,12 +697,13 @@ namespace Local::Api {
 			int akku_zielladestand_fuer_ueberladen_in_promille = 1000;
 
 			if(verbraucher.ersatzstrom_ist_aktiv) {
+				ladeverhalten_wintermodus_cache = 0;
+				verbraucher.ladeverhalten_wintermodus = 0;
 			    verbraucher.auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 				verbraucher.roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 				ausschalter_auto_relay_zustand_seit = 0;
 				ausschalter_roller_relay_zustand_seit = 0;
-				// TODO Wintermodus und Force auch explizit unterbinden
-				_log((char*) "Ersatzstrom->forceUnterbinden");
+				_log((char*) "Ersatzstrom->nurUeberschuss");
 				akku_zielladestand_in_promille = 1200;
 				akku_zielladestand_fuer_ueberladen_in_promille = 1200;
 				auto_min_schaltzeit_in_min = 5;
@@ -759,17 +760,6 @@ namespace Local::Api {
 				}
 			}
 
-			int karenzzeit = (7 * 60);// in Sekunden, muss >5min sein, da die LadeLog 5min betraegt
-			if(
-				verbraucher.auto_relay_zustand_seit >= timestamp - karenzzeit
-				|| verbraucher.roller_relay_zustand_seit >= timestamp - karenzzeit
-				|| verbraucher.wasser_relay_zustand_seit >= timestamp - karenzzeit
-				|| verbraucher.heizung_relay_zustand_seit >= timestamp - karenzzeit
-			) {
-				_log((char*) "SchaltKarenzzeit");
-				return;
-			}
-
 			if(
 				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
 				&& _schalte_automatisch(
@@ -813,7 +803,6 @@ namespace Local::Api {
 			)) {
 				return;
 			}
-
 			if(_schalte_ueberladen_automatisch(
 				(char*) "heizung",
 				verbraucher,
