@@ -156,7 +156,7 @@ namespace Local::Api {
 		}
 
 		template<typename F1>
-		bool _schalte_automatisch(
+		bool _behandle_solar_laden(
 			char* log_key,
 			Local::Model::Verbraucher& verbraucher,
 			int relay_zustand_seit,
@@ -733,36 +733,51 @@ namespace Local::Api {
 				}
 			}
 
-			if(verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force) {
-				if(!verbraucher.auto_relay_ist_an) {
-					_log((char*) "AutoForceStart");
-					_schalte_auto_relay(true);
-					return;
-				}
-				if(verbraucher.auto_ladestatus_seit < timestamp - cfg->ladestatus_force_dauer) {
-					_log((char*) "AutoForceEnde");
-					setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
-					_schalte_auto_relay(false);
-					return;
-				}
+			int karenzzeit = (5 * 60);
+			if(
+				verbraucher.auto_relay_zustand_seit >= timestamp - karenzzeit
+				|| verbraucher.roller_relay_zustand_seit >= timestamp - karenzzeit
+				|| verbraucher.wasser_relay_zustand_seit >= timestamp - karenzzeit
+				|| verbraucher.heizung_relay_zustand_seit >= timestamp - karenzzeit
+			) {
+				// Von Einschalten bis voller Verbrauch vergeht Zeit
+				// ohne dies wird ggf mehr zugeschaltet als sinnvoll ist
+				_log((char*) "SchaltKarenzzeit");
+				return;
 			}
-			if(verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force) {
-				if(!verbraucher.roller_relay_ist_an) {
-					_log((char*) "RollerForceStart");
-					_schalte_roller_relay(true);
-					return;
-				}
-				if(verbraucher.roller_ladestatus_seit < timestamp - cfg->ladestatus_force_dauer) {
-					_log((char*) "RollerForceEnde");
-					setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
-					_schalte_roller_relay(false);
-					return;
-				}
+
+			if(
+				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
+				&& _behandle_force_laden(
+					(char*) "auto",
+					verbraucher.auto_relay_zustand_seit,
+					verbraucher.auto_ladestatus_seit,
+					auto_min_schaltzeit_in_min,
+					verbraucher.auto_relay_ist_an,
+					[&](bool ein) { _schalte_auto_relay(ein); },
+					[&]() { setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar); }
+				)
+			) {
+				return;
+			}
+			if(
+				verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force
+				&& _behandle_force_laden(
+					(char*) "roller",
+					verbraucher.roller_relay_zustand_seit,
+					verbraucher.roller_ladestatus_seit,
+					roller_min_schaltzeit_in_min,
+					verbraucher.roller_relay_ist_an,
+					[&](bool ein) { _schalte_roller_relay(ein); },
+					[&]() { setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar); }
+				)
+			) {
+				return;
 			}
 
 			if(
 				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
-				&& _schalte_automatisch(
+				&& _behandle_solar_laden(
 					(char*) "auto",
 					verbraucher,
 					verbraucher.auto_relay_zustand_seit,
@@ -777,7 +792,7 @@ namespace Local::Api {
 			}
 			if(
 				verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
-				&& _schalte_automatisch(
+				&& _behandle_solar_laden(
 					(char*) "roller",
 					verbraucher,
 					verbraucher.roller_relay_zustand_seit,
@@ -819,6 +834,35 @@ namespace Local::Api {
 			if(_schalte_verbrennen_automatisch(verbraucher)) {
 				return;
 			}
+		}
+
+		template<typename F1, typename F2>
+		bool _behandle_force_laden(
+			char* log_key,
+			int relay_zustand_seit,
+			int ladestatus_seit,
+			int min_schaltzeit_in_min,
+			bool relay_ist_an,
+			F1 && schalt_func,
+			F2 && umschalten_auf_solarladen_func
+		) {
+			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
+			if(!schalt_mindestdauer_ist_erreicht) {
+			_log(log_key, (char*) "-force>SchaltdauerNichtErreicht");
+				return false;
+			}
+			if(!relay_ist_an) {
+				_log(log_key, (char*) "-force>Start");
+				schalt_func(true);
+				return true;
+			}
+			if(ladestatus_seit < timestamp - cfg->ladestatus_force_dauer) {
+				_log(log_key, (char*) "-force>Ende");
+				umschalten_auf_solarladen_func();
+				schalt_func(false);
+				return true;
+			}
+			return false;
 		}
 
 		bool _schalte_verbrennen_automatisch(
