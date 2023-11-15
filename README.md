@@ -40,8 +40,7 @@ Zusätzliche Features:
 - Dritte Zeile:
   - Links: Vorhersage des Pufferakku-Ladestandes der nächsten 12 Stunden
   - Rechts: Vorhersage der Sonnenenergie der nächsten 5 Tage
-  - schwarze Balken bedeuten in beiden Fällen, das potentiell zu viel Energie vorhanden sein wird (passt nicht mehr in Pufferakku = Netzeinspeisung)
-  - Die Balken sind via Fibonacci-Folge gestaffelt. Helle Balken, ganz unten, stellen bis 20% Akkustand dar, die etwas dunkleren bis 100%.
+  - Die Balken sind via Fibonacci-Folge gestaffelt. Helle Balken, ganz unten, stellen bis 20% Akkustand dar, die etwas dunkleren bis 100%. Schwarze Balken bedeuten, das potentiell zu viel Energie vorhanden sein wird (= passt nicht mehr in Pufferakku = Netzeinspeisung)
 - Unterer Bereich: Schalter der Ladesteuerung
   - 5x (langsames) tippen auf "Auto" schaltet das Nachtladen für Auto und Roller um
     - Ist Sonne und mond zu sehen = Nachtladen
