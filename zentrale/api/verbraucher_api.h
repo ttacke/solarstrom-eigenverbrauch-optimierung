@@ -173,17 +173,17 @@ namespace Local::Api {
 				_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
 				return false;
 			}
-
-			if(auto_ladeverhalten_wintermodus_cache) {
+			// TODO das ladeverhalten gilt fuer beide, so muss das dann auch heissen und in der UI sein
+			if(
+				auto_ladeverhalten_wintermodus_cache
+				&& (
+					hour(timestamp) >= 19 // UTC > im Winter also 20 Uhr
+					|| hour(timestamp) <= 4 // UTC > im Winter also 5 Uhr
+				)
+			) {
 				if(relay_ist_an) {
 					return false;
-				} else if(
-					verbraucher.netzbezug_in_w < cfg->maximaler_netzbezug_in_w - benoetigte_leistung_in_w
-					&& (
-						hour(timestamp) >= 19 // UTC > im Winter also 20 Uhr
-						|| hour(timestamp) <= 4 // UTC > im Winter also 5 Uhr
-					)
-				) {
+				} else if(verbraucher.netzbezug_in_w < cfg->maximaler_netzbezug_in_w - benoetigte_leistung_in_w) {
 					_log(log_key, (char*) "-solar>winterLadenAn");
 					schalt_func(true);
 					return true;
