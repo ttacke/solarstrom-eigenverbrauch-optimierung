@@ -52,6 +52,7 @@ namespace Local {
 		const int wechselrichter_port = 80;
 		const int maximale_wechselrichterleistung_in_w = 7000;
 		const int maximaler_netzbezug_in_w = 4000;// Syna-Vorgabe: 3kW
+		const int ladestatus_force_dauer = 12 * 3600;//12h
 
 		const char* accuweather_api_key = "[API-KEY VON developer.accuweather.com]";
 		const int accuweather_location_id = 1008813;// Ermittelt via https://developer.accuweather.com/accuweather-locations-api/apis/get/locations/v1/search

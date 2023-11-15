@@ -715,8 +715,7 @@ namespace Local::Api {
 			// TODO lastschutz vor allem? Weil: das kann nicht auf Grenzwerte warten
 			// WP sind eh nie betroffen
 			if(verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force) {
-				// TODO Zeit as Config
-				if(verbraucher.auto_ladestatus_seit < timestamp - (3600 * 12)) {
+				if(verbraucher.auto_ladestatus_seit < timestamp - cfg->ladestatus_force_dauer) {
 					_log((char*) "AutoForceAbgelaufen");
 					setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
 					_schalte_auto_relay(false);
@@ -741,8 +740,7 @@ namespace Local::Api {
 				}
 			}
 			if(verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force) {
-				// TODO Zeit as Config
-				if(verbraucher.roller_ladestatus_seit < timestamp - (3600 * 12)) {
+				if(verbraucher.roller_ladestatus_seit < timestamp - cfg->ladestatus_force_dauer) {
 					_log((char*) "RollerForceAbgelaufen");
 					setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
 					_schalte_roller_relay(false);
