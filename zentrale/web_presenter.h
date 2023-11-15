@@ -332,6 +332,14 @@ namespace Local {
 					verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force
 						? "\"force\"" : "\"solar\""
 				);
+				file_writer.write_formated(
+					"\"auto_ladestatus_seit\":%i,",
+					verbraucher.auto_ladestatus_seit
+				);
+				file_writer.write_formated(
+					"\"roller_ladestatus_seit\":%i,",
+					verbraucher.roller_ladestatus_seit
+				);
 //				file_writer.write_formated(
 //					"\"auto_benoetigte_ladeleistung_in_w\":%i,",
 //					verbraucher.auto_benoetigte_ladeleistung_in_w

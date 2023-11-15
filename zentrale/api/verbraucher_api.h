@@ -488,19 +488,23 @@ namespace Local::Api {
 			}
 		}
 
-		void _lese_ladestatus(Local::Model::Verbraucher::Ladestatus& ladestatus, const char* filename) {
+		int _lese_ladestatus(Local::Model::Verbraucher::Ladestatus& ladestatus, const char* filename) {
 			ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 			if(file_reader->open_file_to_read(filename)) {
 				while(file_reader->read_next_block_to_buffer()) {
-					if(file_reader->find_in_buffer((char*) "([a-z]+)")) {
+					if(file_reader->find_in_buffer((char*) "([a-z]+),")) {
 						if(strcmp(file_reader->finding_buffer, "force") == 0) {
 							ladestatus = Local::Model::Verbraucher::Ladestatus::force;
+							if(file_reader->find_in_buffer((char*) ",([0-9]+)")) {
+								return atoi(file_reader->finding_buffer);
+							}
 						}
-						return;
+						return 0;
 					}
 				}
 				file_reader->close_file();
 			}
+			return 0;
 		}
 
 		void _fuelle_akkuladestands_vorhersage(
@@ -681,8 +685,8 @@ namespace Local::Api {
 			verbraucher.ersatzstrom_ist_aktiv = elektroanlage.ersatzstrom_ist_aktiv;
 			verbraucher.zeitpunkt_sonnenuntergang = wetter.zeitpunkt_sonnenuntergang;
 
-			_lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
-			_lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);
+			verbraucher.auto_ladestatus_seit = _lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
+			verbraucher.roller_ladestatus_seit = _lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);
 			_fuelle_akkuladestands_vorhersage(verbraucher, wetter);
 		}
 
@@ -698,12 +702,15 @@ namespace Local::Api {
 				verbraucher.roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 				ausschalter_auto_relay_zustand_seit = 0;
 				ausschalter_roller_relay_zustand_seit = 0;
+				// TODO Wintermodus und Force auch explizit unterbinden
 				_log((char*) "Ersatzstrom->forceUnterbinden");
 				akku_zielladestand_in_promille = 1200;
 				akku_zielladestand_fuer_ueberladen_in_promille = 1200;
 				auto_min_schaltzeit_in_min = 5;
 				roller_min_schaltzeit_in_min = 5;
 			}
+			// TODO Start
+			// Hier force umbauen
 			if(
 				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
 				&& _laden_ist_beendet(
@@ -741,6 +748,7 @@ namespace Local::Api {
 				setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
 				return;
 			}
+			// TODO ENDE
 
 			int karenzzeit = (7 * 60);// in Sekunden, muss >5min sein, da die LadeLog 5min betraegt
 			if(
@@ -962,7 +970,7 @@ namespace Local::Api {
 				_log((char*) "setze_auto_ladestatus>solar");
 			}
 			if(file_writer.open_file_to_overwrite(auto_ladestatus_filename)) {
-				file_writer.write_formated("%s", stat);
+				file_writer.write_formated("%s,%i", stat, timestamp);
 				file_writer.close_file();
 			}
 			file_writer.delete_file(auto_leistung_log_filename);

@@ -127,3 +127,4 @@ die Geräte nicht.
 - Force -> so ändern, dass es wie der Wintermodus, aber ohne Zeitbeschränkung funktioniert
 -- Screenshot aktualisieren
 -- Doku auch
+  - Force = x Stunden ist das Laden auf Winter-ohne-Zeitlimit gestellt. Kein "Laden ist beendet" - das ist zu kompliziert ohne nutzen

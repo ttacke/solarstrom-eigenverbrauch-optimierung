@@ -34,6 +34,7 @@ namespace Local::Model {
 		int verbrennen_relay_zustand_seit = 0;
 
 		Ladestatus auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
+		int auto_ladestatus_seit = 0;
 		int auto_benoetigte_ladeleistung_in_w = 0;
 		int aktuelle_auto_ladeleistung_in_w = 0;
 		int auto_ladeleistung_log_in_w[5];
@@ -41,6 +42,7 @@ namespace Local::Model {
 		int auto_relay_zustand_seit = 0;
 
 		Ladestatus roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
+		int roller_ladestatus_seit = 0;
 		int roller_benoetigte_ladeleistung_in_w = 0;
 		int aktuelle_roller_ladeleistung_in_w = 0;
 		int roller_ladeleistung_log_in_w[5];
