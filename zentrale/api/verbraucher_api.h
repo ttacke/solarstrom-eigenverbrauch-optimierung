@@ -136,20 +136,20 @@ namespace Local::Api {
 			return einschaltschwelle;
 		}
 
-		bool _ausschalten_wegen_lastgrenzen(char* log_key, Local::Model::Verbraucher& verbraucher) {
+		bool _ausschalten_wegen_lastgrenzen(Local::Model::Verbraucher& verbraucher) {
 			if(verbraucher.netzbezug_in_w > cfg->maximaler_netzbezug_in_w) {
-				_log(log_key, (char*) "-lastschutz>maxNetz");
+				_log((char*) "Lastschutz>maxNetz");
 				return true;
 			}
 			if(verbraucher.aktueller_verbrauch_in_w > cfg->maximale_wechselrichterleistung_in_w) {
-				_log(log_key, (char*) "-lastschutz>maxWR");
+				_log((char*) "Lastschutz>maxWR");
 				return true;
 			}
 			if(
 				verbraucher.ersatzstrom_ist_aktiv
 				&& verbraucher.aktueller_verbrauch_in_w > (float) cfg->maximale_wechselrichterleistung_in_w * 0.8
 			) {
-				_log(log_key, (char*) "-lastschutz>ersatz");
+				_log((char*) "Lastschutz>ersatz");
 				return true;
 			}
 			return false;
@@ -166,11 +166,6 @@ namespace Local::Api {
 			int akku_zielladestand_in_promille,
 			F1 && schalt_func
 		) {
-			if(relay_ist_an && _ausschalten_wegen_lastgrenzen(log_key, verbraucher)) {
-				schalt_func(false);
-				return true;
-			}
-
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			if(!schalt_mindestdauer_ist_erreicht) {
 				_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
@@ -700,6 +695,7 @@ namespace Local::Api {
 			int auto_min_schaltzeit_in_min = cfg->auto_min_schaltzeit_in_min;
 			int roller_min_schaltzeit_in_min = cfg->roller_min_schaltzeit_in_min;
 			int akku_zielladestand_fuer_ueberladen_in_promille = 1000;
+
 			if(verbraucher.ersatzstrom_ist_aktiv) {
 			    verbraucher.auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 				verbraucher.roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
@@ -712,55 +708,53 @@ namespace Local::Api {
 				auto_min_schaltzeit_in_min = 5;
 				roller_min_schaltzeit_in_min = 5;
 			}
-			// TODO lastschutz vor allem? Weil: das kann nicht auf Grenzwerte warten
-			// WP sind eh nie betroffen
+
+			if(_ausschalten_wegen_lastgrenzen(verbraucher)) {
+				if(verbraucher.auto_relay_ist_an) {
+					_log((char*) "AutoLastgrenze");
+					_schalte_auto_relay(false);
+					return;
+				}
+				if(verbraucher.roller_relay_ist_an) {
+					_log((char*) "RollerLastgrenze");
+					_schalte_roller_relay(false);
+					return;
+				}
+				if(verbraucher.wasser_relay_ist_an) {
+					_log((char*) "WasserLastgrenze");
+					_schalte_wasser_relay(false);
+					return;
+				}
+				if(verbraucher.heizung_relay_ist_an) {
+					_log((char*) "HeizungLastgrenze");
+					_schalte_heizung_relay(false);
+					return;
+				}
+			}
+
 			if(verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force) {
-				if(verbraucher.auto_ladestatus_seit < timestamp - cfg->ladestatus_force_dauer) {
-					_log((char*) "AutoForceAbgelaufen");
-					setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
-					_schalte_auto_relay(false);
-					return;
-				}
-				bool ausschalten_wegen_lastgrenzen = _ausschalten_wegen_lastgrenzen((char*) "autoForce", verbraucher);
-				if(
-					verbraucher.auto_relay_ist_an
-					&& ausschalten_wegen_lastgrenzen
-				) {
-					_log((char*) "AutoForcePause");
-					_schalte_auto_relay(false);
-					return;
-				}
-				if(
-					!verbraucher.auto_relay_ist_an
-					&& !ausschalten_wegen_lastgrenzen
-				) {
+				if(!verbraucher.auto_relay_ist_an) {
 					_log((char*) "AutoForceStart");
 					_schalte_auto_relay(true);
 					return;
 				}
+				if(verbraucher.auto_ladestatus_seit < timestamp - cfg->ladestatus_force_dauer) {
+					_log((char*) "AutoForceEnde");
+					setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
+					_schalte_auto_relay(false);
+					return;
+				}
 			}
 			if(verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force) {
-				if(verbraucher.roller_ladestatus_seit < timestamp - cfg->ladestatus_force_dauer) {
-					_log((char*) "RollerForceAbgelaufen");
-					setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
-					_schalte_roller_relay(false);
-					return;
-				}
-				bool ausschalten_wegen_lastgrenzen = _ausschalten_wegen_lastgrenzen((char*) "rollerForce", verbraucher);
-				if(
-					verbraucher.roller_relay_ist_an
-					&& ausschalten_wegen_lastgrenzen
-				) {
-					_log((char*) "RollerForcePause");
-					_schalte_roller_relay(false);
-					return;
-				}
-				if(
-					!verbraucher.roller_relay_ist_an
-					&& !ausschalten_wegen_lastgrenzen
-				) {
+				if(!verbraucher.roller_relay_ist_an) {
 					_log((char*) "RollerForceStart");
 					_schalte_roller_relay(true);
+					return;
+				}
+				if(verbraucher.roller_ladestatus_seit < timestamp - cfg->ladestatus_force_dauer) {
+					_log((char*) "RollerForceEnde");
+					setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
+					_schalte_roller_relay(false);
 					return;
 				}
 			}
