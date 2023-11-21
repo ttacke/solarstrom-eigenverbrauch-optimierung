@@ -80,8 +80,8 @@ namespace Local {
 				wetter.write_log_data(file_writer);
 				file_writer.write_formated(",");
 				verbraucher.write_log_data(file_writer);
-				file_writer.write_formated(",k1%.1f,%.1f", temperature, humidity);
-				file_writer.write_formated(",k1%.1f,%.1f", air_temperature, air_humidity);
+				file_writer.write_formated(",kb1%.1f,%.1f", temperature, humidity);
+				file_writer.write_formated(",kl1%.1f,%.1f", air_temperature, air_humidity);
 				file_writer.write_formated("\n");
 				file_writer.close_file();
 			}
