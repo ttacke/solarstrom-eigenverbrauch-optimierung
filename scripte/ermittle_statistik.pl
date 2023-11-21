@@ -50,7 +50,7 @@ sub _hole_daten {
                 next;
             }
 
-            my @t = $line =~ m/,k1([\-\d\.]+),([\d\.]+)/;
+            my @t = $line =~ m/,kb?1([\-\d\.]+),([\d\.]+),kl?1([\-\d\.]+),([\d\.]+)/;
 
             my @d = gmtime($e[0]);
             my $neu = {
@@ -71,8 +71,11 @@ sub _hole_daten {
 
                 stunden_solarstrahlung          => $w[0],
                 tages_solarstrahlung            => $w[1],
-                temperatur                      => $t[0],
-                feuchtigkeit                    => $t[1],
+
+                erde_temperatur                 => $t[0],
+                erde_luftfeuchtigkeit           => $t[1],
+                luft_temperatur                 => $t[2],
+                luft_luftfeuchtigkeit           => $t[3],
             };
             push(@$daten, $neu);
         }
@@ -170,9 +173,23 @@ my $max_temp = 0;
 my $max_time = 0;
 my $delta_temp = 0;
 my $delta_time = 0;
+
+my $temp_filename = 'temperaturverlauf.csv';
+open(my $temp_file, '>', $temp_filename) or die $!;
+print $temp_file "Datum,Boden,Luft\n";
 foreach my $e (@$daten) {
-    if($e->{"temperatur"} && $e->{"temperatur"} != 0 && $e->{'zeitpunkt'} > 1684689496) {
-        if($e->{'temperatur'} < $max_temp) {
+    if(
+        $e->{"erde_temperatur"} && $e->{"erde_temperatur"} != 0
+        && $e->{"luft_temperatur"} && $e->{"luft_temperatur"} != 0
+    ) {
+        my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
+        if($min % 5 == 0) {
+            print $temp_file sprintf(
+                "%4d-%02d-%02d %d:%02d,%.1f,%01f\n",
+                $year + 1900, $mon + 1, $mday, $hour, $min, $e->{erde_temperatur}, $e->{luft_temperatur}
+            );
+        }
+        if($e->{'erde_temperatur'} < $max_temp) {
             if(
                 $max_temp
                 && $min_temp < $max_temp
@@ -187,16 +204,18 @@ foreach my $e (@$daten) {
                 #     '' . localtime($e->{'zeitpunkt'})
                 # );
             }
-            $min_temp = $e->{'temperatur'};
+            $min_temp = $e->{'erde_temperatur'};
             $min_time = $e->{'zeitpunkt'};
-            $max_temp = $e->{'temperatur'};
+            $max_temp = $e->{'erde_temperatur'};
             $max_time = $e->{'zeitpunkt'};
-        } elsif($e->{'temperatur'} > $max_temp) {
-            $max_temp = $e->{'temperatur'};
+        } elsif($e->{'erde_temperatur'} > $max_temp) {
+            $max_temp = $e->{'erde_temperatur'};
             $max_time = $e->{'zeitpunkt'};
         }
     }
 }
+close($temp_file) or die $!;
 printf("\nTemperaturertrag: %.2f K/h\n", $delta_temp / $delta_time);
+print "CSV-Datei $temp_filename wurde erstellt\n";
 
 print "\n";
