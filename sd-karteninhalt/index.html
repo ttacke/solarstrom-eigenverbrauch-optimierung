@@ -300,10 +300,28 @@
 		}
 	</script>
 	<style>
+		:root {
+			--hell: #FFF;
+			--mittelhell: #CCC;
+			--mittel: #999;
+			--mitteldunkel: #666;
+			--dunkel: #000;
+		}
+		/* ausgenommen: Kindle */
+		@supports(transform:rotate(180deg)) {
+			:root {
+				--hell: #000;
+				--mittelhell: #030;
+				--mittel: #060;
+				--mitteldunkel: #090;
+				--dunkel: #0F0;
+			}
+		}
 		html.ersatzstrom {
 			font-size: 0.8rem;
 			padding-top: 4rem;
-			border: dashed 2rem black;
+			border: dashed 2rem #000;
+			border-color: var(--dunkel);
 		}
 		html.ersatzstrom body:before {
 			content: "NETZAUSFALL";
@@ -319,11 +337,14 @@
 		}
 		body {
 			padding: 0.5rem;
+			background-color: #FFF;
+			background-color: var(--hell);
 		}
 		/*transform:rotate(180deg); geht im Kindle nicht*/
 		* {
 			font-family: sans-serif;
 			color: #000;
+			color: var(--dunkel);
 		}
 
 		#fehler_vorhang {
@@ -332,7 +353,8 @@
 			top: 0;
 			left: 0;
 			opacity: 0.2;
-			background-color: white;
+			background-color: #FFF;
+			background-color: var(--hell);
 			width: 100%;
 			height: 100%;
 			z-index: 100;
@@ -363,6 +385,11 @@
 			width: 70%;
 			top: -30px;
 		}
+		@supports(transform:rotate(180deg)) {
+			#elektrische_daten .energie {
+				top: -20px;
+			}
+		}
 			#elektrische_daten.aus_dem_akku .energie,
 			#elektrische_daten.aus_dem_netz .energie {
 				width: 45%;
@@ -384,6 +411,11 @@
 		}
 			#elektrische_daten.aus_dem_akku .batterie {
 				top: -35px;
+			}
+			@supports(transform:rotate(180deg)) {
+				#elektrische_daten.aus_dem_akku .batterie {
+					top: -20px;
+				}
 			}
 			#elektrische_daten.aus_dem_netz .batterie {
 			}
@@ -411,14 +443,17 @@
 			margin-top: 0.3rem;
 		}
 		.balkentabelle thead td {
-			border-bottom: solid 0.1rem black;
+			border-bottom: solid 0.1rem #000;
+			border-bottom-color: var(--dunkel);
 		}
 		.balkentabelle tfoot td {
-			border-top: solid 0.1rem black;
+			border-top: solid 0.1rem #000;
+			border-top-color: var(--dunkel);
 		}
 		.balkentabelle tbody td {
 			height: 0.5rem;
 			background-color: #CCC;
+			background-color: var(--mittelhell);
 		}
 			.balkentabelle#balkenanzeige thead td {
 				width: 5.55%;
@@ -429,15 +464,19 @@
 			}
 		.balkentabelle tbody td.on {/* ueberschuss */
 			background-color: #000;
+			background-color: var(--dunkel);
 		}
 		.balkentabelle tbody tr:nth-child(n + 4) td.on {/* grundverbrauch ist gedeckt */
 			background-color: #666;
+			background-color: var(--mitteldunkel);
 		}
 		.balkentabelle tbody tr:nth-child(1n + 7) td.on {/* kruemelkram */
 			background-color: #999;
+			background-color: var(--mittel);
 		}
 		.balkentabelle tfoot td {
-			border-top: solid 0.1rem black;
+			border-top: solid 0.1rem #000;
+			border-top-color: var(--dunkel);
 			font-size: 1rem;
 			font-weight: normal;
 			text-align: center;
@@ -453,20 +492,24 @@
 				margin-right: 0.1rem;
 				display:inline-block;
 				border: solid 1px #CCC;
+				border-color: var(--mittelhell);
 				border-radius: 0.5rem;
 				background-color: #CCC;
+				background-color: var(--mittelhell);
 				margin: 0;
 			}
 			.zusatzinfo * {
 				color: #666;
+				color: var(--mitteldunkel);
 			}
 			.zusatzinfo .on,
 			.zusatzinfo .on * {
 				color: #FFF;
+				color: var(--hell);
 				background-color: #000;
+				background-color: var(--dunkel);
 			}
-			.zusatzinfo .off,
-			.zusatzinfo .off * {
+			.zusatzinfo > .off {
 			}
 
 		.schalter {
@@ -484,6 +527,7 @@
 				font-size: 2.5rem;
 				font-weight: bold;
 				border: solid 0.2rem #666;
+				border-color: var(--mitteldunkel);
 				border-right: none;
 				border-radius: 1rem;
 				padding-top: 0.2rem;
@@ -502,21 +546,26 @@
 				border-radius: 1rem;
 				font-size: 4.5rem;
 				min-width: 13rem;
-				border: solid 0.2rem black;
+				border: solid 0.2rem #000;
+				border-color: var(--dunkel);
 				height: 6.0rem;
+				background-color: #FFF;
+				background-color: var(--hell);
 			}
 			.schalter button.on {
-				background-color: black;
-				color: white;
+				background-color: #000;
+				background-color: var(--dunkel);
+				color: #FFF;
+				color: var(--hell);
 			}
-	.keller_klima {
-		text-align: center;
-		font-size: 1.5rem;
-	}
-		.keller_klima span {
-			display: inline-block;
-			font-weight: bold;
+		.keller_klima {
+			text-align: center;
+			font-size: 1.5rem;
 		}
+			.keller_klima span {
+				display: inline-block;
+				font-weight: bold;
+			}
 	</style>
 </head>
 <body onload="refresh('', '', '');">
