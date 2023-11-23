@@ -994,7 +994,7 @@ namespace Local::Api {
 				_log((char*) "setze_roller_ladestatus>solar");
 			}
 			if(file_writer.open_file_to_overwrite(roller_ladestatus_filename)) {
-				file_writer.write_formated("%s", stat);
+				file_writer.write_formated("%s,%i", stat, timestamp);
 				file_writer.close_file();
 			}
 			file_writer.delete_file(roller_leistung_log_filename);
