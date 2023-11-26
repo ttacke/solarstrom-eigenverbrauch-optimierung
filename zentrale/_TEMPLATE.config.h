@@ -52,7 +52,7 @@ namespace Local {
 		const int wechselrichter_port = 80;
 		const int maximale_wechselrichterleistung_in_w = 7000;
 		const int maximaler_netzbezug_ausschaltgrenze_in_w = 4300;// Syna-Vorgabe: 4,9kW
-		const int maximaler_netzbezug_einschaltreserve_in_w = 500;
+		const int maximaler_netzbezug_einschaltreserve_in_w = 300;
 		const int ladestatus_force_dauer = 12 * 3600;//12h
 		const int winter_laden_abend_ab_stunde = 17;// UTC = 18 MEZ
 		const int winter_laden_frueh_bis_stunde = 7;// UTC == 8 MEZ
