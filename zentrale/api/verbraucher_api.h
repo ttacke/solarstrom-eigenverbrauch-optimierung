@@ -137,7 +137,7 @@ namespace Local::Api {
 		}
 
 		bool _ausschalten_wegen_lastgrenzen(Local::Model::Verbraucher& verbraucher) {
-			if(verbraucher.netzbezug_in_w > cfg->maximaler_netzbezug_in_w) {
+			if(verbraucher.netzbezug_in_w > cfg->maximaler_netzbezug_ausschaltgrenze_in_w) {
 				_log((char*) "Lastschutz>maxNetz");
 				return true;
 			}
@@ -180,7 +180,11 @@ namespace Local::Api {
 			) {
 				if(relay_ist_an) {
 					return false;
-				} else if(verbraucher.netzbezug_in_w < cfg->maximaler_netzbezug_in_w - benoetigte_leistung_in_w) {
+				} else if(
+					verbraucher.netzbezug_in_w
+					<
+					cfg->maximaler_netzbezug_ausschaltgrenze_in_w - cfg->maximaler_netzbezug_einschaltreserve_in_w - benoetigte_leistung_in_w
+				) {
 					_log(log_key, (char*) "-winter>anWeilZeit");
 					schalt_func(true);
 					return true;
