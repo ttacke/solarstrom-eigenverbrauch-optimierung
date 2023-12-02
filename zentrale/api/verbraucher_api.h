@@ -91,29 +91,6 @@ namespace Local::Api {
 			}
 		}
 
-		bool _laden_ist_beendet(
-			char* log_key,
-			int relay_zustand_seit,
-			int min_schaltzeit_in_min,
-			bool relay_ist_an,
-			bool es_laedt
-		) {
-			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
-			if(!schalt_mindestdauer_ist_erreicht) {
-				_log(log_key, (char*) "_laden_ist_beendet>schaltdauerNichtErreicht");
-				return false;
-			}
-			if(!relay_ist_an) {
-				_log(log_key, (char*) "_laden_ist_beendet>RelayAbfall");
-				return true;
-			}
-			if(!es_laedt) {
-				_log(log_key, (char*) "_laden_ist_beendet>AusWeilBeendet");
-				return true;
-			}
-			return false;
-		}
-
 		float _gib_min_bereitgestellte_leistung(Local::Model::Verbraucher& verbraucher, int benoetigte_leistung_in_w) {
 			return
 				(float) verbraucher.gib_beruhigten_ueberschuss_in_w()
