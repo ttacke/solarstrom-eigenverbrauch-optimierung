@@ -188,6 +188,11 @@ namespace Local {
 			webserver.server.send(204, "text/plain", "");
 		}
 
+		void restart_router() {
+			Local::Api::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer);
+			verbraucher_api.starte_router_neu();
+		}
+
 		void heartbeat(const char* data_filename) {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
 			Local::Api::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer);

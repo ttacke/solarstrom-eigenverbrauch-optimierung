@@ -11,6 +11,7 @@ unsigned long runtime;
 unsigned long last_runtime;
 const char* daten_filename = "daten.json";
 int beat_count = 0;
+int network_error_count = 0;
 
 void setup(void) {
 	runtime = 0;
@@ -77,6 +78,20 @@ bool _check_network_connection() {
 //	return false;
 	return true;
 }
+bool _check_internet_connection() {
+	if(!wlan.is_connected()) {
+		return false;
+	}
+	// TODO: internes Gateway irgendwie erreichbar? Kann das intern gemacht werden?
+	if(!web_reader.send_http_get_request(
+		cfg.internet_connection_check_host,
+		80,
+		cfg.internet_connection_check_path
+	)) {
+		return false;
+	}
+	return true;
+}
 
 void loop(void) {
 	runtime = millis();// Will overflow after ~50 days, but this is not a problem
@@ -87,6 +102,14 @@ void loop(void) {
 			while(!_check_network_connection()) {
 				wlan.reconnect();
 				delay(500);
+			}
+			if(!_check_internet_connection()) {
+				network_error_count++;
+				if(network_error_count >= 3) {
+					web_presenter.restart_router();
+					delay(10000);
+					return;
+				}
 			}
 			beat_count = 0;
 		}

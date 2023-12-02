@@ -129,4 +129,4 @@ die Geräte nicht.
 -- Solarstrahlungs-Umrechnung umstellen, dass jeden Monat ein anderer Wert genutzt werden kann. Die Werte Schwanken über das Jahr.
 -- Grundverbrauch in Tag und Nacht trennen (und Ladevorgänge herausrechnen) um bessere Vorhersagen zu haben
 - Akku-Haltbarkeit: Laden zwischen 20-80% ist weniger schlimm, 40-60 am wenigsten. Diese Bereiche zusätzlich mit angeben (x% 20-80%, x% 40-60%) 
-- _starte_router_neu() umsetzen - wenn Netz nicht erreichbar, Karenzzeit+Neustart veranlassen
+- starte_router_neu() internes Gateway irgendwie erreichbar? Kann das intern gemacht werden?

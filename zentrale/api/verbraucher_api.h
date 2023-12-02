@@ -314,14 +314,6 @@ namespace Local::Api {
 			}
 		}
 
-		void _starte_router_neu() {
-			_schalte_shellyplug(
-				false, cfg->router_neustart_relay_host, cfg->router_neustart_relay_port,
-				web_reader->default_timeout_in_hundertstel_s
-			);
-			// Schaltet allein wieder ein (killt ja das netz, was ein Einschalten unmöglich macht)
-		}
-
 		void _schalte_auto_relay(bool ein) {
 			_schalte_netz_relay(ein, cfg->auto_relay_host, cfg->auto_relay_port);
 			if(file_writer.open_file_to_overwrite(auto_relay_zustand_seit_filename)) {
@@ -986,6 +978,14 @@ namespace Local::Api {
 				file_writer.write_formated("%d", ladeverhalten_wintermodus);
 				file_writer.close_file();
 			}
+		}
+
+		void starte_router_neu() {
+			_schalte_shellyplug(
+				false, cfg->router_neustart_relay_host, cfg->router_neustart_relay_port,
+				web_reader->default_timeout_in_hundertstel_s
+			);
+			// Schaltet allein wieder ein (killt ja das netz, was ein Einschalten unmöglich macht)
 		}
 	};
 }

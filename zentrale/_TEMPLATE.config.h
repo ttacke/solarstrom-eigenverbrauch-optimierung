@@ -8,6 +8,9 @@ namespace Local {
 		const char* network_connection_check_host = "192.168.2.1";
 		const char* network_connection_check_path = "/unknownpath";
 //		const char* network_connection_check_content = "body";
+		const char* internet_connection_check_host = "216.58.212.131";// google?
+		const char* internet_connection_check_path = "/";
+
 		const char* wlan_ssid = "[WLAN-SSID]";
 		const char* wlan_pwd = "[WLAN-PASSWORT]";
 
