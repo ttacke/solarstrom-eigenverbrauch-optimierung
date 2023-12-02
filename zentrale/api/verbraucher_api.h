@@ -171,25 +171,6 @@ namespace Local::Api {
 				_log(log_key, (char*) "-solar>SchaltdauerNichtErreicht");
 				return false;
 			}
-			if(
-				ladeverhalten_wintermodus_cache
-				&& (
-					hour(timestamp) >= cfg->winter_laden_abend_ab_stunde
-					|| hour(timestamp) <= cfg->winter_laden_frueh_bis_stunde
-				)
-			) {
-				if(relay_ist_an) {
-					return false;
-				} else if(
-					verbraucher.netzbezug_in_w
-					<
-					cfg->maximaler_netzbezug_ausschaltgrenze_in_w - cfg->maximaler_netzbezug_einschaltreserve_in_w - benoetigte_leistung_in_w
-				) {
-					_log(log_key, (char*) "-winter>anWeilZeit");
-					schalt_func(true);
-					return true;
-				}
-			}
 
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(
 				verbraucher, benoetigte_leistung_in_w
@@ -692,6 +673,19 @@ namespace Local::Api {
 			_fuelle_akkuladestands_vorhersage(verbraucher, wetter);
 		}
 
+		bool _winterladen_ist_aktiv() {
+			if(
+				ladeverhalten_wintermodus_cache
+				&& (
+					hour(timestamp) >= cfg->winter_laden_abend_ab_stunde
+					|| hour(timestamp) <= cfg->winter_laden_frueh_bis_stunde
+				)
+			) {
+				return true;
+			}
+			return false;
+		}
+
 		void fuehre_schaltautomat_aus(Local::Model::Verbraucher& verbraucher) {
 			int ausschalter_auto_relay_zustand_seit = verbraucher.auto_relay_zustand_seit;
 			int ausschalter_roller_relay_zustand_seit = verbraucher.roller_relay_zustand_seit;
@@ -751,12 +745,16 @@ namespace Local::Api {
 			}
 
 			if(
-				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
-				&& _behandle_force_laden(
+				(
+					verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
+					|| _winterladen_ist_aktiv()
+				) && _behandle_force_laden(
 					(char*) "auto",
+					verbraucher,
 					verbraucher.auto_relay_zustand_seit,
 					verbraucher.auto_ladestatus_seit,
 					auto_min_schaltzeit_in_min,
+					verbraucher.auto_benoetigte_ladeleistung_in_w,
 					verbraucher.auto_relay_ist_an,
 					[&](bool ein) { _schalte_auto_relay(ein); },
 					[&]() { setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar); }
@@ -765,12 +763,16 @@ namespace Local::Api {
 				return;
 			}
 			if(
-				verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force
-				&& _behandle_force_laden(
+				(
+					verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force
+					|| _winterladen_ist_aktiv()
+				) && _behandle_force_laden(
 					(char*) "roller",
+					verbraucher,
 					verbraucher.roller_relay_zustand_seit,
 					verbraucher.roller_ladestatus_seit,
 					roller_min_schaltzeit_in_min,
+					verbraucher.roller_benoetigte_ladeleistung_in_w,
 					verbraucher.roller_relay_ist_an,
 					[&](bool ein) { _schalte_roller_relay(ein); },
 					[&]() { setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar); }
@@ -843,24 +845,36 @@ namespace Local::Api {
 		template<typename F1, typename F2>
 		bool _behandle_force_laden(
 			char* log_key,
+			Local::Model::Verbraucher& verbraucher,
 			int relay_zustand_seit,
 			int ladestatus_seit,
 			int min_schaltzeit_in_min,
+			int benoetigte_leistung_in_w,
 			bool relay_ist_an,
 			F1 && schalt_func,
 			F2 && umschalten_auf_solarladen_func
 		) {
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
+			bool ist_winterladen = _winterladen_ist_aktiv();
 			if(!schalt_mindestdauer_ist_erreicht) {
-			_log(log_key, (char*) "-force>SchaltdauerNichtErreicht");
+				_log(log_key, (char*) (ist_winterladen ? "-winter>SchaltdauerNichtErreicht" : "-force>SchaltdauerNichtErreicht"));
 				return false;
 			}
-			if(!relay_ist_an) {
-				_log(log_key, (char*) "-force>Start");
+			if(
+				!relay_ist_an
+				&&
+				verbraucher.netzbezug_in_w
+				<
+				cfg->maximaler_netzbezug_ausschaltgrenze_in_w - cfg->maximaler_netzbezug_einschaltreserve_in_w - benoetigte_leistung_in_w
+			) {
+				_log(log_key, (char*) (ist_winterladen ? "-winter>Start" : "-force>Start"));
 				schalt_func(true);
 				return true;
 			}
-			if(ladestatus_seit < timestamp - cfg->ladestatus_force_dauer) {
+			if(
+				!ist_winterladen
+				&& ladestatus_seit < timestamp - cfg->ladestatus_force_dauer
+			) {
 				_log(log_key, (char*) "-force>Ende");
 				umschalten_auf_solarladen_func();
 				schalt_func(false);
