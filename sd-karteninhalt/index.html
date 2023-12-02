@@ -132,8 +132,8 @@
 				+ (daten['roller_ladeort_ist_keller'] ? "Keller" : "Au&szlig;en")
 			;
 
-			document.getElementById('verbrennen').className = daten['verbrennen'] ? 'on' : 'off';
-			document.getElementById('verbrennen').getElementsByClassName('ladestatus')[0].innerHTML = daten['verbrennen'] ? "an" : "aus";
+			document.getElementById('lastschutz').className = daten['lastschutz'] ? 'on' : 'off';
+			document.getElementById('lastschutz').getElementsByClassName('lastschutz')[0].innerHTML = daten['lastschutz'] ? "an" : "aus";
 			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : 'off';
 			document.getElementById('wasser_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_ueberladen'] ? "an" : "aus";
 			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : 'off';
@@ -344,6 +344,7 @@
 			padding: 0.5rem;
 			background-color: #FFF;
 			background-color: var(--hell);
+			position: relative;
 		}
 		/*transform:rotate(180deg); geht im Kindle nicht*/
 		* {
@@ -439,8 +440,7 @@
 			height: 3rem;
 			font-size: 1.5rem;
 		}
-
-
+	
 		.balkentabelle {
 			width: 100%;
 			border-collapse: separate;
@@ -613,9 +613,9 @@
 		HEIZUNG
 		<br><span class="ladestatus">-</span>
 	</span>
-	<span id="verbrennen">
-		&Delta;
-		<br><span class="ladestatus">-</span>
+	<span id="lastschutz">
+		&sect;
+		<br><span class="lastschutz">&nbsp;</span>
 	</span>
 </div>
 

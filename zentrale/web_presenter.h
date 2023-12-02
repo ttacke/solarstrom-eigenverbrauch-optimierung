@@ -322,8 +322,8 @@ namespace Local {
 					verbraucher.heizung_relay_ist_an ? "true" : "false"
 				);
 				file_writer.write_formated(
-					"\"verbrennen\":%s,",
-					verbraucher.verbrennen_relay_ist_an ? "true" : "false"
+					"\"lastschutz\":%s,",
+					verbraucher.lastschutz_ist_an ? "true" : "false"
 				);
 				file_writer.write_formated(
 					"\"auto_laden\":%s,\"roller_laden\":%s,",

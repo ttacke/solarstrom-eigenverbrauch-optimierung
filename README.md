@@ -35,8 +35,8 @@ Zusätzliche Features:
   - Rechts: Pufferakku-Ladestand
 - Zweite Zeile (v.l.n.r; schwarz=aktiv, grau=inaktiv):
   - Status Solarerzeugung incl relative Verteilung der Leistung der beiden Dachhälften
-  - Ladestatus von Auto-Wallbox, Roller-Lader, Warmwasser-Überladen, Heizungs-Überladen und "Verbrennen" (&Delta;)
-    - Verbrennen = extra Schalt-Dose, die nur bei akkutem Pufferakku-Überlauf aktiviert wird.
+  - Ladestatus von Auto-Wallbox, Roller-Lader, Warmwasser- und Heizungs-Überladen, Lastschutz
+    - Lastschutz = Zu viel Netzbezug, so dass Ladewünsche nicht erfüllt werden
 - Dritte Zeile:
   - Links: Vorhersage des Pufferakku-Ladestandes der nächsten 12 Stunden
   - Rechts: Vorhersage der Sonnenenergie der nächsten 5 Tage
@@ -50,6 +50,7 @@ Zusätzliche Features:
     - "Außen": beide Akkus im Roller mit nur einem Ladegerät
   - Tippen auf Button &#9889; (Blitz)
     - Ist der Button schwarz, ist erzwungenes Laden für 12 Stunden aktiv und fällt anschließend zurück auf Überschussladen.
+- ganz unten: Temperatur im Keller (nur für Betrieb der Heizanlage zur Überwachung)
 
 ## Systembestandteile:
 - ein ESP8266-E12 als Zentrale
@@ -128,3 +129,5 @@ die Geräte nicht.
 -- Solarstrahlungs-Umrechnung umstellen, dass jeden Monat ein anderer Wert genutzt werden kann. Die Werte Schwanken über das Jahr.
 -- Grundverbrauch in Tag und Nacht trennen (und Ladevorgänge herausrechnen) um bessere Vorhersagen zu haben
 - Akku-Haltbarkeit: Laden zwischen 20-80% ist weniger schlimm, 40-60 am wenigsten. Diese Bereiche zusätzlich mit angeben (x% 20-80%, x% 40-60%) 
+- _starte_router_neu() umsetzen - wenn Netz nicht erreichbar, Karenzzeit+Neustart veranlassen
+- verbraucher.lastschutz_ist_an korrekt auslesen

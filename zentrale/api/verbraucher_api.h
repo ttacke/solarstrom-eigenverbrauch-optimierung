@@ -22,8 +22,6 @@ namespace Local::Api {
 
 		const char* wasser_relay_zustand_seit_filename = "wasser_relay.status";
 
-		const char* verbrennen_relay_zustand_seit_filename = "verbrennen_relay.status";
-
 		const char* roller_relay_zustand_seit_filename = "roller_relay.zustand_seit";
 		const char* roller_ladestatus_filename = "roller.ladestatus";
 		const char* roller_leistung_filename = "roller_leistung.status";
@@ -261,9 +259,8 @@ namespace Local::Api {
 			verbraucher.roller_relay_zustand_seit = _lese_zustand_seit(roller_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			verbraucher.verbrennen_relay_ist_an = _shelly_plug_ist_an(cfg->verbrennen_relay_host, cfg->verbrennen_relay_port);
-			verbraucher.verbrennen_relay_zustand_seit = _lese_zustand_seit(verbrennen_relay_zustand_seit_filename);
-			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+			// TODO lastschutz auslesen!
+			verbraucher.lastschutz_ist_an = true;
 		}
 
 		bool _shelly_plug_ist_an(const char* host, int port) {
@@ -320,15 +317,12 @@ namespace Local::Api {
 			}
 		}
 
-		void _schalte_verbrennen_relay(bool ein) {
+		void _starte_router_neu() {
 			_schalte_shellyplug(
-				ein, cfg->verbrennen_relay_host, cfg->verbrennen_relay_port,
+				false, cfg->router_neustart_relay_host, cfg->router_neustart_relay_port,
 				web_reader->default_timeout_in_hundertstel_s
 			);
-			if(file_writer.open_file_to_overwrite(verbrennen_relay_zustand_seit_filename)) {
-				file_writer.write_formated("%d", timestamp);
-				file_writer.close_file();
-			}
+			// Schaltet allein wieder ein (killt ja das netz, was ein Einschalten unmöglich macht)
 		}
 
 		void _schalte_auto_relay(bool ein) {
@@ -611,45 +605,6 @@ namespace Local::Api {
 				umschalten_auf_solarladen_func();
 				schalt_func(false);
 				return true;
-			}
-			return false;
-		}
-
-		bool _schalte_verbrennen_automatisch(
-			Local::Model::Verbraucher& verbraucher
-		) {
-			char* log_key = (char*) "verbrennen";
-			bool schalt_mindestdauer_ist_erreicht =
-				timestamp - verbraucher.verbrennen_relay_zustand_seit
-				>=
-				cfg->verbrennen_min_schaltzeit_in_min * 60
-			;
-			if(!schalt_mindestdauer_ist_erreicht) {
-				_log(log_key, (char*) ">SchaltdauerNichtErreicht");
-				return false;
-			}
-
-			if(
-				!verbraucher.verbrennen_relay_ist_an
-				&& verbraucher.solarerzeugung_ist_aktiv()
-				&& verbraucher.aktueller_akku_ladenstand_in_promille > 980
-				&& verbraucher.gib_beruhigten_ueberschuss_in_w() > 50
-			) {
-				_log(log_key, (char*) ">AnWeilAkku");
-				_schalte_verbrennen_relay(true);
-				return true;
-			}
-			if(verbraucher.verbrennen_relay_ist_an) {
-				if(verbraucher.aktueller_akku_ladenstand_in_promille < 960) {
-					_log(log_key, (char*) ">AusWeilAkku");
-					_schalte_verbrennen_relay(false);
-					return true;
-				}
-				if(!verbraucher.solarerzeugung_ist_aktiv()) {
-					_log(log_key, (char*) ">AusWeilSolarAus");
-					_schalte_verbrennen_relay(false);
-					return true;
-				}
 			}
 			return false;
 		}
@@ -971,10 +926,6 @@ namespace Local::Api {
 				akku_zielladestand_fuer_ueberladen_in_promille,
 				[&](bool ein) { _schalte_heizung_relay(ein); }
 			)) {
-				return;
-			}
-
-			if(_schalte_verbrennen_automatisch(verbraucher)) {
 				return;
 			}
 		}
