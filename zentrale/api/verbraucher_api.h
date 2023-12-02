@@ -561,95 +561,6 @@ namespace Local::Api {
 			return false;
 		}
 
-	public:
-		int timestamp = 0;
-
-		VerbraucherAPI(
-			Local::Config& cfg,
-			Local::Service::WebReader& web_reader,
-			Local::Service::FileReader& file_reader,
-			Local::Service::FileWriter& file_writer
-		): BaseAPI(cfg, web_reader), file_reader(&file_reader), file_writer(file_writer) {
-			_load_shelly_roller_cache();
-			_load_ladeverhalten_wintermodus_cache();
-			timestamp = shelly_roller_cache_timestamp;
-		}
-
-		void daten_holen_und_einsetzen(
-			Local::Model::Verbraucher& verbraucher,
-			Local::Model::ElektroAnlage& elektroanlage,
-			Local::Model::Wetter wetter
-		) {
-			_ermittle_relay_zustaende(verbraucher);
-
-			verbraucher.aktuelle_auto_ladeleistung_in_w = round(
-				(float) (elektroanlage.l1_strom_ma + elektroanlage.l1_solarstrom_ma) / 1000 * 230
-			);
-			_lies_verbraucher_log(
-				verbraucher.auto_ladeleistung_log_in_w,
-				auto_leistung_log_filename,
-				5
-			);
-			_schreibe_verbraucher_log(
-				verbraucher.auto_ladeleistung_log_in_w,
-				verbraucher.aktuelle_auto_ladeleistung_in_w,
-				auto_leistung_log_filename,
-				5
-			);
-			verbraucher.auto_benoetigte_ladeleistung_in_w = cfg->auto_benoetigte_leistung_in_w;
-
-			verbraucher.aktuelle_roller_ladeleistung_in_w = shelly_roller_cache_power;
-			_lies_verbraucher_log(
-				verbraucher.roller_ladeleistung_log_in_w,
-				roller_leistung_log_filename,
-				5
-			);
-			_schreibe_verbraucher_log(
-				verbraucher.roller_ladeleistung_log_in_w,
-				verbraucher.aktuelle_roller_ladeleistung_in_w,
-				roller_leistung_log_filename,
-				5
-			);
-			verbraucher.roller_benoetigte_ladeleistung_in_w = roller_benoetigte_ladeleistung_in_w_cache;
-
-			verbraucher.ladeverhalten_wintermodus = ladeverhalten_wintermodus_cache;
-			verbraucher.netzbezug_in_w = elektroanlage.netzbezug_in_w;
-
-			verbraucher.aktueller_verbrauch_in_w = elektroanlage.stromverbrauch_in_w;
-			_lies_verbraucher_log(
-				verbraucher.verbrauch_log_in_w,
-				verbrauch_leistung_log_filename,
-				5
-			);
-			_schreibe_verbraucher_log(
-				verbraucher.verbrauch_log_in_w,
-				verbraucher.aktueller_verbrauch_in_w,
-				verbrauch_leistung_log_filename,
-				5
-			);
-			verbraucher.aktuelle_erzeugung_in_w = elektroanlage.solarerzeugung_in_w;
-			_lies_verbraucher_log(
-				verbraucher.erzeugung_log_in_w,
-				erzeugung_leistung_log_filename,
-				30
-			);
-			_schreibe_verbraucher_log(
-				verbraucher.erzeugung_log_in_w,
-				verbraucher.aktuelle_erzeugung_in_w,
-				erzeugung_leistung_log_filename,
-				30
-			);
-
-			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
-			verbraucher.solarerzeugung_in_w = elektroanlage.solarerzeugung_in_w;
-			verbraucher.ersatzstrom_ist_aktiv = elektroanlage.ersatzstrom_ist_aktiv;
-			verbraucher.zeitpunkt_sonnenuntergang = wetter.zeitpunkt_sonnenuntergang;
-
-			verbraucher.auto_ladestatus_seit = _lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
-			verbraucher.roller_ladestatus_seit = _lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);
-			_fuelle_akkuladestands_vorhersage(verbraucher, wetter);
-		}
-
 		bool _winterladen_ist_aktiv() {
 			if(
 				ladeverhalten_wintermodus_cache
@@ -661,162 +572,6 @@ namespace Local::Api {
 				return true;
 			}
 			return false;
-		}
-
-		void fuehre_schaltautomat_aus(Local::Model::Verbraucher& verbraucher) {
-			int ausschalter_auto_relay_zustand_seit = verbraucher.auto_relay_zustand_seit;
-			int ausschalter_roller_relay_zustand_seit = verbraucher.roller_relay_zustand_seit;
-			int akku_zielladestand_in_promille = cfg->akku_zielladestand_in_promille;
-			int auto_min_schaltzeit_in_min = cfg->auto_min_schaltzeit_in_min;
-			int roller_min_schaltzeit_in_min = cfg->roller_min_schaltzeit_in_min;
-			int akku_zielladestand_fuer_ueberladen_in_promille = 1000;
-
-			if(verbraucher.ersatzstrom_ist_aktiv) {
-				ladeverhalten_wintermodus_cache = 0;
-				verbraucher.ladeverhalten_wintermodus = 0;
-			    verbraucher.auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
-				verbraucher.roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
-				ausschalter_auto_relay_zustand_seit = 0;
-				ausschalter_roller_relay_zustand_seit = 0;
-				_log((char*) "Ersatzstrom->nurUeberschuss");
-				akku_zielladestand_in_promille = 1200;
-				akku_zielladestand_fuer_ueberladen_in_promille = 1200;
-				auto_min_schaltzeit_in_min = 5;
-				roller_min_schaltzeit_in_min = 5;
-			}
-
-			if(_ausschalten_wegen_lastgrenzen(verbraucher)) {
-				if(verbraucher.auto_relay_ist_an) {
-					_log((char*) "AutoLastgrenze");
-					_schalte_auto_relay(false);
-					return;
-				}
-				if(verbraucher.roller_relay_ist_an) {
-					_log((char*) "RollerLastgrenze");
-					_schalte_roller_relay(false);
-					return;
-				}
-				if(verbraucher.wasser_relay_ist_an) {
-					_log((char*) "WasserLastgrenze");
-					_schalte_wasser_relay(false);
-					return;
-				}
-				if(verbraucher.heizung_relay_ist_an) {
-					_log((char*) "HeizungLastgrenze");
-					_schalte_heizung_relay(false);
-					return;
-				}
-			}
-
-			int karenzzeit = (5 * 60);
-			if(
-				verbraucher.auto_relay_zustand_seit >= timestamp - karenzzeit
-				|| verbraucher.roller_relay_zustand_seit >= timestamp - karenzzeit
-				|| verbraucher.wasser_relay_zustand_seit >= timestamp - karenzzeit
-				|| verbraucher.heizung_relay_zustand_seit >= timestamp - karenzzeit
-			) {
-				// Von Einschalten bis voller Verbrauch vergeht Zeit
-				// ohne dies wird ggf mehr zugeschaltet als sinnvoll ist
-				_log((char*) "SchaltKarenzzeit");
-				return;
-			}
-
-			if(
-				(
-					verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
-					|| _winterladen_ist_aktiv()
-				) && _behandle_force_laden(
-					(char*) "auto",
-					verbraucher,
-					verbraucher.auto_relay_zustand_seit,
-					verbraucher.auto_ladestatus_seit,
-					auto_min_schaltzeit_in_min,
-					verbraucher.auto_benoetigte_ladeleistung_in_w,
-					verbraucher.auto_relay_ist_an,
-					[&](bool ein) { _schalte_auto_relay(ein); },
-					[&]() { setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar); }
-				)
-			) {
-				return;
-			}
-			if(
-				(
-					verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force
-					|| _winterladen_ist_aktiv()
-				) && _behandle_force_laden(
-					(char*) "roller",
-					verbraucher,
-					verbraucher.roller_relay_zustand_seit,
-					verbraucher.roller_ladestatus_seit,
-					roller_min_schaltzeit_in_min,
-					verbraucher.roller_benoetigte_ladeleistung_in_w,
-					verbraucher.roller_relay_ist_an,
-					[&](bool ein) { _schalte_roller_relay(ein); },
-					[&]() { setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar); }
-				)
-			) {
-				return;
-			}
-
-			if(
-				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
-				&& _behandle_solar_laden(
-					(char*) "auto",
-					verbraucher,
-					verbraucher.auto_relay_zustand_seit,
-					auto_min_schaltzeit_in_min,
-					verbraucher.auto_benoetigte_ladeleistung_in_w,
-					verbraucher.auto_relay_ist_an,
-					akku_zielladestand_in_promille,
-					[&](bool ein) { _schalte_auto_relay(ein); }
-				)
-			) {
-				return;
-			}
-			if(
-				verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
-				&& _behandle_solar_laden(
-					(char*) "roller",
-					verbraucher,
-					verbraucher.roller_relay_zustand_seit,
-					roller_min_schaltzeit_in_min,
-					verbraucher.roller_benoetigte_ladeleistung_in_w,
-					verbraucher.roller_relay_ist_an,
-					akku_zielladestand_in_promille,
-					[&](bool ein) { _schalte_roller_relay(ein); }
-				)
-			) {
-				return;
-			}
-
-			if(_schalte_ueberladen_automatisch(
-				(char*) "wasser",
-				verbraucher,
-				verbraucher.wasser_relay_zustand_seit,
-				cfg->wasser_min_schaltzeit_in_min,
-				cfg->wasser_benoetigte_leistung_in_w,
-				verbraucher.wasser_relay_ist_an,
-				akku_zielladestand_fuer_ueberladen_in_promille,
-				[&](bool ein) { _schalte_wasser_relay(ein); }
-			)) {
-				return;
-			}
-			if(_schalte_ueberladen_automatisch(
-				(char*) "heizung",
-				verbraucher,
-				verbraucher.heizung_relay_zustand_seit,
-				cfg->heizung_min_schaltzeit_in_min,
-				cfg->heizung_benoetigte_leistung_in_w,
-				verbraucher.heizung_relay_ist_an,
-				akku_zielladestand_fuer_ueberladen_in_promille,
-				[&](bool ein) { _schalte_heizung_relay(ein); }
-			)) {
-				return;
-			}
-
-			if(_schalte_verbrennen_automatisch(verbraucher)) {
-				return;
-			}
 		}
 
 		template<typename F1, typename F2>
@@ -977,6 +732,251 @@ namespace Local::Api {
 				return true;
 			}
 			return false;
+		}
+
+	public:
+		int timestamp = 0;
+
+		VerbraucherAPI(
+			Local::Config& cfg,
+			Local::Service::WebReader& web_reader,
+			Local::Service::FileReader& file_reader,
+			Local::Service::FileWriter& file_writer
+		): BaseAPI(cfg, web_reader), file_reader(&file_reader), file_writer(file_writer) {
+			_load_shelly_roller_cache();
+			_load_ladeverhalten_wintermodus_cache();
+			timestamp = shelly_roller_cache_timestamp;
+		}
+
+		void daten_holen_und_einsetzen(
+			Local::Model::Verbraucher& verbraucher,
+			Local::Model::ElektroAnlage& elektroanlage,
+			Local::Model::Wetter wetter
+		) {
+			_ermittle_relay_zustaende(verbraucher);
+
+			verbraucher.aktuelle_auto_ladeleistung_in_w = round(
+				(float) (elektroanlage.l1_strom_ma + elektroanlage.l1_solarstrom_ma) / 1000 * 230
+			);
+			_lies_verbraucher_log(
+				verbraucher.auto_ladeleistung_log_in_w,
+				auto_leistung_log_filename,
+				5
+			);
+			_schreibe_verbraucher_log(
+				verbraucher.auto_ladeleistung_log_in_w,
+				verbraucher.aktuelle_auto_ladeleistung_in_w,
+				auto_leistung_log_filename,
+				5
+			);
+			verbraucher.auto_benoetigte_ladeleistung_in_w = cfg->auto_benoetigte_leistung_in_w;
+
+			verbraucher.aktuelle_roller_ladeleistung_in_w = shelly_roller_cache_power;
+			_lies_verbraucher_log(
+				verbraucher.roller_ladeleistung_log_in_w,
+				roller_leistung_log_filename,
+				5
+			);
+			_schreibe_verbraucher_log(
+				verbraucher.roller_ladeleistung_log_in_w,
+				verbraucher.aktuelle_roller_ladeleistung_in_w,
+				roller_leistung_log_filename,
+				5
+			);
+			verbraucher.roller_benoetigte_ladeleistung_in_w = roller_benoetigte_ladeleistung_in_w_cache;
+
+			verbraucher.ladeverhalten_wintermodus = ladeverhalten_wintermodus_cache;
+			verbraucher.netzbezug_in_w = elektroanlage.netzbezug_in_w;
+
+			verbraucher.aktueller_verbrauch_in_w = elektroanlage.stromverbrauch_in_w;
+			_lies_verbraucher_log(
+				verbraucher.verbrauch_log_in_w,
+				verbrauch_leistung_log_filename,
+				5
+			);
+			_schreibe_verbraucher_log(
+				verbraucher.verbrauch_log_in_w,
+				verbraucher.aktueller_verbrauch_in_w,
+				verbrauch_leistung_log_filename,
+				5
+			);
+			verbraucher.aktuelle_erzeugung_in_w = elektroanlage.solarerzeugung_in_w;
+			_lies_verbraucher_log(
+				verbraucher.erzeugung_log_in_w,
+				erzeugung_leistung_log_filename,
+				30
+			);
+			_schreibe_verbraucher_log(
+				verbraucher.erzeugung_log_in_w,
+				verbraucher.aktuelle_erzeugung_in_w,
+				erzeugung_leistung_log_filename,
+				30
+			);
+
+			verbraucher.aktueller_akku_ladenstand_in_promille = elektroanlage.solarakku_ladestand_in_promille;
+			verbraucher.solarerzeugung_in_w = elektroanlage.solarerzeugung_in_w;
+			verbraucher.ersatzstrom_ist_aktiv = elektroanlage.ersatzstrom_ist_aktiv;
+			verbraucher.zeitpunkt_sonnenuntergang = wetter.zeitpunkt_sonnenuntergang;
+
+			verbraucher.auto_ladestatus_seit = _lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
+			verbraucher.roller_ladestatus_seit = _lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);
+			_fuelle_akkuladestands_vorhersage(verbraucher, wetter);
+		}
+
+		void fuehre_schaltautomat_aus(Local::Model::Verbraucher& verbraucher) {
+			int ausschalter_auto_relay_zustand_seit = verbraucher.auto_relay_zustand_seit;
+			int ausschalter_roller_relay_zustand_seit = verbraucher.roller_relay_zustand_seit;
+			int akku_zielladestand_in_promille = cfg->akku_zielladestand_in_promille;
+			int auto_min_schaltzeit_in_min = cfg->auto_min_schaltzeit_in_min;
+			int roller_min_schaltzeit_in_min = cfg->roller_min_schaltzeit_in_min;
+			int akku_zielladestand_fuer_ueberladen_in_promille = 1000;
+
+			if(verbraucher.ersatzstrom_ist_aktiv) {
+				ladeverhalten_wintermodus_cache = 0;
+				verbraucher.ladeverhalten_wintermodus = 0;
+			    verbraucher.auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
+				verbraucher.roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
+				ausschalter_auto_relay_zustand_seit = 0;
+				ausschalter_roller_relay_zustand_seit = 0;
+				_log((char*) "Ersatzstrom->nurUeberschuss");
+				akku_zielladestand_in_promille = 1200;
+				akku_zielladestand_fuer_ueberladen_in_promille = 1200;
+				auto_min_schaltzeit_in_min = 5;
+				roller_min_schaltzeit_in_min = 5;
+			}
+
+			if(_ausschalten_wegen_lastgrenzen(verbraucher)) {
+				if(verbraucher.auto_relay_ist_an) {
+					_log((char*) "AutoLastgrenze");
+					_schalte_auto_relay(false);
+					return;
+				}
+				if(verbraucher.roller_relay_ist_an) {
+					_log((char*) "RollerLastgrenze");
+					_schalte_roller_relay(false);
+					return;
+				}
+				if(verbraucher.wasser_relay_ist_an) {
+					_log((char*) "WasserLastgrenze");
+					_schalte_wasser_relay(false);
+					return;
+				}
+				if(verbraucher.heizung_relay_ist_an) {
+					_log((char*) "HeizungLastgrenze");
+					_schalte_heizung_relay(false);
+					return;
+				}
+			}
+
+			int karenzzeit = (5 * 60);
+			if(
+				verbraucher.auto_relay_zustand_seit >= timestamp - karenzzeit
+				|| verbraucher.roller_relay_zustand_seit >= timestamp - karenzzeit
+				|| verbraucher.wasser_relay_zustand_seit >= timestamp - karenzzeit
+				|| verbraucher.heizung_relay_zustand_seit >= timestamp - karenzzeit
+			) {
+				// Von Einschalten bis voller Verbrauch vergeht Zeit
+				// ohne dies wird ggf mehr zugeschaltet als sinnvoll ist
+				_log((char*) "SchaltKarenzzeit");
+				return;
+			}
+
+			if(
+				(
+					verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
+					|| _winterladen_ist_aktiv()
+				) && _behandle_force_laden(
+					(char*) "auto",
+					verbraucher,
+					verbraucher.auto_relay_zustand_seit,
+					verbraucher.auto_ladestatus_seit,
+					auto_min_schaltzeit_in_min,
+					verbraucher.auto_benoetigte_ladeleistung_in_w,
+					verbraucher.auto_relay_ist_an,
+					[&](bool ein) { _schalte_auto_relay(ein); },
+					[&]() { setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar); }
+				)
+			) {
+				return;
+			}
+			if(
+				(
+					verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force
+					|| _winterladen_ist_aktiv()
+				) && _behandle_force_laden(
+					(char*) "roller",
+					verbraucher,
+					verbraucher.roller_relay_zustand_seit,
+					verbraucher.roller_ladestatus_seit,
+					roller_min_schaltzeit_in_min,
+					verbraucher.roller_benoetigte_ladeleistung_in_w,
+					verbraucher.roller_relay_ist_an,
+					[&](bool ein) { _schalte_roller_relay(ein); },
+					[&]() { setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar); }
+				)
+			) {
+				return;
+			}
+
+			if(
+				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
+				&& _behandle_solar_laden(
+					(char*) "auto",
+					verbraucher,
+					verbraucher.auto_relay_zustand_seit,
+					auto_min_schaltzeit_in_min,
+					verbraucher.auto_benoetigte_ladeleistung_in_w,
+					verbraucher.auto_relay_ist_an,
+					akku_zielladestand_in_promille,
+					[&](bool ein) { _schalte_auto_relay(ein); }
+				)
+			) {
+				return;
+			}
+			if(
+				verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
+				&& _behandle_solar_laden(
+					(char*) "roller",
+					verbraucher,
+					verbraucher.roller_relay_zustand_seit,
+					roller_min_schaltzeit_in_min,
+					verbraucher.roller_benoetigte_ladeleistung_in_w,
+					verbraucher.roller_relay_ist_an,
+					akku_zielladestand_in_promille,
+					[&](bool ein) { _schalte_roller_relay(ein); }
+				)
+			) {
+				return;
+			}
+
+			if(_schalte_ueberladen_automatisch(
+				(char*) "wasser",
+				verbraucher,
+				verbraucher.wasser_relay_zustand_seit,
+				cfg->wasser_min_schaltzeit_in_min,
+				cfg->wasser_benoetigte_leistung_in_w,
+				verbraucher.wasser_relay_ist_an,
+				akku_zielladestand_fuer_ueberladen_in_promille,
+				[&](bool ein) { _schalte_wasser_relay(ein); }
+			)) {
+				return;
+			}
+			if(_schalte_ueberladen_automatisch(
+				(char*) "heizung",
+				verbraucher,
+				verbraucher.heizung_relay_zustand_seit,
+				cfg->heizung_min_schaltzeit_in_min,
+				cfg->heizung_benoetigte_leistung_in_w,
+				verbraucher.heizung_relay_ist_an,
+				akku_zielladestand_fuer_ueberladen_in_promille,
+				[&](bool ein) { _schalte_heizung_relay(ein); }
+			)) {
+				return;
+			}
+
+			if(_schalte_verbrennen_automatisch(verbraucher)) {
+				return;
+			}
 		}
 
 		void setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus status) {
