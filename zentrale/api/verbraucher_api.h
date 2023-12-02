@@ -258,9 +258,6 @@ namespace Local::Api {
 			verbraucher.roller_relay_ist_an = shelly_roller_cache_ison;
 			verbraucher.roller_relay_zustand_seit = _lese_zustand_seit(roller_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-
-			// TODO lastschutz auslesen!
-			verbraucher.lastschutz_ist_an = true;
 		}
 
 		bool _shelly_plug_ist_an(const char* host, int port) {
@@ -801,6 +798,7 @@ namespace Local::Api {
 			}
 
 			if(_ausschalten_wegen_lastgrenzen(verbraucher)) {
+				verbraucher.lastschutz_ist_an = true;
 				if(verbraucher.auto_relay_ist_an) {
 					_log((char*) "AutoLastgrenze");
 					_schalte_auto_relay(false);
