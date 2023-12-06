@@ -185,10 +185,18 @@ namespace Local::Api {
 					>=
 					cfg->minimaler_akku_ladestand + start_puffer_in_promille
 			) {
-				_log(log_key, (char*) "-solar>FruehLeerenAn");
-				_schreibe_frueh_leeren_status(log_key, true);
-				schalt_func(true);
-				return true;
+				if(
+					verbraucher.netzbezug_in_w + benoetigte_leistung_in_w
+					<
+					cfg->maximaler_netzbezug_ausschaltgrenze_in_w - cfg->maximaler_netzbezug_einschaltreserve_in_w - benoetigte_leistung_in_w
+				) {
+					_log(log_key, (char*) "-solar>FruehLeerenAn");
+					_schreibe_frueh_leeren_status(log_key, true);
+					schalt_func(true);
+					return true;
+				} else {
+					verbraucher.lastschutz_ist_an = true;
+				}
 			}
 
 			if(frueh_leeren_ist_aktiv) {
@@ -219,9 +227,17 @@ namespace Local::Api {
 				&& !akku_unterschreitet_minimalladestand
 				&& min_bereitgestellte_leistung > einschaltschwelle
 			) {
-				_log(log_key, (char*) "-solar>AnWeilGenug");
-				schalt_func(true);
-				return true;
+				if(
+					verbraucher.netzbezug_in_w + benoetigte_leistung_in_w
+					<
+					cfg->maximaler_netzbezug_ausschaltgrenze_in_w - cfg->maximaler_netzbezug_einschaltreserve_in_w - benoetigte_leistung_in_w
+				) {
+					_log(log_key, (char*) "-solar>AnWeilGenug");
+					schalt_func(true);
+					return true;
+				} else {
+					verbraucher.lastschutz_ist_an = true;
+				}
 			}
 			if(relay_ist_an) {
 				if(
@@ -575,16 +591,18 @@ namespace Local::Api {
 				_log(log_key, (char*) (ist_winterladen ? "-winter>SchaltdauerNichtErreicht" : "-force>SchaltdauerNichtErreicht"));
 				return false;
 			}
-			if(
-				!relay_ist_an
-				&&
-				verbraucher.netzbezug_in_w
-				<
-				cfg->maximaler_netzbezug_ausschaltgrenze_in_w - cfg->maximaler_netzbezug_einschaltreserve_in_w - benoetigte_leistung_in_w
-			) {
-				_log(log_key, (char*) (ist_winterladen ? "-winter>Start" : "-force>Start"));
-				schalt_func(true);
-				return true;
+			if(!relay_ist_an) {
+				if(
+					verbraucher.netzbezug_in_w + benoetigte_leistung_in_w
+					<
+					cfg->maximaler_netzbezug_ausschaltgrenze_in_w - cfg->maximaler_netzbezug_einschaltreserve_in_w - benoetigte_leistung_in_w
+				) {
+					_log(log_key, (char*) (ist_winterladen ? "-winter>Start" : "-force>Start"));
+					schalt_func(true);
+					return true;
+				} else {
+					verbraucher.lastschutz_ist_an = true;
+				}
 			}
 			if(
 				!ist_winterladen
