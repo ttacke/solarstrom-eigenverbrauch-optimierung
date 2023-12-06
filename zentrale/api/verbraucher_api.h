@@ -657,9 +657,17 @@ namespace Local::Api {
 					|| verbraucher.aktueller_akku_ladenstand_in_promille > 800
 				)
 			) {
-				_log(log_key, (char*) "-ueberladen>AnWeilGenug");
-				schalt_func(true);
-				return true;
+				if(
+					verbraucher.netzbezug_in_w + benoetigte_leistung_in_w
+					<
+					cfg->maximaler_netzbezug_ausschaltgrenze_in_w - cfg->maximaler_netzbezug_einschaltreserve_in_w - benoetigte_leistung_in_w
+				) {
+					_log(log_key, (char*) "-ueberladen>AnWeilGenug");
+					schalt_func(true);
+					return true;
+				} else {
+					verbraucher.lastschutz_ist_an = true;
+				}
 			}
 			if(relay_ist_an) {
 				if(unerfuellter_ladewunsch) {
