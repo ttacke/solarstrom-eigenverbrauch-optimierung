@@ -891,6 +891,7 @@ namespace Local::Api {
 
 			if(
 				verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
+				&& !_winterladen_ist_aktiv()
 				&& _behandle_solar_laden(
 					(char*) "auto",
 					verbraucher,
@@ -906,6 +907,7 @@ namespace Local::Api {
 			}
 			if(
 				verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::solar
+				&& !_winterladen_ist_aktiv()
 				&& _behandle_solar_laden(
 					(char*) "roller",
 					verbraucher,
