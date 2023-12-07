@@ -202,12 +202,12 @@ namespace Local::Api {
 					cfg->minimaler_akku_ladestand + start_puffer_in_promille
 			) {
 				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
+					verbraucher.lastschutz_ist_an = true;
+				} else {
 					_log(log_key, (char*) "-solar>FruehLeerenAn");
 					_schreibe_frueh_leeren_status(log_key, true);
 					schalt_func(true);
 					return true;
-				} else {
-					verbraucher.lastschutz_ist_an = true;
 				}
 			}
 
@@ -240,11 +240,11 @@ namespace Local::Api {
 				&& min_bereitgestellte_leistung > einschaltschwelle
 			) {
 				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
+					verbraucher.lastschutz_ist_an = true;
+				} else {
 					_log(log_key, (char*) "-solar>AnWeilGenug");
 					schalt_func(true);
 					return true;
-				} else {
-					verbraucher.lastschutz_ist_an = true;
 				}
 			}
 			if(relay_ist_an) {
@@ -601,11 +601,11 @@ namespace Local::Api {
 			}
 			if(!relay_ist_an) {
 				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
+					verbraucher.lastschutz_ist_an = true;
+				} else {
 					_log(log_key, (char*) (ist_winterladen ? "-winter>Start" : "-force>Start"));
 					schalt_func(true);
 					return true;
-				} else {
-					verbraucher.lastschutz_ist_an = true;
 				}
 			}
 			if(
@@ -662,11 +662,11 @@ namespace Local::Api {
 				)
 			) {
 				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
+					verbraucher.lastschutz_ist_an = true;
+				} else {
 					_log(log_key, (char*) "-ueberladen>AnWeilGenug");
 					schalt_func(true);
 					return true;
-				} else {
-					verbraucher.lastschutz_ist_an = true;
 				}
 			}
 			if(relay_ist_an) {
