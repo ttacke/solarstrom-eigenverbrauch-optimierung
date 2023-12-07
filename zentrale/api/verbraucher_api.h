@@ -130,6 +130,22 @@ namespace Local::Api {
 			return false;
 		}
 
+		bool _maximaler_netzbezug_wird_ueberschritten(
+			Local::Model::Verbraucher& verbraucher,
+			int benoetigte_leistung_in_w
+		) {
+			if(
+				verbraucher.netzbezug_in_w
+				+ benoetigte_leistung_in_w
+				>=
+				cfg->maximaler_netzbezug_ausschaltgrenze_in_w
+				- cfg->maximaler_netzbezug_einschaltreserve_in_w
+			) {
+				return true;
+			}
+			return false;
+		}
+
 		template<typename F1>
 		bool _behandle_solar_laden(
 			char* log_key,
@@ -185,11 +201,7 @@ namespace Local::Api {
 					>=
 					cfg->minimaler_akku_ladestand + start_puffer_in_promille
 			) {
-				if(
-					verbraucher.netzbezug_in_w + benoetigte_leistung_in_w
-					<
-					cfg->maximaler_netzbezug_ausschaltgrenze_in_w - cfg->maximaler_netzbezug_einschaltreserve_in_w - benoetigte_leistung_in_w
-				) {
+				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
 					_log(log_key, (char*) "-solar>FruehLeerenAn");
 					_schreibe_frueh_leeren_status(log_key, true);
 					schalt_func(true);
@@ -227,11 +239,7 @@ namespace Local::Api {
 				&& !akku_unterschreitet_minimalladestand
 				&& min_bereitgestellte_leistung > einschaltschwelle
 			) {
-				if(
-					verbraucher.netzbezug_in_w + benoetigte_leistung_in_w
-					<
-					cfg->maximaler_netzbezug_ausschaltgrenze_in_w - cfg->maximaler_netzbezug_einschaltreserve_in_w - benoetigte_leistung_in_w
-				) {
+				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
 					_log(log_key, (char*) "-solar>AnWeilGenug");
 					schalt_func(true);
 					return true;
@@ -592,11 +600,7 @@ namespace Local::Api {
 				return false;
 			}
 			if(!relay_ist_an) {
-				if(
-					verbraucher.netzbezug_in_w + benoetigte_leistung_in_w
-					<
-					cfg->maximaler_netzbezug_ausschaltgrenze_in_w - cfg->maximaler_netzbezug_einschaltreserve_in_w - benoetigte_leistung_in_w
-				) {
+				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
 					_log(log_key, (char*) (ist_winterladen ? "-winter>Start" : "-force>Start"));
 					schalt_func(true);
 					return true;
@@ -657,11 +661,7 @@ namespace Local::Api {
 					|| verbraucher.aktueller_akku_ladenstand_in_promille > 800
 				)
 			) {
-				if(
-					verbraucher.netzbezug_in_w + benoetigte_leistung_in_w
-					<
-					cfg->maximaler_netzbezug_ausschaltgrenze_in_w - cfg->maximaler_netzbezug_einschaltreserve_in_w - benoetigte_leistung_in_w
-				) {
+				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
 					_log(log_key, (char*) "-ueberladen>AnWeilGenug");
 					schalt_func(true);
 					return true;
