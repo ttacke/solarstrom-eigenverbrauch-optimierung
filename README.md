@@ -35,8 +35,8 @@ Zusätzliche Features:
   - Rechts: Pufferakku-Ladestand
 - Zweite Zeile (v.l.n.r; schwarz=aktiv, grau=inaktiv):
   - Status Solarerzeugung incl relative Verteilung der Leistung der beiden Dachhälften
-  - Ladestatus von Auto-Wallbox, Roller-Lader, Warmwasser- und Heizungs-Überladen, Lastschutz
-    - Lastschutz = Zu viel Netzbezug, so dass Ladewünsche nicht erfüllt werden
+  - Ladestatus von Auto-Wallbox, Roller-Lader, Warmwasser- und Heizungs-Überladen
+    - Anzeige "schutz" = Zu viel (potentieller) Netzbezug, so dass dieser Ladewunsch blockiert wird
 - Dritte Zeile:
   - Links: Vorhersage des Pufferakku-Ladestandes der nächsten 12 Stunden
   - Rechts: Vorhersage der Sonnenenergie der nächsten 5 Tage

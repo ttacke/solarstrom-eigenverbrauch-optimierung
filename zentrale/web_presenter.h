@@ -312,23 +312,19 @@ namespace Local {
 					tagesvorhersage[4]
 				);
 				file_writer.write_formated(
-					"\"auto_laden_an\":%s,\"auto_relay_an\":%s,",
+					"\"auto_laden_an\":%s,\"auto_relay_status\":\"%s\",",
 					verbraucher.auto_laden_ist_an() ? "true" : "false",
-					verbraucher.auto_relay_ist_an ? "true" : "false"
+					verbraucher.auto_relay_ist_an ? "an" : (verbraucher.auto_lastschutz ? "schutz" : "aus")
 				);
 				file_writer.write_formated(
-					"\"roller_laden_an\":%s,\"roller_relay_an\":%s,",
+					"\"roller_laden_an\":%s,\"roller_relay_status\":\"%s\",",
 					verbraucher.roller_laden_ist_an() ? "true" : "false",
-					verbraucher.roller_relay_ist_an ? "true" : "false"
+					verbraucher.roller_relay_ist_an ? "an" : (verbraucher.roller_lastschutz ? "schutz" : "aus")
 				);
 				file_writer.write_formated(
-					"\"wasser_ueberladen\":%s,\"heizung_ueberladen\":%s,",
-					verbraucher.wasser_relay_ist_an ? "true" : "false",
-					verbraucher.heizung_relay_ist_an ? "true" : "false"
-				);
-				file_writer.write_formated(
-					"\"lastschutz\":%s,",
-					verbraucher.lastschutz_ist_an ? "true" : "false"
+					"\"wasser_ueberladen\":\"%s\",\"heizung_ueberladen\":\"%s\",",
+					verbraucher.wasser_relay_ist_an ? "an" : (verbraucher.wasser_lastschutz ? "schutz" : "aus"),
+					verbraucher.heizung_relay_ist_an ? "an" : (verbraucher.heizung_lastschutz ? "schutz" : "aus")
 				);
 				file_writer.write_formated(
 					"\"auto_laden\":%s,\"roller_laden\":%s,",

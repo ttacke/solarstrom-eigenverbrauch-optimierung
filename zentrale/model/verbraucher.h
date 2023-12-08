@@ -25,12 +25,12 @@ namespace Local::Model {
 		enum class Ladestatus {force, solar};
 
 		bool wasser_relay_ist_an = false;
+		bool wasser_lastschutz = false;
 		int wasser_relay_zustand_seit = 0;
 
 		bool heizung_relay_ist_an = false;
+		bool heizung_lastschutz = false;
 		int heizung_relay_zustand_seit = 0;
-
-		bool lastschutz_ist_an = false;
 
 		Ladestatus auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 		int auto_ladestatus_seit = 0;
@@ -38,6 +38,7 @@ namespace Local::Model {
 		int aktuelle_auto_ladeleistung_in_w = 0;
 		int auto_ladeleistung_log_in_w[5];
 		bool auto_relay_ist_an = false;
+		bool auto_lastschutz = false;
 		int auto_relay_zustand_seit = 0;
 
 		Ladestatus roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
@@ -46,6 +47,7 @@ namespace Local::Model {
 		int aktuelle_roller_ladeleistung_in_w = 0;
 		int roller_ladeleistung_log_in_w[5];
 		bool roller_relay_ist_an = false;
+		bool roller_lastschutz = false;
 		int roller_relay_zustand_seit = 0;
 
 		int aktueller_verbrauch_in_w = 0;
@@ -153,21 +155,20 @@ namespace Local::Model {
 			file_writer.write_formated(
 				"va3,%s,%s,%d,%d,%d,%s",
 				(auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force ? "force" : "solar"),
-				auto_laden_ist_an() ? "an" : "aus",
+				auto_laden_ist_an() ? "an" : (auto_lastschutz ? "schutz" : "aus"),
 				auto_benoetigte_ladeleistung_in_w,
 				aktuelle_auto_ladeleistung_in_w,
 				_gib_genutzte_auto_ladeleistung_in_w(),
-				wasser_relay_ist_an ? "an" : "aus"
+				wasser_relay_ist_an ? "an" : (wasser_lastschutz ? "schutz" : "aus")
 			);
 			file_writer.write_formated(
-				",vb6,%s,%s,%d,%d,%d,%s,%s,%s",
+				",vb7,%s,%s,%d,%d,%d,%s,%s,%s",
 				(roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force ? "force" : "solar"),
-				roller_laden_ist_an() ? "an" : "aus",
+				roller_laden_ist_an() ? "an" : (roller_lastschutz ? "schutz" : "aus"),
 				roller_benoetigte_ladeleistung_in_w,
 				aktuelle_roller_ladeleistung_in_w,
 				_gib_genutzte_roller_ladeleistung_in_w(),
-				heizung_relay_ist_an ? "an" : "aus",
-				lastschutz_ist_an ? "an" : "aus",
+				heizung_relay_ist_an ? "an" : (heizung_lastschutz ? "schutz" : "aus"),
 				ladeverhalten_wintermodus ? "an" : "aus"
 			);
 		}

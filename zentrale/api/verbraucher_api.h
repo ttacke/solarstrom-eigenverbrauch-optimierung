@@ -146,7 +146,7 @@ namespace Local::Api {
 			return false;
 		}
 
-		template<typename F1>
+		template<typename F1, typename F2>
 		bool _behandle_solar_laden(
 			char* log_key,
 			Local::Model::Verbraucher& verbraucher,
@@ -155,7 +155,8 @@ namespace Local::Api {
 			int benoetigte_leistung_in_w,
 			bool relay_ist_an,
 			int akku_zielladestand_in_promille,
-			F1 && schalt_func
+			F1 && schalt_func,
+			F2 && lastschutz_an_func
 		) {
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			if(!schalt_mindestdauer_ist_erreicht) {
@@ -202,7 +203,7 @@ namespace Local::Api {
 					cfg->minimaler_akku_ladestand + start_puffer_in_promille
 			) {
 				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
-					verbraucher.lastschutz_ist_an = true;
+					lastschutz_an_func();
 				} else {
 					_log(log_key, (char*) "-solar>FruehLeerenAn");
 					_schreibe_frueh_leeren_status(log_key, true);
@@ -240,7 +241,7 @@ namespace Local::Api {
 				&& min_bereitgestellte_leistung > einschaltschwelle
 			) {
 				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
-					verbraucher.lastschutz_ist_an = true;
+					lastschutz_an_func();
 				} else {
 					_log(log_key, (char*) "-solar>AnWeilGenug");
 					schalt_func(true);
@@ -581,7 +582,7 @@ namespace Local::Api {
 			return false;
 		}
 
-		template<typename F1, typename F2>
+		template<typename F1, typename F2, typename F3>
 		bool _behandle_force_laden(
 			char* log_key,
 			Local::Model::Verbraucher& verbraucher,
@@ -591,7 +592,8 @@ namespace Local::Api {
 			int benoetigte_leistung_in_w,
 			bool relay_ist_an,
 			F1 && schalt_func,
-			F2 && umschalten_auf_solarladen_func
+			F2 && umschalten_auf_solarladen_func,
+			F3 && lastschutz_an_func
 		) {
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			bool ist_winterladen = _winterladen_ist_aktiv();
@@ -601,7 +603,7 @@ namespace Local::Api {
 			}
 			if(!relay_ist_an) {
 				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
-					verbraucher.lastschutz_ist_an = true;
+					lastschutz_an_func();
 				} else {
 					_log(log_key, (char*) (ist_winterladen ? "-winter>Start" : "-force>Start"));
 					schalt_func(true);
@@ -620,7 +622,7 @@ namespace Local::Api {
 			return false;
 		}
 
-		template<typename F1>
+		template<typename F1, typename F2>
 		bool _schalte_ueberladen_automatisch(
 			char* log_key,
 			Local::Model::Verbraucher& verbraucher,
@@ -629,7 +631,8 @@ namespace Local::Api {
 			int benoetigte_leistung_in_w,
 			bool relay_ist_an,
 			int akku_zielladestand_in_promille,
-			F1 && schalt_func
+			F1 && schalt_func,
+			F2 && lastschutz_an_func
 		) {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
 			bool akku_laeuft_potentiell_in_5h_ueber = verbraucher.akku_erreicht_ladestand_in_stunden(akku_zielladestand_in_promille) <= 5;
@@ -662,7 +665,7 @@ namespace Local::Api {
 				)
 			) {
 				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
-					verbraucher.lastschutz_ist_an = true;
+					lastschutz_an_func();
 				} else {
 					_log(log_key, (char*) "-ueberladen>AnWeilGenug");
 					schalt_func(true);
@@ -816,25 +819,28 @@ namespace Local::Api {
 			}
 
 			if(_ausschalten_wegen_lastgrenzen(verbraucher)) {
-				verbraucher.lastschutz_ist_an = true;
 				if(verbraucher.auto_relay_ist_an) {
 					_log((char*) "AutoLastgrenze");
 					_schalte_auto_relay(false);
+					verbraucher.auto_lastschutz = true;
 					return;
 				}
 				if(verbraucher.roller_relay_ist_an) {
 					_log((char*) "RollerLastgrenze");
 					_schalte_roller_relay(false);
+					verbraucher.roller_lastschutz = true;
 					return;
 				}
 				if(verbraucher.wasser_relay_ist_an) {
 					_log((char*) "WasserLastgrenze");
 					_schalte_wasser_relay(false);
+					verbraucher.wasser_lastschutz = true;
 					return;
 				}
 				if(verbraucher.heizung_relay_ist_an) {
 					_log((char*) "HeizungLastgrenze");
 					_schalte_heizung_relay(false);
+					verbraucher.heizung_lastschutz = true;
 					return;
 				}
 			}
@@ -865,7 +871,8 @@ namespace Local::Api {
 					verbraucher.auto_benoetigte_ladeleistung_in_w,
 					verbraucher.auto_relay_ist_an,
 					[&](bool ein) { _schalte_auto_relay(ein); },
-					[&]() { setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar); }
+					[&]() { setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus::solar); },
+					[&]() { verbraucher.auto_lastschutz = true; }
 				)
 			) {
 				return;
@@ -883,7 +890,8 @@ namespace Local::Api {
 					verbraucher.roller_benoetigte_ladeleistung_in_w,
 					verbraucher.roller_relay_ist_an,
 					[&](bool ein) { _schalte_roller_relay(ein); },
-					[&]() { setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar); }
+					[&]() { setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar); },
+					[&]() { verbraucher.roller_lastschutz = true; }
 				)
 			) {
 				return;
@@ -900,7 +908,8 @@ namespace Local::Api {
 					verbraucher.auto_benoetigte_ladeleistung_in_w,
 					verbraucher.auto_relay_ist_an,
 					akku_zielladestand_in_promille,
-					[&](bool ein) { _schalte_auto_relay(ein); }
+					[&](bool ein) { _schalte_auto_relay(ein); },
+					[&]() { verbraucher.auto_lastschutz = true; }
 				)
 			) {
 				return;
@@ -916,7 +925,8 @@ namespace Local::Api {
 					verbraucher.roller_benoetigte_ladeleistung_in_w,
 					verbraucher.roller_relay_ist_an,
 					akku_zielladestand_in_promille,
-					[&](bool ein) { _schalte_roller_relay(ein); }
+					[&](bool ein) { _schalte_roller_relay(ein); },
+					[&]() { verbraucher.roller_lastschutz = true; }
 				)
 			) {
 				return;
@@ -930,7 +940,8 @@ namespace Local::Api {
 				cfg->wasser_benoetigte_leistung_in_w,
 				verbraucher.wasser_relay_ist_an,
 				akku_zielladestand_fuer_ueberladen_in_promille,
-				[&](bool ein) { _schalte_wasser_relay(ein); }
+				[&](bool ein) { _schalte_wasser_relay(ein); },
+				[&]() { verbraucher.wasser_lastschutz = true; }
 			)) {
 				return;
 			}
@@ -942,7 +953,8 @@ namespace Local::Api {
 				cfg->heizung_benoetigte_leistung_in_w,
 				verbraucher.heizung_relay_ist_an,
 				akku_zielladestand_fuer_ueberladen_in_promille,
-				[&](bool ein) { _schalte_heizung_relay(ein); }
+				[&](bool ein) { _schalte_heizung_relay(ein); },
+				[&]() { verbraucher.heizung_lastschutz = true; }
 			)) {
 				return;
 			}
