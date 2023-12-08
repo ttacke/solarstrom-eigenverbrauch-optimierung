@@ -153,29 +153,34 @@ namespace Local::Model {
 
 		void write_log_data(Local::Service::FileWriter& file_writer) {
 			file_writer.write_formated(
-				"va3,%s,%s,%d",
+				"va4,%s,%s,%s,%d",
 				(auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force ? "force" : "solar"),
-				auto_laden_ist_an() ? "an" : (auto_lastschutz ? "schutz" : "aus"),
+				auto_laden_ist_an() ? "on" : "off",
+				auto_lastschutz ? "on" : "off",
 				auto_benoetigte_ladeleistung_in_w
 			);
 			file_writer.write_formated(
-				",%d,%d,%s",
+				",%d,%d,%s,%s",
 				aktuelle_auto_ladeleistung_in_w,
 				_gib_genutzte_auto_ladeleistung_in_w(),
-				wasser_relay_ist_an ? "an" : (wasser_lastschutz ? "schutz" : "aus")
+				wasser_relay_ist_an ? "on" : "off",
+				wasser_lastschutz ? "on" : "off"
 			);
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 			file_writer.write_formated(
-				",vb7,%s,%s,%d",
+				",vb8,%s,%s,%s,%d",
 				(roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force ? "force" : "solar"),
-				roller_laden_ist_an() ? "an" : (roller_lastschutz ? "schutz" : "aus"),
+				roller_laden_ist_an() ? "on" : "off",
+				roller_lastschutz ? "on" : "off",
 				roller_benoetigte_ladeleistung_in_w
 			);
 			file_writer.write_formated(
 				",%d,%d,%s,%s,%s",
 				aktuelle_roller_ladeleistung_in_w,
 				_gib_genutzte_roller_ladeleistung_in_w(),
-				heizung_relay_ist_an ? "an" : (heizung_lastschutz ? "schutz" : "aus"),
-				ladeverhalten_wintermodus ? "an" : "aus"
+				heizung_relay_ist_an ? "on" : "off",
+				heizung_lastschutz ? "on" : "off",
+				ladeverhalten_wintermodus ? "on" : "off"
 			);
 		}
 	};

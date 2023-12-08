@@ -76,10 +76,13 @@ namespace Local {
 			if(file_writer.open_file_to_append(filename)) {
 				file_writer.write_formated("%d,", now_timestamp);
 				elektroanlage.write_log_data(file_writer);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(",");
 				wetter.write_log_data(file_writer);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(",");
 				verbraucher.write_log_data(file_writer);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(",kb1%.1f,%.1f", temperature, humidity);
 				file_writer.write_formated(",kl1%.1f,%.1f", air_temperature, air_humidity);
 				file_writer.write_formated("\n");
@@ -249,6 +252,7 @@ namespace Local {
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			_write_log_data(now_timestamp);
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			if(file_writer.open_file_to_overwrite(data_filename)) {
 				int anteil_pv1_in_prozent = elektroanlage.gib_anteil_pv1_in_prozent();
@@ -273,6 +277,7 @@ namespace Local {
 					"\"stunden_balkenanzeige_startzeit\":%i,",
 					wetter.stundenvorhersage_startzeitpunkt
 				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				int stundenvorhersage[12];
 				for(int i = 0; i < 12; i++) {
 					stundenvorhersage[i] = verbraucher.gib_stundenvorhersage_akku_ladestand_als_fibonacci(i);
@@ -311,29 +316,46 @@ namespace Local {
 					tagesvorhersage[3],
 					tagesvorhersage[4]
 				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"auto_laden_an\":%s,",
 					verbraucher.auto_laden_ist_an() ? "true" : "false"
 				);
 				file_writer.write_formated(
-					"\"auto_relay_status\":\"%s\",",
-					verbraucher.auto_relay_ist_an ? "an" : (verbraucher.auto_lastschutz ? "schutz" : "aus")
+					"\"auto_relay_an\":%s,",
+					verbraucher.auto_relay_ist_an ? "true" : "false"
+				);
+				file_writer.write_formated(
+					"\"auto_lastschutz\":%s,",
+					verbraucher.auto_lastschutz ? "true" : "false"
 				);
 				file_writer.write_formated(
 					"\"roller_laden_an\":%s,",
 					verbraucher.roller_laden_ist_an() ? "true" : "false"
 				);
 				file_writer.write_formated(
-					"\"roller_relay_status\":\"%s\",",
-					verbraucher.roller_relay_ist_an ? "an" : (verbraucher.roller_lastschutz ? "schutz" : "aus")
+					"\"roller_relay_an\":%s,",
+					verbraucher.roller_relay_ist_an ? "true" : "false"
 				);
 				file_writer.write_formated(
-					"\"wasser_ueberladen\":\"%s\",",
-					verbraucher.wasser_relay_ist_an ? "an" : (verbraucher.wasser_lastschutz ? "schutz" : "aus")
+					"\"roller_lastschutz\":%s,",
+					verbraucher.roller_lastschutz ? "true" : "false"
 				);
 				file_writer.write_formated(
-					"\"heizung_ueberladen\":\"%s\",",
-					verbraucher.heizung_relay_ist_an ? "an" : (verbraucher.heizung_lastschutz ? "schutz" : "aus")
+					"\"wasser_ueberladen\":%s,",
+					verbraucher.wasser_relay_ist_an ? "true" : "false"
+				);
+				file_writer.write_formated(
+					"\"wasser_lastschutz\":%s,",
+					verbraucher.wasser_lastschutz ? "true" : "false"
+				);
+				file_writer.write_formated(
+					"\"heizung_ueberladen\":%s,",
+					verbraucher.heizung_relay_ist_an ? "true" : "false"
+				);
+				file_writer.write_formated(
+					"\"heizung_lastschutz\":%s,",
+					verbraucher.heizung_lastschutz ? "true" : "false"
 				);
 				file_writer.write_formated(
 					"\"auto_laden\":%s,\"roller_laden\":%s,",
@@ -342,6 +364,7 @@ namespace Local {
 					verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force
 						? "\"force\"" : "\"solar\""
 				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"auto_ladestatus_seit\":%i,",
 					verbraucher.auto_ladestatus_seit
@@ -375,6 +398,7 @@ namespace Local {
 					"\"ersatzstrom_ist_aktiv\":%s,",
 					elektroanlage.ersatzstrom_ist_aktiv ? "true" : "false"
 				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"keller_temperatur\":%.1f,\"keller_luftfeuchtigkeit\":%.1f,",
 					temperature,
