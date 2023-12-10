@@ -112,35 +112,42 @@ namespace Local::Api {
 		}
 
 		bool _ausschalten_wegen_lastgrenzen(Local::Model::Verbraucher& verbraucher) {
-			if(verbraucher.netzbezug_in_w > cfg->maximaler_netzbezug_ausschaltgrenze_in_w) {
-				_log((char*) "Lastschutz>maxNetz");
-				return true;
+			return _einschalten_wegen_lastgrenzen_verboten(verbraucher, 0);
+		}
+
+		bool _einschalten_wegen_lastgrenzen_verboten(
+			Local::Model::Verbraucher& verbraucher,
+			int benoetigte_leistung_in_w
+		) {
+			int reserve = 0;
+			if(benoetigte_leistung_in_w == 0) {
+				reserve = cfg->einschaltreserve_in_w;
 			}
-			if(verbraucher.aktueller_verbrauch_in_w > cfg->maximale_wechselrichterleistung_in_w) {
+			if(
+				verbraucher.aktueller_verbrauch_in_w + benoetigte_leistung_in_w
+				>
+				cfg->maximale_wechselrichterleistung_in_w - reserve
+			) {
 				_log((char*) "Lastschutz>maxWR");
 				return true;
 			}
 			if(
 				verbraucher.ersatzstrom_ist_aktiv
-				&& verbraucher.aktueller_verbrauch_in_w > (float) cfg->maximale_wechselrichterleistung_in_w * 0.8
+				&&
+				verbraucher.aktueller_verbrauch_in_w + benoetigte_leistung_in_w
+				>
+				((float) cfg->maximale_wechselrichterleistung_in_w * 0.8) - reserve
 			) {
 				_log((char*) "Lastschutz>ersatz");
 				return true;
 			}
-			return false;
-		}
 
-		bool _maximaler_netzbezug_wird_ueberschritten(
-			Local::Model::Verbraucher& verbraucher,
-			int benoetigte_leistung_in_w
-		) {
 			if(
-				verbraucher.netzbezug_in_w
-				+ benoetigte_leistung_in_w
+				verbraucher.netzbezug_in_w + benoetigte_leistung_in_w
 				>=
-				cfg->maximaler_netzbezug_ausschaltgrenze_in_w
-				- cfg->maximaler_netzbezug_einschaltreserve_in_w
+				cfg->maximaler_netzbezug_ausschaltgrenze_in_w - reserve
 			) {
+				_log((char*) "Lastschutz>maxBezug");
 				return true;
 			}
 			return false;
@@ -202,7 +209,7 @@ namespace Local::Api {
 					>=
 					cfg->minimaler_akku_ladestand + start_puffer_in_promille
 			) {
-				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
+				if(_einschalten_wegen_lastgrenzen_verboten(verbraucher, benoetigte_leistung_in_w)) {
 					lastschutz_an_func();
 				} else {
 					_log(log_key, (char*) "-solar>FruehLeerenAn");
@@ -240,7 +247,7 @@ namespace Local::Api {
 				&& !akku_unterschreitet_minimalladestand
 				&& min_bereitgestellte_leistung > einschaltschwelle
 			) {
-				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
+				if(_einschalten_wegen_lastgrenzen_verboten(verbraucher, benoetigte_leistung_in_w)) {
 					lastschutz_an_func();
 				} else {
 					_log(log_key, (char*) "-solar>AnWeilGenug");
@@ -602,7 +609,7 @@ namespace Local::Api {
 				return false;
 			}
 			if(!relay_ist_an) {
-				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
+				if(_einschalten_wegen_lastgrenzen_verboten(verbraucher, benoetigte_leistung_in_w)) {
 					lastschutz_an_func();
 				} else {
 					_log(log_key, (char*) (ist_winterladen ? "-winter>Start" : "-force>Start"));
@@ -664,7 +671,7 @@ namespace Local::Api {
 					|| verbraucher.aktueller_akku_ladenstand_in_promille > 800
 				)
 			) {
-				if(_maximaler_netzbezug_wird_ueberschritten(verbraucher, benoetigte_leistung_in_w)) {
+				if(_einschalten_wegen_lastgrenzen_verboten(verbraucher, benoetigte_leistung_in_w)) {
 					lastschutz_an_func();
 				} else {
 					_log(log_key, (char*) "-ueberladen>AnWeilGenug");
@@ -726,6 +733,11 @@ namespace Local::Api {
 			Local::Model::ElektroAnlage& elektroanlage,
 			Local::Model::Wetter wetter
 		) {
+			verbraucher.auto_lastschutz = false;
+			verbraucher.roller_lastschutz = false;
+			verbraucher.wasser_lastschutz = false;
+			verbraucher.heizung_lastschutz = false;
+
 			_ermittle_relay_zustaende(verbraucher);
 
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(

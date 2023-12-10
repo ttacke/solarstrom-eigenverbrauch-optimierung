@@ -16,13 +16,13 @@ Konkret:
  
 Zusätzliche Features:
 - Winter-Ladeverhalten für Auto und Roller
-  - wenn aktiviert, lädt das Auto immer Nachts zwischen 20 Uhr und 5 Uhr früh (19 - 4 Uhr UTC!)
+  - wenn aktiviert, lädt das Auto immer Nachts zwischen 19 und 4 Uhr UTC
 - Winter-Standort des Rollers
   - wenn aktiviert, wird die Keller-Steckdose genutzt, an der beide Akkus parallel geladen werden. Sonst die Außendose.
-- Last sofort wird abgeworfen um...
-  - nur maximal 4kW aus dem Netz zu ziehen
+- Last wird abgeworfen bzw gar nicht erst zusgeschaltet um...
+  - nur maximal 4,9kW aus dem Netz zu ziehen
   - den Wechselrichter nicht über 80% seiner Leistung zu betreiben
-  - wenn Ersatzstrom aktiv und kein Überschuss vorhanden ist
+  - bei Ersatzstrom und keinem Überschuss nicht die Batterie leer zu saugen
 - Bei Ersatzstrom ist nur Überschussladen möglich
   - dann wird der Akku-Zielladestand auf 120% gesetzt, so dass nur bei akutem Überschuss geladen wird
 
@@ -36,7 +36,7 @@ Zusätzliche Features:
 - Zweite Zeile (v.l.n.r; schwarz=aktiv, grau=inaktiv):
   - Status Solarerzeugung incl relative Verteilung der Leistung der beiden Dachhälften
   - Ladestatus von Auto-Wallbox, Roller-Lader, Warmwasser- und Heizungs-Überladen
-    - Anzeige "schutz" = Zu viel (potentieller) Netzbezug, so dass dieser Ladewunsch blockiert wird
+    - Anzeige "schutz"/mit Unrandung = Lastschutz, dieser Ladewunsch wird blockiert
 - Dritte Zeile:
   - Links: Vorhersage des Pufferakku-Ladestandes der nächsten 12 Stunden
   - Rechts: Vorhersage der Sonnenenergie der nächsten 5 Tage
@@ -120,12 +120,5 @@ anderen Endgerät im gleichen Netzwerk könnte also problemlos Schaden anrichten
 die Geräte nicht.
 
 # TODO Anstehende Aufgaben
-- persistence-Objekt benutzen, um die Daten im RAM und nicht auf der SD zu halten (um SD zu schonen)
--- Das enthält Write/Read und hat selber extra Funktionen, um die Daten im RAM zu halten (als Char*)
--- Will man explizit schreiben/lesen von FS, muss das im Code auch explizit sein
--- RAM ist dann Default, SD der Fallback, wenn bei neustart der RAM leer ist
--- Schreiben der SD alle x Minuten sicherstellen
-- Grundverbrauch und Solarstrahlungs-Umrechnung via SD-Config verwalten, damit man die Werte von außen vorgeben kann
--- Solarstrahlungs-Umrechnung umstellen, dass jeden Monat ein anderer Wert genutzt werden kann. Die Werte Schwanken über das Jahr.
--- Grundverbrauch in Tag und Nacht trennen (und Ladevorgänge herausrechnen) um bessere Vorhersagen zu haben
-- Akku-Haltbarkeit: Laden zwischen 20-80% ist weniger schlimm, 40-60 am wenigsten. Diese Bereiche zusätzlich mit angeben (x% 20-80%, x% 40-60%) 
+- Wallbox-Umschaltung auf 1,5kW nutzen
+  - Ziel: möglichst wenig Akku-Hub verursachen, also am besten direktverbrauch
