@@ -173,6 +173,10 @@
 				document.getElementsByTagName('body')[0].className = "fehler";
 				var minuten_seit_fehler = Math.round((new Date().getTime() - zeit_des_ersten_fehlers) / 1000 / 60);
 				document.getElementById('fehler_seit').innerHTML = minuten_seit_fehler;
+				
+				if(minuten_seit_fehler > 15) {
+					document.location.reload();
+				}
 			} else {
 				document.getElementsByTagName('body')[0].className = "";
 				zeit_des_ersten_fehlers = null;
