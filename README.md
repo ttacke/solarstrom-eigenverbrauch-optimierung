@@ -122,3 +122,5 @@ die Geräte nicht.
 # TODO Anstehende Aufgaben
 - Wallbox-Umschaltung auf 1,5kW nutzen
   - Ziel: möglichst wenig Akku-Hub verursachen, also am besten direktverbrauch
+- Automatisch Umschaltung Winter/Sommermodus
+  - anhand von Zeitfenster + Solarvorhersage
