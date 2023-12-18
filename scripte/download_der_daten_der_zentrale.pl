@@ -2,6 +2,8 @@
 use strict;
 use warnings;
 
+my $SERVER_IP;
+my $MONATE_IN_VERGANGENHEIT;
 BEGIN {
     if(system("wget --version 1>/dev/null 2>&1") != 0) {
         print "Bitte das Tool 'wget' installieren\n";
@@ -14,14 +16,16 @@ BEGIN {
         print "Bitte die Bibliothek 'Date::Calc' installieren\n";
         exit(1);
     }
-    if(!$ARGV[0]) {
-        $ARGV[0] = '192.168.0.30';
+    $SERVER_IP = '192.168.0.30';
+    if($ARGV[1]) {
+        $SERVER_IP = $ARGV[1];
     }
-    print "Benutzte IP des ESP8266-12E-Controllers(zentrale): $ARGV[0]\n";
-    if(!$ARGV[1]) {
-        $ARGV[1] = 0;
+    print "Benutzte IP des ESP8266-12E-Controllers(zentrale): $SERVER_IP\n";
+    $MONATE_IN_VERGANGENHEIT = 0;
+    if($ARGV[0]) {
+        $MONATE_IN_VERGANGENHEIT = $ARGV[0] * 1;
     }
-    print "Anzahl der Monate, die die Log aus der Vergangenheit geholt wird: $ARGV[1]\n";
+    print "Anzahl der Monate, die die Log aus der Vergangenheit geholt wird: $MONATE_IN_VERGANGENHEIT\n";
 }
 my @files = qw/
     system_status.csv
@@ -54,7 +58,7 @@ sub _backup_file {
     }
 }
 @files = ();
-for(my $i = 0; $i <= $ARGV[1]; $i++) {
+for(my $i = 0; $i <= $MONATE_IN_VERGANGENHEIT; $i++) {
     my @d = localtime();
     my $year = $d[5] + 1900;
     my $month = $d[4] + 1;
@@ -69,7 +73,7 @@ for(my $i = 0; $i <= $ARGV[1]; $i++) {
 foreach my $filename (@files) {
     print "$filename...";
     my $target = "../sd-karteninhalt/$filename";
-    if(system("wget --tries=1 --read-timeout=30 'http://$ARGV[0]/download_file?name=$filename' -O $target") == 0) {
+    if(system("wget --tries=1 --read-timeout=30 'http://$SERVER_IP/download_file?name=$filename' -O $target") == 0) {
         print "ok\n";
     } else {
         print "FEHLER\n";
@@ -78,7 +82,7 @@ foreach my $filename (@files) {
 
 print "daten.json...";
 my $target = "../sd-karteninhalt/daten.json";
-if(system("wget --tries=1 --read-timeout=30 'http://$ARGV[0]/daten.json' -O $target") == 0) {
+if(system("wget --tries=1 --read-timeout=30 'http://$SERVER_IP/daten.json' -O $target") == 0) {
     print "ok\n";
 } else {
     print "FEHLER\n";
