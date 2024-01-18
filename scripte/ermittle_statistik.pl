@@ -98,24 +98,72 @@ foreach my $e (@$daten) {
 }
 print "Grundverbrauch(via Median): " . (sort(@$verbrauch))[int(scalar(@$verbrauch) / 2)] . " W\n";
 
-my $min_i_in_ma = 0;
-my $min_i_phase = 1;
-my $max_i_in_ma = 0;
-my $max_i_phase = 1;
-foreach my $e (@$daten) {
-    foreach my $i (1..3) {
-        if($e->{"l${i}_strom_ma"} > $max_i_in_ma) {
-            $max_i_in_ma = $e->{"l${i}_strom_ma"};
-            $max_i_phase = $i;
-        }
-        if($e->{"l${i}_strom_ma"} < $min_i_in_ma) {
-            $min_i_in_ma = $e->{"l${i}_strom_ma"};
-            $min_i_phase = $i;
+{
+    print "Stromstaerken seit Begrenzung (11.12.2023)\n";
+    my $strom = {};
+    my $ueberlast_start = 0;
+    my $ueberlast_anzahl = 0;
+    my $ueberlast_dauer = 0;
+    my $ueberlast_max_dauer = 0;
+    foreach my $e (@$daten) {
+        if($e->{'zeitpunkt'} > 1702249200) {
+            if($e->{'netzbezug_in_w'} > 4670) {
+                if(!$ueberlast_start) {
+                    $ueberlast_start = $e->{'zeitpunkt'};
+                    $ueberlast_anzahl++;
+                }
+            } else {
+                if($ueberlast_start) {
+                    my $dauer = $e->{'zeitpunkt'} - $ueberlast_start;
+                    if($dauer > $ueberlast_max_dauer) {
+                        $ueberlast_max_dauer = $dauer;
+                    }
+                    $ueberlast_dauer += $dauer;
+                    $ueberlast_start = 0;
+                }
+            }
+
+            foreach my $phase (1..3) {
+                $strom->{$phase} ||= {
+                    min => 0, max => 0,
+                    ueberlast_start => 0, ueberlast_anzahl => 0,
+                    ueberlast_dauer => 0, ueberlast_max_dauer => 0
+                };
+                my $i_in_ma = $e->{"l${phase}_strom_ma"};
+                if($i_in_ma > 16000) {
+                    if(!$strom->{$phase}->{'ueberlast_start'}) {
+                        $strom->{$phase}->{'ueberlast_start'} = $e->{'zeitpunkt'};
+                        $strom->{$phase}->{'ueberlast_anzahl'}++;
+                    }
+                } else {
+                    if($strom->{$phase}->{'ueberlast_start'}) {
+                        my $dauer = $e->{'zeitpunkt'} - $strom->{$phase}->{'ueberlast_start'};
+                        if($dauer > $strom->{$phase}->{'ueberlast_max_dauer'}) {
+                            $strom->{$phase}->{'ueberlast_max_dauer'} = $dauer;
+                        }
+                        $strom->{$phase}->{'ueberlast_dauer'} += $dauer;
+                        $strom->{$phase}->{'ueberlast_start'} = 0;
+                    }
+                }
+                if($i_in_ma > $strom->{$phase}->{'max'}) {
+                    $strom->{$phase}->{'max'} = $i_in_ma;
+                }
+                if($i_in_ma < $strom->{$phase}->{'min'}) {
+                    $strom->{$phase}->{'min'} = $i_in_ma;
+                }
+            }
         }
     }
+    print "Ueberlast: Anzahl = $ueberlast_anzahl, Gesamtdauer = ${ueberlast_dauer}s, max Dauer = ${ueberlast_max_dauer}s\n";
+    foreach my $phase (1..3) {
+        print "  Phase $phase:\n";
+        print "     Min " . sprintf("%.2f", $strom->{$phase}->{'min'} / 1000) . " A\n";
+        print "     Max " . sprintf("%.2f", $strom->{$phase}->{'max'} / 1000) . " A\n";
+        print "     >16A Anzahl $strom->{$phase}->{'ueberlast_anzahl'}\n";
+        print "     >16A Dauer Gesamt $strom->{$phase}->{'ueberlast_dauer'}s\n";
+        print "     >16A max.Dauer $strom->{$phase}->{'ueberlast_max_dauer'}\n";
+    }
 }
-print "Min. Strom: " . sprintf("%.2f", $min_i_in_ma / 1000) . " A (Phase $min_i_phase)\n";
-print "Max. Strom: " . sprintf("%.2f", $max_i_in_ma / 1000) . " A (Phase $max_i_phase)\n";
 
 my $akku_ladezyklen_in_promille = 0;
 my $prognostizierte_vollzyklen = 6000;
