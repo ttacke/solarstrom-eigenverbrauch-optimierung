@@ -58,7 +58,7 @@ namespace Local {
 		const int ladestatus_force_dauer = 12 * 3600;//12h
 		// https://de.wikipedia.org/wiki/Spitzenlast
 		// UTC = MEZ - 1; -1 = ignorieren
-		int winterladen_zwangspausen_utc[12] = {10,11,12,13,16,17,18,-1,-1,-1,-1,-1};
+		int winterladen_zwangspausen_utc[12] = {10,11,12,-1,15,16,17,-1,-1,-1,-1,-1};
 
 		const char* accuweather_api_key = "[API-KEY VON developer.accuweather.com]";
 		const int accuweather_location_id = 1008813;// Ermittelt via https://developer.accuweather.com/accuweather-locations-api/apis/get/locations/v1/search
