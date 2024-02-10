@@ -122,5 +122,14 @@ die Geräte nicht.
 # TODO Anstehende Aufgaben
 - Wallbox-Umschaltung auf 1,5kW nutzen
   - Ziel: möglichst wenig Akku-Hub verursachen, also am besten direktverbrauch
-- Automatisch Umschaltung Winter/Sommermodus
+  - Abwarten bis Lastbegrenzungs-Option geklärt ist. Wenn die schrittweise drosseln kann, dann
+    muss die Autoabschaltung hier entfernt werden. Für den Sommer ist die Drosselung weiter interessant
+    zur Akkuschonung wegen Direktverbrauch 
+- Automatisch Umschaltung Winter/Sommermodus (5.Oktober - 15.März + Wochenvorhersache-Level?)
   - anhand von Zeitfenster + Solarvorhersage
+- Automatisches Umschalten Roller-Steckdose 
+- Zeitfenster für Winter-Laden entfernen (= also immer Laden)
+- Download: alles Dateien auf Zeitpunkt prüfen + Monate, die nicht NACH ihrem Ende runtergeladen wurden nochmal runterladen
+  - Via Parameter "alles" oder so dieses Verhalten steuern
+- Solar-Faktor neu einstellen? Aber im Wintermodus den Verbrauch anpassen. Dazu diesen im Winter auch ermitteln.
+

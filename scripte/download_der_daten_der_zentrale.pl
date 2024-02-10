@@ -16,7 +16,7 @@ BEGIN {
         print "Bitte die Bibliothek 'Date::Calc' installieren\n";
         exit(1);
     }
-    $SERVER_IP = '192.168.0.30';
+    $SERVER_IP = '192.168.0.15';
     if($ARGV[1]) {
         $SERVER_IP = $ARGV[1];
     }

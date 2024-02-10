@@ -5,7 +5,7 @@ namespace Local {
 	public:
 		const int log_baud = 9600;
 
-		const char* network_connection_check_host = "192.168.2.1";
+		const char* network_connection_check_host = "192.168.0.1";
 		const char* network_connection_check_path = "/unknownpath";
 //		const char* network_connection_check_content = "body";
 		const char* internet_connection_check_host = "192.168.0.1";
@@ -14,23 +14,23 @@ namespace Local {
 		const char* wlan_ssid = "[WLAN-SSID]";
 		const char* wlan_pwd = "[WLAN-PASSWORT]";
 
-		const char* roller_relay_host = "192.168.2.30";
+		const char* roller_relay_host = "192.168.0.30";
 		int roller_relay_port = 80;
-		const char* roller_aussen_relay_host = "192.168.2.34";
+		const char* roller_aussen_relay_host = "192.168.0.34";
 		int roller_aussen_relay_port = 80;
-		const char* wasser_relay_host = "192.168.2.31";
+		const char* wasser_relay_host = "192.168.0.31";
 		int wasser_relay_port = 80;
-		const char* auto_relay_host = "192.168.2.32";
+		const char* auto_relay_host = "192.168.0.32";
 		int auto_relay_port = 80;
-		const char* heizung_relay_host = "192.168.2.33";
+		const char* heizung_relay_host = "192.168.0.33";
 		const int heizung_relay_port = 80;
-		const char* router_neustart_relay_host = "192.168.2.36";
+		const char* router_neustart_relay_host = "192.168.0.36";
 		const int router_neustart_relay_port = 80;
 
 		int roller_benoetigte_leistung_gering_in_w = 420;
 		int roller_benoetigte_leistung_hoch_in_w = 840;
 		int roller_min_schaltzeit_in_min = 10;
-		int auto_benoetigte_leistung_in_w = 3680;
+		int auto_benoetigte_leistung_in_w = 2990;
 		int auto_min_schaltzeit_in_min = 10;
 		int wasser_benoetigte_leistung_in_w = 420;
 		int wasser_min_schaltzeit_in_min = 60;
@@ -50,7 +50,7 @@ namespace Local {
 		const int webserver_port = 80;
 
 		// Fronius Gen24 8kW mit FromiusSmartMeter
-		const char* wechselrichter_host = "192.168.2.14";
+		const char* wechselrichter_host = "192.168.0.14";
 		const int wechselrichter_port = 80;
 		const int maximale_wechselrichterleistung_in_w = 7000;
 		const int maximaler_netzbezug_ausschaltgrenze_in_w = 4670;// 59kVA (Syna) / 12 * 0,95 (VDE-AR-N 4100)
