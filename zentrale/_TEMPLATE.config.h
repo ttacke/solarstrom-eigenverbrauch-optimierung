@@ -56,8 +56,9 @@ namespace Local {
 		const int maximaler_netzbezug_ausschaltgrenze_in_w = 4670;// 59kVA (Syna) / 12 * 0,95 (VDE-AR-N 4100)
 		const int einschaltreserve_in_w = 300;
 		const int ladestatus_force_dauer = 12 * 3600;//12h
-		const int winter_laden_abend_ab_stunde = 17;// UTC = 18 MEZ
-		const int winter_laden_frueh_bis_stunde = 7;// UTC == 8 MEZ
+		// https://de.wikipedia.org/wiki/Spitzenlast
+		// UTC = MEZ - 1; -1 = ignorieren
+		int winterladen_zwangspausen_utc[12] = {10,11,12,13,16,17,18,-1,-1,-1,-1,-1};
 
 		const char* accuweather_api_key = "[API-KEY VON developer.accuweather.com]";
 		const int accuweather_location_id = 1008813;// Ermittelt via https://developer.accuweather.com/accuweather-locations-api/apis/get/locations/v1/search

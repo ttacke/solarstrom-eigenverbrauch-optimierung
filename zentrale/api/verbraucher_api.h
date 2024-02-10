@@ -577,13 +577,13 @@ namespace Local::Api {
 		}
 
 		bool _winterladen_ist_aktiv() {
-			if(
-				ladeverhalten_wintermodus_cache
-				&& (
-					hour(timestamp) >= cfg->winter_laden_abend_ab_stunde
-					|| hour(timestamp) <= cfg->winter_laden_frueh_bis_stunde
-				)
-			) {
+			if(ladeverhalten_wintermodus_cache) {
+				int current_hour = hour(timestamp);
+				for(int i = 0; i < 12; i++) {
+					if(current_hour == cfg->winterladen_zwangspausen_utc[i]) {
+						return false;
+					}
+				}
 				return true;
 			}
 			return false;

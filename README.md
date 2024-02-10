@@ -128,7 +128,6 @@ die Geräte nicht.
 - Automatisch Umschaltung Winter/Sommermodus (5.Oktober - 15.März + Wochenvorhersache-Level?)
   - anhand von Zeitfenster + Solarvorhersage
 - Automatisches Umschalten Roller-Steckdose 
-- Zeitfenster für Winter-Laden entfernen (= also immer Laden)
 - Download: alles Dateien auf Zeitpunkt prüfen + Monate, die nicht NACH ihrem Ende runtergeladen wurden nochmal runterladen
   - Via Parameter "alles" oder so dieses Verhalten steuern
 - Solar-Faktor neu einstellen? Aber im Wintermodus den Verbrauch anpassen. Dazu diesen im Winter auch ermitteln.
