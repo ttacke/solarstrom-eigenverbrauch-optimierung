@@ -120,15 +120,16 @@ anderen Endgerät im gleichen Netzwerk könnte also problemlos Schaden anrichten
 die Geräte nicht.
 
 # TODO Anstehende Aufgaben
+- Automatisch Umschaltung Winter/Sommermodus (1.Oktober - 15.März + Wochenvorhersache-Level?)
+  - anhand von Zeitfenster + ?Solarvorhersage?
+  - ist bei "wechsle_auto_ladeverhalten" verortet
+- Automatisches Umschalten Roller-Steckdose 
+- Solar-Faktor neu einstellen? Aber im Wintermodus den Verbrauch anpassen. Dazu diesen im Winter auch ermitteln.
+- Download: alles Dateien auf Zeitpunkt prüfen + Monate, die nicht NACH ihrem Ende runtergeladen wurden nochmal runterladen
+  - Via Parameter "alles" oder so dieses Verhalten steuern
 - Wallbox-Umschaltung auf 1,5kW nutzen
   - Ziel: möglichst wenig Akku-Hub verursachen, also am besten direktverbrauch
   - Abwarten bis Lastbegrenzungs-Option geklärt ist. Wenn die schrittweise drosseln kann, dann
     muss die Autoabschaltung hier entfernt werden. Für den Sommer ist die Drosselung weiter interessant
     zur Akkuschonung wegen Direktverbrauch 
-- Automatisch Umschaltung Winter/Sommermodus (5.Oktober - 15.März + Wochenvorhersache-Level?)
-  - anhand von Zeitfenster + Solarvorhersage
-- Automatisches Umschalten Roller-Steckdose 
-- Download: alles Dateien auf Zeitpunkt prüfen + Monate, die nicht NACH ihrem Ende runtergeladen wurden nochmal runterladen
-  - Via Parameter "alles" oder so dieses Verhalten steuern
-- Solar-Faktor neu einstellen? Aber im Wintermodus den Verbrauch anpassen. Dazu diesen im Winter auch ermitteln.
 
