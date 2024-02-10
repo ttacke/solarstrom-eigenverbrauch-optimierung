@@ -817,7 +817,7 @@ namespace Local::Api {
 			int akku_zielladestand_fuer_ueberladen_in_promille = 1000;
 
 			if(verbraucher.ersatzstrom_ist_aktiv) {
-				ladeverhalten_wintermodus_cache = 0;
+				ladeverhalten_wintermodus_cache = false;
 				verbraucher.ladeverhalten_wintermodus = 0;
 			    verbraucher.auto_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 				verbraucher.roller_ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
@@ -1020,7 +1020,7 @@ namespace Local::Api {
 
 		void wechsle_auto_ladeverhalten() {
 			_log((char*) "wechsle_ladeverhalten_wintermodus");
-			int ladeverhalten_wintermodus = ladeverhalten_wintermodus_cache;
+			int ladeverhalten_wintermodus = ladeverhalten_wintermodus_cache ? 1 : 0;
 			if(ladeverhalten_wintermodus) {
 				ladeverhalten_wintermodus = 0;
 			} else {
