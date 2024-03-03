@@ -99,14 +99,14 @@ foreach my $e (@$daten) {
 print "Grundverbrauch(via Median): " . (sort(@$verbrauch))[int(scalar(@$verbrauch) / 2)] . " W\n";
 
 {
-    print "Stromstaerken seit Begrenzung (11.12.2023)\n";
+    print "Stromstaerken seit Begrenzung auf 2,99kVA (15.02.2024)\n";
     my $strom = {};
     my $ueberlast_start = 0;
     my $ueberlast_anzahl = 0;
     my $ueberlast_dauer = 0;
     my $ueberlast_max_dauer = 0;
     foreach my $e (@$daten) {
-        if($e->{'zeitpunkt'} > 1702249200) {
+        if($e->{'zeitpunkt'} > 1707994800) {
             if($e->{'netzbezug_in_w'} > 4670) {
                 if(!$ueberlast_start) {
                     $ueberlast_start = $e->{'zeitpunkt'};
