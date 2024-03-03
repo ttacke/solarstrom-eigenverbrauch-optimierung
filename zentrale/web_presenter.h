@@ -162,7 +162,7 @@ namespace Local {
 		}
 
 		void aendere() {
-			Local::Api::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer);
+			Local::Api::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer, 0);
 			int now_timestamp = verbraucher_api.timestamp;
 			if(!now_timestamp) {
 				webserver.server.send(400, "text/plain", "Der timestamp konnte im System nicht korrekt gelesen werden");
@@ -182,21 +182,19 @@ namespace Local {
 					verbraucher_api.setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::force);
 				} else if(strcmp(val, "solar") == 0) {
 					verbraucher_api.setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus::solar);
-				} else if(strcmp(val, "ladeleistung") == 0) {
-					verbraucher_api.wechsle_roller_ladeleistung();
 				}
 			}
 			webserver.server.send(204, "text/plain", "");
 		}
 
 		void restart_router() {
-			Local::Api::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer);
+			Local::Api::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer, 0);
 			verbraucher_api.starte_router_neu();
 		}
 
-		void heartbeat(const char* data_filename) {
+		void heartbeat(const char* data_filename, int beat_count) {
 			// Serial.println(printf("Date: %4d-%02d-%02d %02d:%02d:%02d\n", year(time), month(time), day(time), hour(time), minute(time), second(time)));
-			Local::Api::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer);
+			Local::Api::VerbraucherAPI verbraucher_api(*cfg, web_reader, file_reader, file_writer, beat_count);
 			int now_timestamp = verbraucher_api.timestamp;
 			if(!now_timestamp) {
 				Serial.println("Der timestamp konnte im System nicht korrekt gelesen werden");

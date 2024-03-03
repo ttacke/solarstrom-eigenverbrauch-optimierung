@@ -398,6 +398,31 @@ namespace Local::Api {
 			return leistung;
 		}
 
+		void _schalte_roller_ladeort_und_leistung(bool aussen_und_gering) {
+			if(
+				(
+					aussen_und_gering
+					&& roller_benoetigte_ladeleistung_in_w_cache == cfg->roller_benoetigte_leistung_gering_in_w
+				) || (
+					!aussen_und_gering
+					&& roller_benoetigte_ladeleistung_in_w_cache == cfg->roller_benoetigte_leistung_hoch_in_w
+				)
+			) {
+				return;
+			}
+
+			_log((char*) "schalte_roller_ladeort_und_leistung:", (char*) (aussen_und_gering ? "aussen+gering" : "innen+hoch"));
+			if(aussen_und_gering) {
+				roller_benoetigte_ladeleistung_in_w_cache = cfg->roller_benoetigte_leistung_gering_in_w;
+			} else {
+				roller_benoetigte_ladeleistung_in_w_cache = cfg->roller_benoetigte_leistung_hoch_in_w;
+			}
+			if(file_writer.open_file_to_overwrite(roller_leistung_filename)) {
+				file_writer.write_formated("%d", roller_benoetigte_ladeleistung_in_w_cache);
+				file_writer.close_file();
+			}
+		}
+
 		void _lies_verbraucher_log(int* liste, const char* log_filename, int length) {
 			for(int i = 0; i < length; i++) {
 				liste[i] = 0;
@@ -518,10 +543,19 @@ namespace Local::Api {
 			}
 		}
 
-		void _load_shelly_roller_cache() {
+		void _load_shelly_roller_cache(int beat_count) {
 			roller_benoetigte_ladeleistung_in_w_cache = _gib_roller_benoetigte_ladeleistung_in_w();
 			bool erfolgreich = false;
+			bool aussen_und_gering = false;
 			if(roller_benoetigte_ladeleistung_in_w_cache == cfg->roller_benoetigte_leistung_gering_in_w) {
+				aussen_und_gering = true;
+			}
+			if(!aussen_und_gering && beat_count > 0 && beat_count % 60 == 0) {
+				Serial.println("Teste Roller-Aussen-Shelly");
+				aussen_und_gering = true;
+			}
+
+			if(aussen_und_gering) {
 				erfolgreich = web_reader->send_http_get_request(
 					cfg->roller_aussen_relay_host,
 					cfg->roller_aussen_relay_port,
@@ -530,11 +564,13 @@ namespace Local::Api {
 				if(erfolgreich){
 					erfolgreich = _read_shelly_roller_content();
 					if(!erfolgreich) {
-						Serial.println("Abfrage des Roller-Aussen-Shellys fehlgeschlagen");
+						Serial.println("Abfrage des Roller-Aussen-Shellys fehlgeschlagen = schalte auf innen");
+						aussen_und_gering = false;
 					}
+					_schalte_roller_ladeort_und_leistung(aussen_und_gering);
 				}
 			}
-			if(!erfolgreich) {// Internen immer abfragen, damit min. ein Datensatz da ist
+			if(!erfolgreich) {// Innen immer abfragen, damit min. ein Datensatz da ist
 				web_reader->send_http_get_request(
 					cfg->roller_relay_host,
 					cfg->roller_relay_port,
@@ -710,9 +746,10 @@ namespace Local::Api {
 			Local::Config& cfg,
 			Local::Service::WebReader& web_reader,
 			Local::Service::FileReader& file_reader,
-			Local::Service::FileWriter& file_writer
+			Local::Service::FileWriter& file_writer,
+			int beat_count
 		): BaseAPI(cfg, web_reader), file_reader(&file_reader), file_writer(file_writer) {
-			_load_shelly_roller_cache();
+			_load_shelly_roller_cache(beat_count);
 			timestamp = shelly_roller_cache_timestamp;
 			ladeverhalten_wintermodus = false;
 			if(
@@ -998,20 +1035,6 @@ namespace Local::Api {
 				file_writer.close_file();
 			}
 			file_writer.delete_file(auto_leistung_log_filename);
-		}
-
-		void wechsle_roller_ladeleistung() {
-			_log((char*) "wechsle_roller_ladeleistung");
-			int roller_benoetigte_ladeleistung_in_w = roller_benoetigte_ladeleistung_in_w_cache;
-			if(roller_benoetigte_ladeleistung_in_w == cfg->roller_benoetigte_leistung_hoch_in_w) {
-				roller_benoetigte_ladeleistung_in_w = cfg->roller_benoetigte_leistung_gering_in_w;
-			} else {
-				roller_benoetigte_ladeleistung_in_w = cfg->roller_benoetigte_leistung_hoch_in_w;
-			}
-			if(file_writer.open_file_to_overwrite(roller_leistung_filename)) {
-				file_writer.write_formated("%d", roller_benoetigte_ladeleistung_in_w);
-				file_writer.close_file();
-			}
 		}
 
 		void starte_router_neu() {

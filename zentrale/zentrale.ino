@@ -113,7 +113,7 @@ void loop(void) {
 			}
 			beat_count = 0;
 		}
-		web_presenter.heartbeat(daten_filename);
+		web_presenter.heartbeat(daten_filename, beat_count);
 		last_runtime = runtime;
 		return;
 	}

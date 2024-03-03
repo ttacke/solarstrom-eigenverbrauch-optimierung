@@ -47,9 +47,8 @@ Zusätzliche Features:
     - inaktiv + Sonne und Mond sind zu sehen (1. Oktober - 14. März) = in Nicht-Hochlastzeiten wird geladen + Überschussladen 
     - inaktiv + nur Sonne ist zu sehen (15. April - 30. September) = Überschussladen
   - Nur bei "Roller"
-    - 5x (langsames) tippen auf "Roller" schaltet die Ladeleistung um
     - "Keller": beide Akkus ja an einem Ladegerät an der Kellerdose
-    - "Außen": beide Akkus im Roller mit nur einem Ladegerät
+    - "Außen": beide Akkus im Roller mit nur einem Ladegerät (wird automatisch aktiviert, wenn die Ladebuchse außen an ist)
 - ganz unten: Temperatur im Keller (nur für Betrieb der Heizanlage zur Überwachung)
 
 ## Systembestandteile:
@@ -120,7 +119,6 @@ anderen Endgerät im gleichen Netzwerk könnte also problemlos Schaden anrichten
 die Geräte nicht.
 
 # TODO Anstehende Aufgaben
-- Automatisches Umschalten Roller-Steckdose
 - Download: alles Dateien auf Zeitpunkt prüfen + Monate, die nicht NACH ihrem Ende runtergeladen wurden nochmal runterladen
   - Via Parameter "alles" oder so dieses Verhalten steuern
 - Wallbox-Umschaltung auf 1,5kW nutzen
