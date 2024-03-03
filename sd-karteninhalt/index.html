@@ -122,7 +122,7 @@
 
 			_setze_ladewunsch('auto_laden', daten['auto_laden'], daten['timestamp']);
 			// document.getElementById('auto_ladeleistung').innerHTML = daten['auto_benoetigte_ladeleistung_in_w'] + " W";
-			document.getElementById('auto_ladeverhalten').innerHTML = daten['ladeverhalten_wintermodus'] ? "&#9790;+&#9728;&nbsp;Nacht" : "&#9728;&nbsp;Sonne";
+			document.getElementById('auto_ladeverhalten').innerHTML = daten['ladeverhalten_wintermodus'] ? "&#9790;+&#9728;" : "&#9728;";
 
 			_setze_ladewunsch('roller_laden', daten['roller_laden'], daten['timestamp']);
 			// document.getElementById('roller_ladeleistung').innerHTML = daten['roller_benoetigte_ladeleistung_in_w'] + " W";
@@ -626,7 +626,7 @@
 <table class="balkentabelle" id="balkenanzeige"></table>
 
 <div class="schalter" id="auto_laden">
-	<div class="label" onclick="secure_action('change', 'auto', 'ladeverhalten')">
+	<div class="label">
 		Auto
 		<!--span class="ladeleistung" id="auto_ladeleistung"></span-->
 		<div class="ladeverhalten" id="auto_ladeverhalten"></div>

@@ -46,7 +46,6 @@ my @files = qw/
     erzeugung_leistung.log
     frueh_laden_auto.status
     frueh_laden_roller.status
-    ladeverhalten_wintermodus.status
 /;
 sub _backup_file {
     my ($filename) = @_;

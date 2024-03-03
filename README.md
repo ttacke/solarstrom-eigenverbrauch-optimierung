@@ -42,14 +42,14 @@ Zusätzliche Features:
   - Rechts: Vorhersage der Sonnenenergie der nächsten 5 Tage
   - Die Balken sind via Fibonacci-Folge gestaffelt. Helle Balken, ganz unten, stellen bis 20% Akkustand dar, die etwas dunkleren bis 100%. Schwarze Balken bedeuten, das potentiell zu viel Energie vorhanden sein wird (= passt nicht mehr in Pufferakku = Netzeinspeisung)
 - Unterer Bereich: Schalter der Ladesteuerung
-  - 5x (langsames) tippen auf "Auto" schaltet das Nachtladen für Auto und Roller um
-    - Ist Sonne und mond zu sehen = Nachtladen
-    - Ist nur die Sonne zu sehen = Überschussladen 
-  - 5x (langsames) tippen auf "Roller" schaltet die Ladeleistung um
+  - Schalter "Auto" und "Roller": tippen auf Button de/aktiviert ihn
+    - aktiv = Wallbox wird aktiviert, außer Lastschutz sagt etwas anderes. Wechselt nach 12h wieder zu inaktiv.
+    - inaktiv + Sonne und Mond sind zu sehen (1. Oktober - 14. März) = in Nicht-Hochlastzeiten wird geladen + Überschussladen 
+    - inaktiv + nur Sonne ist zu sehen (15. April - 30. September) = Überschussladen
+  - Nur bei "Roller"
+    - 5x (langsames) tippen auf "Roller" schaltet die Ladeleistung um
     - "Keller": beide Akkus ja an einem Ladegerät an der Kellerdose
     - "Außen": beide Akkus im Roller mit nur einem Ladegerät
-  - Tippen auf Button &#9889; (Blitz)
-    - Ist der Button schwarz, ist erzwungenes Laden für 12 Stunden aktiv und fällt anschließend zurück auf Überschussladen.
 - ganz unten: Temperatur im Keller (nur für Betrieb der Heizanlage zur Überwachung)
 
 ## Systembestandteile:
@@ -120,8 +120,6 @@ anderen Endgerät im gleichen Netzwerk könnte also problemlos Schaden anrichten
 die Geräte nicht.
 
 # TODO Anstehende Aufgaben
-- Automatisch Umschaltung Winter/Sommermodus (1.Oktober - 15.März + Wochenvorhersache-Level?)
-  - ist bei "wechsle_auto_ladeverhalten" verortet
 - Automatisches Umschalten Roller-Steckdose
 - Download: alles Dateien auf Zeitpunkt prüfen + Monate, die nicht NACH ihrem Ende runtergeladen wurden nochmal runterladen
   - Via Parameter "alles" oder so dieses Verhalten steuern
