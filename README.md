@@ -97,7 +97,7 @@ Zusätzliche Features:
   - in der Bibliotheksverwaltung die Module "SD", "Regexp" und "Time" installieren
 - Die IPs der ESPs im Netzwerk einrichten, dass diese immer auf die gleiche Art erreichbar sind
 - unter /netz-relay und /zentrale jeweils die _TEMPLATE.config.h in config.h kopieren und dort sinnvolle Werte eintragen
-  - nach 14 Tagen Laufzeit kann man mit diesen Scripten ermitteln lassen, wie der "grundverbrauch_in_w_pro_h". Werte für "solarstrahlungs_vorhersage_umrechnungsfaktor_sommer/winter" wird nach ca. einem Monat irgend etwas stabiles ergeben. Erst nach einem Jahr können sichere Werte ermittelt werden.
+  - nach 14 Tagen Laufzeit kann man mit diesen Scripten ermitteln lassen, wie der "grundverbrauch_in_w_pro_h_sommer/winter". Werte für "solarstrahlungs_vorhersage_umrechnungsfaktor_sommer/winter" wird nach ca. einem Monat irgend etwas stabiles ergeben. Erst nach einem Jahr können sichere Werte ermittelt werden.
     ```
     cd /script/
     perl download_der_daten_der_zentrale.pl [IP-DER-ZENTRALE]
@@ -121,10 +121,8 @@ die Geräte nicht.
 
 # TODO Anstehende Aufgaben
 - Automatisch Umschaltung Winter/Sommermodus (1.Oktober - 15.März + Wochenvorhersache-Level?)
-  - anhand von Zeitfenster + ?Solarvorhersage?
   - ist bei "wechsle_auto_ladeverhalten" verortet
-- Automatisches Umschalten Roller-Steckdose 
-- Solar-Faktor neu einstellen? Aber im Wintermodus den Verbrauch anpassen. Dazu diesen im Winter auch ermitteln.
+- Automatisches Umschalten Roller-Steckdose
 - Download: alles Dateien auf Zeitpunkt prüfen + Monate, die nicht NACH ihrem Ende runtergeladen wurden nochmal runterladen
   - Via Parameter "alles" oder so dieses Verhalten steuern
 - Wallbox-Umschaltung auf 1,5kW nutzen

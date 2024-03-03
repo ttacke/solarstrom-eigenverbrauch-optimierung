@@ -37,8 +37,8 @@ namespace Local {
 		int heizung_benoetigte_leistung_in_w = 420;
 		int heizung_min_schaltzeit_in_min = 60;
 
-		// TODO diesen configwert als SD_File ablegen, dann kann das von außen aktualisiert werden
-		int grundverbrauch_in_w_pro_h = 263;
+		int grundverbrauch_in_w_pro_h_sommer = 222;
+		int grundverbrauch_in_w_pro_h_winter = 523;
 		float solarstrahlungs_vorhersage_umrechnungsfaktor_sommer = 7.8;
 		float solarstrahlungs_vorhersage_umrechnungsfaktor_winter = 5.0;
 		int akku_groesse_in_wh = 7680;

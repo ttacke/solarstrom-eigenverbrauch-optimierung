@@ -92,11 +92,21 @@ print "\nAnzahl der Log-Datensaetze: " . scalar(@$daten) . "\n";
 my $logdaten_in_tagen = ($daten->[$#$daten]->{'zeitpunkt'} - $daten->[0]->{'zeitpunkt'}) / 86400;
 print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n";
 
-my $verbrauch = [];
-foreach my $e (@$daten) {
-    push(@$verbrauch, $e->{stromverbrauch_in_w});
+foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
+    my $name = $e->[0];
+    my $monate = $e->[1];
+    my $max_grundverbrauch = $e->[2];
+    my $verbrauch = [];
+    foreach my $e (@$daten) {
+        if(
+            $e->{stromverbrauch_in_w} < $max_grundverbrauch
+            && grep { $_ == $e->{monat} } @$monate
+        ) {
+            push(@$verbrauch, $e->{stromverbrauch_in_w});
+        }
+    }
+    print "grundverbrauch_in_w_pro_h_$name (via Median): " . (sort(@$verbrauch))[int(scalar(@$verbrauch) / 2)] . " W\n";
 }
-print "Grundverbrauch(via Median): " . (sort(@$verbrauch))[int(scalar(@$verbrauch) / 2)] . " W\n";
 
 {
     print "Stromstaerken seit Begrenzung auf 2,99kVA (15.02.2024)\n";

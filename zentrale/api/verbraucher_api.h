@@ -500,8 +500,10 @@ namespace Local::Api {
 
 			int akku_ladestand_in_promille = verbraucher.aktueller_akku_ladenstand_in_promille;
 			float solarstrahlungs_vorhersage_umrechnungsfaktor = cfg->solarstrahlungs_vorhersage_umrechnungsfaktor_sommer;
+			int grundverbrauch_in_w_pro_h = cfg->grundverbrauch_in_w_pro_h_sommer;
 			if(month(timestamp) <= 2 || month(timestamp) >= 10) {
 				solarstrahlungs_vorhersage_umrechnungsfaktor = cfg->solarstrahlungs_vorhersage_umrechnungsfaktor_winter;
+				grundverbrauch_in_w_pro_h = cfg->grundverbrauch_in_w_pro_h_winter;
 			}
 			for(int i = 0; i < 12; i++) {
 				int akku_veraenderung_in_promille = round(
@@ -509,7 +511,7 @@ namespace Local::Api {
 						(float) wetter.stundenvorhersage_solarstrahlung_liste[i]
 						*
 						solarstrahlungs_vorhersage_umrechnungsfaktor
-						- cfg->grundverbrauch_in_w_pro_h
+						- grundverbrauch_in_w_pro_h
 					) / (
 						(float) cfg->akku_groesse_in_wh / 1000
 					)
