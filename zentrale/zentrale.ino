@@ -11,7 +11,7 @@ unsigned long runtime;
 unsigned long last_runtime;
 const char* daten_filename = "daten.json";
 int beat_count = 0;
-int network_error_count = 0;
+//int network_error_count = 0;
 
 void setup(void) {
 	runtime = 0;
@@ -103,14 +103,14 @@ void loop(void) {
 				wlan.reconnect();
 				delay(500);
 			}
-			if(!_check_internet_connection()) {
-				network_error_count++;
-				if(network_error_count >= 3) {
-					web_presenter.restart_router();
-					delay(10000);
-					return;
-				}
-			}
+//			if(!_check_internet_connection()) {
+//				network_error_count++;
+//				if(network_error_count >= 3) {
+//					web_presenter.restart_router();
+//					delay(10000);
+//					return;
+//				}
+//			}
 			beat_count = 0;
 		}
 		web_presenter.heartbeat(daten_filename, beat_count);
