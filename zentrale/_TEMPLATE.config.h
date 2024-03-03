@@ -39,9 +39,8 @@ namespace Local {
 
 		// TODO diesen configwert als SD_File ablegen, dann kann das von außen aktualisiert werden
 		int grundverbrauch_in_w_pro_h = 263;
-		// TODO diesen configwert als SD_File ablegen, dann kann das von außen aktualisiert werden
-		// TODO Monatsweise setzen, denn das ist jeden Monat anders
-		float solarstrahlungs_vorhersage_umrechnungsfaktor = 4.65;
+		float solarstrahlungs_vorhersage_umrechnungsfaktor_sommer = 8.0;
+		float solarstrahlungs_vorhersage_umrechnungsfaktor_winter = 5.0;
 		int akku_groesse_in_wh = 7680;
 		int akku_zielladestand_in_promille = 800;
 		int minimaler_akku_ladestand = 200;

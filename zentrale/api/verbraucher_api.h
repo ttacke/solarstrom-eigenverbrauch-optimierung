@@ -499,12 +499,16 @@ namespace Local::Api {
 			}
 
 			int akku_ladestand_in_promille = verbraucher.aktueller_akku_ladenstand_in_promille;
+			float solarstrahlungs_vorhersage_umrechnungsfaktor = cfg->solarstrahlungs_vorhersage_umrechnungsfaktor_sommer;
+			if(month(timestamp) <= 2 || month(timestamp) >= 10) {
+				solarstrahlungs_vorhersage_umrechnungsfaktor = cfg->solarstrahlungs_vorhersage_umrechnungsfaktor_winter;
+			}
 			for(int i = 0; i < 12; i++) {
 				int akku_veraenderung_in_promille = round(
 					(
 						(float) wetter.stundenvorhersage_solarstrahlung_liste[i]
 						*
-						cfg->solarstrahlungs_vorhersage_umrechnungsfaktor
+						solarstrahlungs_vorhersage_umrechnungsfaktor
 						- cfg->grundverbrauch_in_w_pro_h
 					) / (
 						(float) cfg->akku_groesse_in_wh / 1000

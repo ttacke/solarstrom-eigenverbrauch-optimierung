@@ -97,7 +97,7 @@ Zusätzliche Features:
   - in der Bibliotheksverwaltung die Module "SD", "Regexp" und "Time" installieren
 - Die IPs der ESPs im Netzwerk einrichten, dass diese immer auf die gleiche Art erreichbar sind
 - unter /netz-relay und /zentrale jeweils die _TEMPLATE.config.h in config.h kopieren und dort sinnvolle Werte eintragen
-  - nach 14 Tagen Laufzeit kann man mit diesen Scripten ermitteln lassen, wie der "grundverbrauch_in_w_pro_h". Werte für "solarstrahlungs_vorhersage_umrechnungsfaktor" wird nach ca. einem Monat irgend etwas stabiles ergeben.
+  - nach 14 Tagen Laufzeit kann man mit diesen Scripten ermitteln lassen, wie der "grundverbrauch_in_w_pro_h". Werte für "solarstrahlungs_vorhersage_umrechnungsfaktor_sommer/winter" wird nach ca. einem Monat irgend etwas stabiles ergeben. Erst nach einem Jahr können sichere Werte ermittelt werden.
     ```
     cd /script/
     perl download_der_daten_der_zentrale.pl [IP-DER-ZENTRALE]
