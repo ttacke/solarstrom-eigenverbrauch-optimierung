@@ -5,13 +5,13 @@ use warnings;
 sub _gib_duchschnitt {
     my ($liste) = @_;
     #return (sort(@$liste))[int(scalar(@$liste) / 2)];
-    return 0 if(!scalar($#$liste));
+    return 0 if(!scalar(@$liste));
 
     my $x = 0;
     foreach(@$liste) {
         $x += $_;
     }
-    return sprintf("%d", $x / scalar($#$liste));
+    return sprintf("%.4f", $x / scalar(@$liste));
 }
 sub _hole_daten {
     my $daten = [];
@@ -179,40 +179,48 @@ print "Vollzyklen des Akkus: " . sprintf("%.2f", $akku_ladezyklen_in_promille / 
 my $prognose_akku_haltbar_in_tagen = $prognostizierte_vollzyklen / ($akku_ladezyklen_in_promille / 1000) * $logdaten_in_tagen;
 print "Haltbarkeit des Akkus(gesamt; bei max. $prognostizierte_vollzyklen Vollzyklen): " . sprintf("%.1f", $prognose_akku_haltbar_in_tagen / 365) . " Jahre\n";
 
-my $strahlungsdaten = {};
-foreach my $monat (1..12) {
-    $strahlungsdaten->{$monat} ||= {};
-    my $tmp_strahlungsdaten = $strahlungsdaten->{$monat};
-    foreach my $e (@$daten) {
-        next if($e->{monat} != $monat);
+foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
+    my $name = $e->[0];
+    my $monate = $e->[1];
+    my $strahlungsdaten = {};
+    my $zeitraum_daten = {};
+    foreach my $monat (@$monate) {
+        $strahlungsdaten->{$monat} ||= {};
+        my $tmp_strahlungsdaten = $strahlungsdaten->{$monat};
+        foreach my $e (@$daten) {
+            next if($e->{monat} != $monat);
 
-        next if(!$e->{stunden_solarstrahlung});
+            next if(!$e->{stunden_solarstrahlung});
 
-        $tmp_strahlungsdaten->{solarerzeugung_in_w} ||= [];
-        $tmp_strahlungsdaten->{stunden_solarstrahlung} ||= [];
-        push(@{$tmp_strahlungsdaten->{stunden_solarstrahlung}}, $e->{stunden_solarstrahlung});
-        push(@{$tmp_strahlungsdaten->{solarerzeugung_in_w}}, $e->{solarerzeugung_in_w});
+            $tmp_strahlungsdaten->{solarerzeugung_in_w} ||= [];
+            $tmp_strahlungsdaten->{stunden_solarstrahlung} ||= [];
+            push(@{$tmp_strahlungsdaten->{stunden_solarstrahlung}}, $e->{stunden_solarstrahlung});
+            push(@{$tmp_strahlungsdaten->{solarerzeugung_in_w}}, $e->{solarerzeugung_in_w});
+            push(@{$zeitraum_daten->{stunden_solarstrahlung}}, $e->{stunden_solarstrahlung});
+            push(@{$zeitraum_daten->{solarerzeugung_in_w}}, $e->{solarerzeugung_in_w});
+        }
+    }
+
+    print "Umrechnungsfaktor Solarstrahlung pro h -> Leistung in W (Monatsweise):\n";
+    foreach my $monat (@$monate) {
+        my $tmp_strahlungsdaten = $strahlungsdaten->{$monat};
+
+        my $stunden_solarstrahlung = _gib_duchschnitt($tmp_strahlungsdaten->{stunden_solarstrahlung});
+        next if(!$stunden_solarstrahlung);
+
+        my $erzeugung_in_w = _gib_duchschnitt($tmp_strahlungsdaten->{solarerzeugung_in_w});
+        next if(!$erzeugung_in_w);
+
+        my $faktor = $erzeugung_in_w / $stunden_solarstrahlung;
+        printf("$monat: %.2f\n", $faktor);
+    }
+    my $stunden_solarstrahlung = _gib_duchschnitt($zeitraum_daten->{stunden_solarstrahlung});
+    my $erzeugung_in_w = _gib_duchschnitt($zeitraum_daten->{solarerzeugung_in_w});
+    if($erzeugung_in_w && $stunden_solarstrahlung) {
+        my $faktor = $erzeugung_in_w / $stunden_solarstrahlung;
+        printf("solarstrahlungs_vorhersage_umrechnungsfaktor_$name: %.2f\n", $faktor * 0.85);
     }
 }
-
-
-print "Umrechnungsfaktor Solarstrahlung pro h -> Leistung in W (Monatsweise):\n";
-my $globaler_faktor = [];
-foreach my $monat (1..12) {
-    my $tmp_strahlungsdaten = $strahlungsdaten->{$monat};
-
-    my $stunden_solarstrahlung = _gib_duchschnitt($tmp_strahlungsdaten->{stunden_solarstrahlung});
-    next if(!$stunden_solarstrahlung);
-
-    my $erzeugung_in_w = _gib_duchschnitt($tmp_strahlungsdaten->{solarerzeugung_in_w});
-    next if(!$erzeugung_in_w);
-
-    my $faktor = $erzeugung_in_w / $stunden_solarstrahlung;
-    push(@$globaler_faktor, $faktor);
-
-    printf("$monat: %.2f\n", $faktor);
-}
-printf("Gesamt-Faktor: %.2f\n", _gib_duchschnitt($globaler_faktor));
 
 
 my $min_temp = 999;
