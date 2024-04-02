@@ -249,7 +249,7 @@ foreach my $e (@$daten) {
         && $e->{"luft_temperatur"} && $e->{"luft_temperatur"} != 0
     ) {
         my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
-        if($min % 5 == 0) {
+        if($min % 15 == 0) {
             print $temp_file sprintf(
                 "%4d-%02d-%02d %d:%02d,%.1f,%01f\n",
                 $year + 1900, $mon + 1, $mday, $hour, $min, $e->{erde_temperatur}, $e->{luft_temperatur}
