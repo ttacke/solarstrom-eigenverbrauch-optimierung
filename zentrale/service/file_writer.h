@@ -81,10 +81,10 @@ namespace Local::Service {
 		}
 
 		bool delete_file(const char* filename) {
-			if(!_init() || !SD.exists(filename)) {
+			if(!_init() || SD.exists(filename) != 1) {
 				return false;
 			}
-			return SD.remove(filename);
+			return SD.remove(filename) == 1;
 		}
 	};
 }

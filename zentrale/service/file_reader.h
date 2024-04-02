@@ -57,7 +57,7 @@ namespace Local::Service {
 		}
 
 		bool open_file_to_read(const char* filename) {
-			if(!_init() || !SD.exists(filename)) {
+			if(!_init() || SD.exists(filename) != 1) {
 				return false;
 			}
 			offset = 0;
