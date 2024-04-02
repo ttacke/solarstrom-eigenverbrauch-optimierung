@@ -472,7 +472,6 @@ namespace Local::Api {
 		}
 
 		int _lese_ladestatus(Local::Model::Verbraucher::Ladestatus& ladestatus, const char* filename) {
-			ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
 			if(file_reader->open_file_to_read(filename)) {
 				while(file_reader->read_next_block_to_buffer()) {
 					if(file_reader->find_in_buffer((char*) "([a-z]+),")) {
@@ -482,10 +481,16 @@ namespace Local::Api {
 								return atoi(file_reader->finding_buffer);
 							}
 						}
+						if(ladestatus != Local::Model::Verbraucher::Ladestatus::solar) {
+							_log((char*) "LadestatusWechsel>solar", (char*) filename);
+							ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
+						}
 						return 0;
 					}
 				}
 				file_reader->close_file();
+			} else {
+				_log((char*) "Lesefehler", (char*) filename);
 			}
 			return 0;
 		}
