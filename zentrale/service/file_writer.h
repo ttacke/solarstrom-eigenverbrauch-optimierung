@@ -26,9 +26,6 @@ namespace Local::Service {
 	public:
 		bool open_file_to_overwrite(const char* filename) {
 			if(!delete_file(filename)) {
-				// DEBUG: ggf konnte die Datei nicht entfernt werden?
-				Serial.println("Cant delete file:");
-				Serial.println(filename);
 				return false;
 			}
 			if(!_init()) {
@@ -84,7 +81,13 @@ namespace Local::Service {
 			if(!_init() || SD.exists(filename) != 1) {
 				return false;
 			}
-			return SD.remove(filename) == 1;
+			if(SD.remove(filename) == 1) {
+				return true;
+			}
+			// DEBUG: Speicherfehler?
+			Serial.println("Cant delete file:");
+			Serial.println(filename);
+			return false;
 		}
 	};
 }
