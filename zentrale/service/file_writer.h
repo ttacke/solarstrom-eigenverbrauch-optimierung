@@ -25,7 +25,12 @@ namespace Local::Service {
 
 	public:
 		bool open_file_to_overwrite(const char* filename) {
-			delete_file(filename);
+			if(!delete_file(filename)) {
+				// DEBUG: ggf konnte die Datei nicht entfernt werden?
+				Serial.println("Cant delete file:");
+				Serial.println(filename);
+				return false;
+			}
 			if(!_init()) {
 				return false;
 			}
