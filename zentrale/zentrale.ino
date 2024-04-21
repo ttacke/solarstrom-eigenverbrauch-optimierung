@@ -98,10 +98,13 @@ void loop(void) {
 	if(last_runtime == 0 || runtime - last_runtime > 60000) {// initial || 1min
 		Serial.println("heartbeat!");
 		beat_count++;
-		if(beat_count >= 5) {// Nur alle 5 Beats pruefen (derzeit 5min)
+		if(beat_count % 5 == 0) {// Nur alle 5 Beats pruefen (derzeit 5min)
 			while(!_check_network_connection()) {
 				wlan.reconnect();
 				delay(500);
+			}
+			if(beat_count >= 1000000) {
+				beat_count = 0;
 			}
 //			if(!_check_internet_connection()) {
 //				network_error_count++;
@@ -111,7 +114,6 @@ void loop(void) {
 //					return;
 //				}
 //			}
-			beat_count = 0;
 		}
 		web_presenter.heartbeat(daten_filename, beat_count);
 		last_runtime = runtime;

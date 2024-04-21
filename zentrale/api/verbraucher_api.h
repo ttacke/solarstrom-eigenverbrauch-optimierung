@@ -555,7 +555,7 @@ namespace Local::Api {
 			if(roller_benoetigte_ladeleistung_in_w_cache == cfg->roller_benoetigte_leistung_gering_in_w) {
 				aussen_und_gering = true;
 			}
-			if(!aussen_und_gering && beat_count > 0 && beat_count % 60 == 0) {
+			if(!aussen_und_gering && (beat_count % 60 == 0 || beat_count == 3)) {
 				Serial.println("Teste Roller-Aussen-Shelly");
 				aussen_und_gering = true;
 			}
