@@ -37,10 +37,10 @@ namespace Local {
 		int heizung_benoetigte_leistung_in_w = 420;
 		int heizung_min_schaltzeit_in_min = 60;
 
-		int grundverbrauch_in_w_pro_h_sommer = 222;
-		int grundverbrauch_in_w_pro_h_winter = 523;
-		float solarstrahlungs_vorhersage_umrechnungsfaktor_sommer = 7.8;
-		float solarstrahlungs_vorhersage_umrechnungsfaktor_winter = 5.0;
+		int grundverbrauch_in_w_pro_h_sommer = 350;
+		int grundverbrauch_in_w_pro_h_winter = 550;
+		float solarstrahlungs_vorhersage_umrechnungsfaktor_sommer = 4.7;// 90% von 5.23
+		float solarstrahlungs_vorhersage_umrechnungsfaktor_winter = 7.0;// 90% von 7.87
 		int akku_groesse_in_wh = 7680;
 		int akku_zielladestand_in_promille = 800;
 		int minimaler_akku_ladestand = 200;
