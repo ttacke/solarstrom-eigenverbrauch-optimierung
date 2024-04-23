@@ -25,6 +25,9 @@ Zusätzliche Features:
   - bei Ersatzstrom und keinem Überschuss nicht die Batterie leer zu saugen
 - Bei Ersatzstrom ist nur Überschussladen möglich
   - dann wird der Akku-Zielladestand auf 120% gesetzt, so dass nur bei akutem Überschuss geladen wird
+- Wenn die Steuerung deaktiviert wird, in dem einfach dessen Strom abgeschalten wird, verhält sich das System so, dass die Wallbox immer an
+  ist und kein Solar-Überschussladen verwendet wird. Der Roller-Lader ist dann aber dauerhaft aus und muss über eine normale Steckdose
+  benutzt werden 
 
 ## Steuerungs-UI (optional)
 
