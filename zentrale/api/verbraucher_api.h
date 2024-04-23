@@ -282,7 +282,8 @@ namespace Local::Api {
 			verbraucher.wasser_relay_zustand_seit = _lese_zustand_seit(wasser_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			verbraucher.auto_relay_ist_an = _netz_relay_ist_an(cfg->auto_relay_host, cfg->auto_relay_port);
+			// Wird invertiert, damit der Zustand ohne Steuerung der normale Wallboxbetrieb ist
+			verbraucher.auto_relay_ist_an = !_netz_relay_ist_an(cfg->auto_relay_host, cfg->auto_relay_port);
 			verbraucher.auto_relay_zustand_seit = _lese_zustand_seit(auto_relay_zustand_seit_filename);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
@@ -346,7 +347,8 @@ namespace Local::Api {
 		}
 
 		void _schalte_auto_relay(bool ein) {
-			_schalte_netz_relay(ein, cfg->auto_relay_host, cfg->auto_relay_port);
+			// Wird invertiert, damit der Zustand ohne Steuerung der normale Wallboxbetrieb ist
+			_schalte_netz_relay(ein ? false : true, cfg->auto_relay_host, cfg->auto_relay_port);
 			if(file_writer.open_file_to_overwrite(auto_relay_zustand_seit_filename)) {
 				file_writer.write_formated("%d", timestamp);
 				file_writer.close_file();
