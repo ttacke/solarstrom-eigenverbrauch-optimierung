@@ -182,12 +182,11 @@ namespace Local::Api {
 				akku_zielladestand_in_promille
 			);
 			bool akku_unterschreitet_minimalladestand = verbraucher.akku_unterschreitet_ladestand_in_promille(
-				cfg->minimaler_akku_ladestand
+				cfg->minimaler_akku_ladestand_in_promille
 			);
-			float nicht_laden_unter_akkuladestand = 400;
 			float einschaltschwelle = _ermittle_solarladen_einschaltschwelle(
 				verbraucher.aktueller_akku_ladenstand_in_promille,
-				nicht_laden_unter_akkuladestand
+				cfg->nicht_laden_unter_akkuladestand_in_promille
 			);
 
 			int sonnenuntergang_abstand_in_s = 0;
@@ -206,7 +205,7 @@ namespace Local::Api {
 				&&
 					verbraucher.aktueller_akku_ladenstand_in_promille
 					>=
-					cfg->minimaler_akku_ladestand + start_puffer_in_promille
+					cfg->minimaler_akku_ladestand_in_promille + start_puffer_in_promille
 			) {
 				if(_einschalten_wegen_lastgrenzen_verboten(verbraucher, benoetigte_leistung_in_w)) {
 					lastschutz_an_func();
@@ -227,7 +226,7 @@ namespace Local::Api {
 						||
 							verbraucher.aktueller_akku_ladenstand_in_promille
 							<
-							cfg->minimaler_akku_ladestand
+							cfg->minimaler_akku_ladestand_in_promille
 					)
 				) {
 					_log(log_key, (char*) "-solar>FruehLeerenAus");
@@ -264,7 +263,7 @@ namespace Local::Api {
 					schalt_func(false);
 					return true;
 				}
-				if(verbraucher.aktueller_akku_ladenstand_in_promille < nicht_laden_unter_akkuladestand) {
+				if(verbraucher.aktueller_akku_ladenstand_in_promille < cfg->nicht_laden_unter_akkuladestand_in_promille) {
 					_log(log_key, (char*) "-aus>AusWegenZuWenigAkku");
 					schalt_func(false);
 					return true;
@@ -676,7 +675,7 @@ namespace Local::Api {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
 			bool akku_laeuft_potentiell_in_5h_ueber = verbraucher.akku_erreicht_ladestand_in_stunden(akku_zielladestand_in_promille) <= 5;
 			bool akku_unterschreitet_minimalladestand = verbraucher.akku_unterschreitet_ladestand_in_promille(
-				cfg->minimaler_akku_ladestand
+				cfg->minimaler_akku_ladestand_in_promille
 			);
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			bool unerfuellter_ladewunsch = _es_besteht_ein_unerfuellter_ladewunsch(verbraucher);
