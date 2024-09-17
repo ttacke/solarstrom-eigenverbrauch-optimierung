@@ -182,7 +182,7 @@ namespace Local::Api {
 				akku_zielladestand_in_promille
 			);
 			bool akku_unterschreitet_minimalladestand = verbraucher.akku_unterschreitet_ladestand_in_promille(
-				cfg->minimaler_akku_ladestand_in_promille
+				cfg->minimal_im_tagesgang_erreichbarer_akku_ladestand_in_promille
 			);
 			float einschaltschwelle = _ermittle_solarladen_einschaltschwelle(
 				verbraucher.aktueller_akku_ladenstand_in_promille,
@@ -205,7 +205,7 @@ namespace Local::Api {
 				&&
 					verbraucher.aktueller_akku_ladenstand_in_promille
 					>=
-					cfg->minimaler_akku_ladestand_in_promille + start_puffer_in_promille
+					cfg->minimal_im_tagesgang_erreichbarer_akku_ladestand_in_promille + start_puffer_in_promille
 			) {
 				if(_einschalten_wegen_lastgrenzen_verboten(verbraucher, benoetigte_leistung_in_w)) {
 					lastschutz_an_func();
@@ -226,7 +226,7 @@ namespace Local::Api {
 						||
 							verbraucher.aktueller_akku_ladenstand_in_promille
 							<
-							cfg->minimaler_akku_ladestand_in_promille
+							cfg->minimal_im_tagesgang_erreichbarer_akku_ladestand_in_promille
 					)
 				) {
 					_log(log_key, (char*) "-solar>FruehLeerenAus");
@@ -675,7 +675,7 @@ namespace Local::Api {
 			float min_bereitgestellte_leistung = _gib_min_bereitgestellte_leistung(verbraucher, benoetigte_leistung_in_w);
 			bool akku_laeuft_potentiell_in_5h_ueber = verbraucher.akku_erreicht_ladestand_in_stunden(akku_zielladestand_in_promille) <= 5;
 			bool akku_unterschreitet_minimalladestand = verbraucher.akku_unterschreitet_ladestand_in_promille(
-				cfg->minimaler_akku_ladestand_in_promille
+				cfg->minimal_im_tagesgang_erreichbarer_akku_ladestand_in_promille
 			);
 			bool schalt_mindestdauer_ist_erreicht = timestamp - relay_zustand_seit >= min_schaltzeit_in_min * 60;
 			bool unerfuellter_ladewunsch = _es_besteht_ein_unerfuellter_ladewunsch(verbraucher);
@@ -853,7 +853,7 @@ namespace Local::Api {
 			int akku_zielladestand_in_promille = cfg->akku_zielladestand_in_promille;
 			int auto_min_schaltzeit_in_min = cfg->auto_min_schaltzeit_in_min;
 			int roller_min_schaltzeit_in_min = cfg->roller_min_schaltzeit_in_min;
-			int akku_zielladestand_fuer_ueberladen_in_promille = 1000;
+			int akku_zielladestand_fuer_ueberladen_in_promille = cfg->akku_zielladestand_fuer_ueberladen_in_promille;
 
 			if(verbraucher.ersatzstrom_ist_aktiv) {
 				ladeverhalten_wintermodus = false;
@@ -863,8 +863,8 @@ namespace Local::Api {
 				ausschalter_auto_relay_zustand_seit = 0;
 				ausschalter_roller_relay_zustand_seit = 0;
 				_log((char*) "Ersatzstrom->nurUeberschuss");
-				akku_zielladestand_in_promille = 1200;
-				akku_zielladestand_fuer_ueberladen_in_promille = 1200;
+				akku_zielladestand_in_promille = round((float) akku_zielladestand_in_promille * 1.4);
+				akku_zielladestand_fuer_ueberladen_in_promille = round((float) akku_zielladestand_fuer_ueberladen_in_promille * 1.2);
 				auto_min_schaltzeit_in_min = 5;
 				roller_min_schaltzeit_in_min = 5;
 			}
