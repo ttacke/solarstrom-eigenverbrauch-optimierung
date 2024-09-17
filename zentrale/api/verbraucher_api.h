@@ -97,13 +97,17 @@ namespace Local::Api {
 		}
 
 		float _ermittle_solarladen_einschaltschwelle(
-			int aktueller_akku_ladenstand_in_promille,
-			int start_ladebereich
+			int aktueller_akku_ladenstand_in_promille
 		) {
-			if(aktueller_akku_ladenstand_in_promille < start_ladebereich) {
+			if(aktueller_akku_ladenstand_in_promille < cfg->nicht_laden_unter_akkuladestand_in_promille) {
 				return 99999;
 			}
-			float einschaltschwelle = 1.1 - (0.004 * (aktueller_akku_ladenstand_in_promille - start_ladebereich));
+			float einschaltschwelle =
+				1.1 - (0.016 * (
+					(aktueller_akku_ladenstand_in_promille - cfg->nicht_laden_unter_akkuladestand_in_promille)
+					* 100 /
+					(cfg->akku_zielladestand_in_promille - cfg->nicht_laden_unter_akkuladestand_in_promille)
+				));
 			if(einschaltschwelle <= 0.01) {
 				einschaltschwelle = 0.01;
 			}
@@ -185,8 +189,7 @@ namespace Local::Api {
 				cfg->minimal_im_tagesgang_erreichbarer_akku_ladestand_in_promille
 			);
 			float einschaltschwelle = _ermittle_solarladen_einschaltschwelle(
-				verbraucher.aktueller_akku_ladenstand_in_promille,
-				cfg->nicht_laden_unter_akkuladestand_in_promille
+				verbraucher.aktueller_akku_ladenstand_in_promille
 			);
 
 			int sonnenuntergang_abstand_in_s = 0;
