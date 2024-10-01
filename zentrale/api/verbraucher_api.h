@@ -691,11 +691,14 @@ namespace Local::Api {
 			if(verbraucher.zeitpunkt_sonnenuntergang > 0) {
 				sonnenuntergang_abstand_in_s = verbraucher.zeitpunkt_sonnenuntergang - timestamp;
 			}
+			bool akku_ist_zu_voll = verbraucher.aktueller_akku_ladenstand_in_promille >= cfg->akku_ladestand_in_promille_fuer_erzwungenes_ueberladen ? true : false;
 			if(
 				!relay_ist_an
 				&& verbraucher.solarerzeugung_ist_aktiv()
-				&& akku_laeuft_potentiell_in_5h_ueber
-				&& !akku_unterschreitet_minimalladestand
+				&& (
+					(akku_laeuft_potentiell_in_5h_ueber && !akku_unterschreitet_minimalladestand)
+					|| akku_ist_zu_voll
+				)
 				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
 				&& (
 					(
@@ -720,8 +723,10 @@ namespace Local::Api {
 					return true;
 				}
 				if(
-					!akku_laeuft_potentiell_in_5h_ueber
-					|| akku_unterschreitet_minimalladestand
+					(
+						(!akku_laeuft_potentiell_in_5h_ueber || akku_unterschreitet_minimalladestand)
+						&& !akku_ist_zu_voll
+					)
 					|| !verbraucher.solarerzeugung_ist_aktiv()
 				) {
 					_log(log_key, (char*) "-ueberladen>AusWeilAkkuVorhersage");
