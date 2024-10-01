@@ -408,7 +408,7 @@ namespace Local::Api {
 			return leistung;
 		}
 
-		void _schalte_roller_ladeort_und_leistung(bool aussen_und_gering) {
+		void _schalte_roller_ladeort_und_leistung_auf_aussen(bool aussen_und_gering) {
 			if(
 				(
 					aussen_und_gering
@@ -576,13 +576,8 @@ namespace Local::Api {
 					cfg->roller_aussen_relay_port,
 					"/status"
 				);
-				if(erfolgreich){
-					erfolgreich = _read_shelly_roller_content();
-					if(!erfolgreich) {
-						Serial.println("Abfrage des Roller-Aussen-Shellys fehlgeschlagen = schalte auf innen");
-						aussen_und_gering = false;
-					}
-					_schalte_roller_ladeort_und_leistung(aussen_und_gering);
+				if(erfolgreich && _read_shelly_roller_content()) {
+					_schalte_roller_ladeort_und_leistung_auf_aussen(true);
 				}
 			}
 			if(!erfolgreich) {// Innen immer abfragen, damit min. ein Datensatz da ist
@@ -592,6 +587,7 @@ namespace Local::Api {
 					"/status"
 				);
 				_read_shelly_roller_content();
+				_schalte_roller_ladeort_und_leistung_auf_aussen(false);
 			}
 		}
 
