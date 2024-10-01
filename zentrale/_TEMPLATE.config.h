@@ -45,7 +45,8 @@ namespace Local {
 		int akku_groesse_in_wh = 7680;
 		int akku_zielladestand_in_promille = 750;// sollte <= maxSOC-Begrenzung sein
 		int akku_zielladestand_fuer_ueberladen_in_promille = 800;// sollte ~ maxSOC-Begrenzung sein
-		int akku_ladestand_in_promille_fuer_erzwungenes_ueberladen = 770;
+		int akku_ladestand_in_promille_fuer_erzwungenes_ueberladen = 780;
+		int akku_ladestand_in_promille_fuer_erzwungenes_laden = 760;
 		int nicht_laden_unter_akkuladestand_in_promille = 400;
 		int minimal_im_tagesgang_erreichbarer_akku_ladestand_in_promille = 400;
 		int frueh_leeren_starte_in_stunde_utc = 4;

@@ -197,6 +197,8 @@ namespace Local::Api {
 				sonnenuntergang_abstand_in_s = verbraucher.zeitpunkt_sonnenuntergang - timestamp;
 			}
 
+			bool akku_ist_zu_voll = verbraucher.aktueller_akku_ladenstand_in_promille >= cfg->akku_ladestand_in_promille_fuer_erzwungenes_laden ? true : false;
+
 			_lese_frueh_leeren_status(log_key);
 			if(
 				!frueh_leeren_lief_heute
@@ -244,8 +246,10 @@ namespace Local::Api {
 				!relay_ist_an
 				&& verbraucher.solarerzeugung_ist_aktiv()
 				&& sonnenuntergang_abstand_in_s > 0.5 * 3600
-				&& akku_erreicht_zielladestand
-				&& !akku_unterschreitet_minimalladestand
+				&& (
+					(akku_erreicht_zielladestand && !akku_unterschreitet_minimalladestand)
+					|| akku_ist_zu_voll
+				)
 				&& min_bereitgestellte_leistung > einschaltschwelle
 			) {
 				if(_einschalten_wegen_lastgrenzen_verboten(verbraucher, benoetigte_leistung_in_w)) {
@@ -258,8 +262,10 @@ namespace Local::Api {
 			}
 			if(relay_ist_an) {
 				if(
-					!akku_erreicht_zielladestand
-					|| akku_unterschreitet_minimalladestand
+					(
+						(!akku_erreicht_zielladestand || akku_unterschreitet_minimalladestand)
+						&& !akku_ist_zu_voll
+					)
 					|| !verbraucher.solarerzeugung_ist_aktiv()
 				) {
 					_log(log_key, (char*) "-aus>AusWegenZielladestand");
