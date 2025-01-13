@@ -36,7 +36,7 @@ sub _hole_daten {
         $/ = "\n";
         while(my $line = <$fh>) {
             chomp($line);
-            my @e = $line =~ m/^(\d{10,}),e[2],([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),(\d+),/;
+            my @e = $line =~ m/^(\d{10,}),(e[23]),([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),(\d+),(?:(\d+),|)/;
             if(!scalar(@e)) {
                 # warn $line;
                 $fehler++;
@@ -58,16 +58,17 @@ sub _hole_daten {
                 datum                           => sprintf("%04d-%02d-%02d", $d[5] + 1900, $d[4] + 1, $d[3]),
                 stunde                          => $d[2],
                 monat                           => $d[4] + 1,
-                netzbezug_in_w                  => $e[1],
-                solarakku_zuschuss_in_w         => $e[2],
-                solarerzeugung_in_w             => $e[3],
-                stromverbrauch_in_w             => $e[4],
-                solarakku_ladestand_in_promille => $e[5],
-                l1_strom_ma                     => $e[6],
-                l2_strom_ma                     => $e[7],
-                l3_strom_ma                     => $e[8],
-                gib_anteil_pv1_in_prozent       => $e[9],
-                ersatzstrom_ist_aktiv           => $e[10] ? 1 : 0,
+                netzbezug_in_w                  => $e[2],
+                solarakku_zuschuss_in_w         => $e[3],
+                solarerzeugung_in_w             => $e[4],
+                stromverbrauch_in_w             => $e[5],
+                solarakku_ladestand_in_promille => $e[6],
+                l1_strom_ma                     => $e[7],
+                l2_strom_ma                     => $e[8],
+                l3_strom_ma                     => $e[9],
+                gib_anteil_pv1_in_prozent       => $e[10],
+                ersatzstrom_ist_aktiv           => $e[11] ? 1 : 0,
+                gesamt_energiemenge_in_wh       => $e[1] eq 'e2' ? 0 : $e[12],
 
                 stunden_solarstrahlung          => $w[0],
                 tages_solarstrahlung            => $w[1],
@@ -284,4 +285,22 @@ close($temp_file) or die $!;
 printf("\nTemperaturertrag: %.2f K/h\n", $delta_temp / $delta_time);
 print "CSV-Datei $temp_filename wurde erstellt\n";
 
+my $energiemenge = {};
+my $old_key = '';
+my $old_gesamtmenge = 0;
+print "\nErzeugte Energiemenge (Monatsweise):\n";
+foreach my $e (@$daten) {
+    next if(!$e->{'gesamt_energiemenge_in_wh'});
+
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
+    my $key = sprintf("%02d-%04d", $mon, $year);
+    if(!defined($energiemenge->{$key})) {
+        if($old_key && $energiemenge->{$old_key} && $old_gesamtmenge) {
+            printf("%s: %d kWh", $old_key, $old_gesamtmenge - $energiemenge->{$old_key});
+        }
+        $energiemenge->{$key} = $e->{'gesamt_energiemenge_in_wh'}
+    }
+    $old_key = $key;
+    $old_gesamtmenge = $e->{'gesamt_energiemenge_in_wh'};
+}
 print "\n";
