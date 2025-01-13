@@ -37,14 +37,14 @@ namespace Local {
 		int heizung_benoetigte_leistung_in_w = 420;
 		int heizung_min_schaltzeit_in_min = 60;
 
-		int grundverbrauch_in_w_pro_h_sommer = 350;
-		int grundverbrauch_in_w_pro_h_winter = 550;
-		float solarstrahlungs_vorhersage_umrechnungsfaktor_sommer = 4.7;// 90% von 5.23
-		float solarstrahlungs_vorhersage_umrechnungsfaktor_winter = 7.0;// 90% von 7.87
+		int grundverbrauch_in_w_pro_h_sommer = 256;
+		int grundverbrauch_in_w_pro_h_winter = 522;
+		float solarstrahlungs_vorhersage_umrechnungsfaktor_sommer = 5.1;// 90% von 5.66
+		float solarstrahlungs_vorhersage_umrechnungsfaktor_winter = 6.6;// 90% von 7.34
 
 		int akku_groesse_in_wh = 7680;
-		int akku_zielladestand_in_promille = 750;// sollte <= maxSOC-Begrenzung sein
-		int akku_zielladestand_fuer_ueberladen_in_promille = 800;// sollte ~ maxSOC-Begrenzung sein
+		int akku_zielladestand_in_promille = 800;// sollte <= maxSOC-Begrenzung sein
+		int akku_zielladestand_fuer_ueberladen_in_promille = 980;// sollte ~ maxSOC-Begrenzung sein
 		int akku_ladestand_in_promille_fuer_erzwungenes_ueberladen = 780;
 		int akku_ladestand_in_promille_fuer_erzwungenes_laden = 760;
 		int nicht_laden_unter_akkuladestand_in_promille = 400;
