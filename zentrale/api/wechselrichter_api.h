@@ -25,7 +25,7 @@ namespace Local::Api {
 				findings |= 0b0000'0100;
 			}
 			if(web_reader->find_in_buffer((char*) "\"E_Total\":([0-9]+)[^0-9]")) {
-				elektroanlage.gesamt_energiemenge_in_wh = round(atof(web_reader->finding_buffer) * 10);
+				elektroanlage.gesamt_energiemenge_in_wh = round(atof(web_reader->finding_buffer) * 1);
 			}
 			if(web_reader->find_in_buffer((char*) "\"P_Grid\":([-0-9.nul]+)[^0-9]")) {
 				if(strcmp(web_reader->finding_buffer, "null") == 0) {
