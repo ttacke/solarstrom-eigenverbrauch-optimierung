@@ -290,7 +290,7 @@ my $old_key = '';
 my $old_gesamtmenge = 0;
 print "\nErzeugte Energiemenge (Monatsweise):\n";
 foreach my $e (@$daten) {
-    next if(!$e->{'gesamt_energiemenge_in_wh'});
+    next if(!$e->{'gesamt_energiemenge_in_wh'} || $e->{'zeitpunkt'} < 1736857686);
 
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
     my $key = sprintf("%02d-%04d", $mon, $year);
@@ -302,5 +302,6 @@ foreach my $e (@$daten) {
     }
     $old_key = $key;
     $old_gesamtmenge = $e->{'gesamt_energiemenge_in_wh'};
+    # warn "$e->{'zeitpunkt'} $e->{'gesamt_energiemenge_in_wh'}";
 }
 print "\n";
