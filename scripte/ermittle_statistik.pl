@@ -286,22 +286,23 @@ printf("\nTemperaturertrag: %.2f K/h\n", $delta_temp / $delta_time);
 print "CSV-Datei $temp_filename wurde erstellt\n";
 
 my $energiemenge = {};
-my $old_key = '';
-my $old_gesamtmenge = 0;
 print "\nErzeugte Energiemenge (Monatsweise):\n";
+my $gesamt_energiemenge_in_wh_startpunkt = 0;
 foreach my $e (@$daten) {
-    next if(!$e->{'gesamt_energiemenge_in_wh'} || $e->{'zeitpunkt'} < 1736857686);
+    next if(!$e->{'gesamt_energiemenge_in_wh'} || $e->{'zeitpunkt'} < 1736857686);# 14.1.2025
 
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
-    my $key = sprintf("%02d-%04d", $mon, $year);
+    $mon += 1;
+    $year += 1900;
+    my $key = sprintf("%02d/%04d", $mon, $year);
     if(!defined($energiemenge->{$key})) {
-        if($old_key && $energiemenge->{$old_key} && $old_gesamtmenge) {
-            printf("%s: %d kWh", $old_key, $old_gesamtmenge - $energiemenge->{$old_key});
-        }
-        $energiemenge->{$key} = $e->{'gesamt_energiemenge_in_wh'}
+        $gesamt_energiemenge_in_wh_startpunkt ||= $e->{'gesamt_energiemenge_in_wh'};
     }
-    $old_key = $key;
-    $old_gesamtmenge = $e->{'gesamt_energiemenge_in_wh'};
-    # warn "$e->{'zeitpunkt'} $e->{'gesamt_energiemenge_in_wh'}";
+    $energiemenge->{$key} = $e->{'gesamt_energiemenge_in_wh'} - $gesamt_energiemenge_in_wh_startpunkt;
+}
+my $erster_monat = 1;
+foreach my $key (sort(keys(%$energiemenge))) {
+    printf("%s: %.0f kWh %s\n", $key, $energiemenge->{$key} / 1000, ($erster_monat ? ' (nur teilweise!)' : ''));
+    $erster_monat = 0;
 }
 print "\n";
