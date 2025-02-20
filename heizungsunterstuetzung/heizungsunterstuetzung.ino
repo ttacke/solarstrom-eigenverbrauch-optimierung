@@ -50,8 +50,8 @@ int _get_sensor_median_and_reset_values() {
 }
 void _post_sensor_value(int value) {
 	// TODO eigentlich soll hier direkt das Shelly an und ausgeschaltet werden, aber Daten sammeln ist immer gut
-	strcpy(buffer, cfg.target_path);
-	strcat(buffer, (char*) value);
+	// TODO schalter hier uebertragen
+	sprintf(buffer, "%s?val=%d&heating_element=%d", cfg.target_path, value, 1);
 	Serial.println("Send value: " + (String) buffer);
 	web_reader.send_http_get_request(
 		cfg.target_host,

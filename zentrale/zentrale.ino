@@ -51,6 +51,12 @@ void setup(void) {
 		    atof(web_presenter.webserver.server.arg("hum").c_str())
 		);
 	});
+	web_presenter.webserver.add_http_get_handler("/set_heating_support", []() {// &val=590&heating_element=1
+		web_presenter.set_heating_support(
+		    atof(web_presenter.webserver.server.arg("val").c_str()),
+		    atof(web_presenter.webserver.server.arg("heating_element").c_str())
+		);
+	});
 	web_presenter.webserver.start();
 	Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
 }

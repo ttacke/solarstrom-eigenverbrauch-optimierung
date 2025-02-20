@@ -41,6 +41,8 @@ namespace Local {
 		float humidity = 0;
 		float air_temperature = 0;
 		float air_humidity = 0;
+		bool heating_element_is_on = false;
+		int heating_support_value = 0;
 
 		void _lese_systemstatus_daten() {
 			if(file_reader.open_file_to_read(system_status_filename)) {
@@ -85,6 +87,7 @@ namespace Local {
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(",kb1%.1f,%.1f", temperature, humidity);
 				file_writer.write_formated(",kl1%.1f,%.1f", air_temperature, air_humidity);
+				file_writer.write_formated(",hs%d,%d", heating_element_is_on ? 1 : 0, heating_support_value);
 				file_writer.write_formated("\n");
 				file_writer.close_file();
 			}
@@ -137,6 +140,12 @@ namespace Local {
 		void set_air_temperature_and_humidity(float temp, float hum) {
 		    air_temperature = temp;
 		    air_humidity = hum;
+		    webserver.server.send(200, "text/plain", "ok");
+		}
+
+		void set_heating_support(int val, int status) {
+		    heating_element_is_on = (status == 1 ? true : false);
+		    heating_support_value = val;
 		    webserver.server.send(200, "text/plain", "ok");
 		}
 
@@ -407,6 +416,14 @@ namespace Local {
 				file_writer.write_formated(
 					"\"keller_luft_luftfeuchtigkeit\":%.1f,",
 					air_humidity
+				);
+				file_writer.write_formated(
+					"\"heizunterstuetzung_messwert\":%d,",
+					heating_support_value
+				);
+				file_writer.write_formated(
+					"\"heizunterstuetzung\":%s,",
+					heating_element_is_on ? "true" : "false"
 				);
 				file_writer.write_formated(
 					"\"timestamp\":%i}",

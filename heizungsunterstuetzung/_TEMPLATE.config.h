@@ -12,6 +12,6 @@ namespace Local {
 
 		const char* target_host = "[HOST]";
 		const int target_port = 80;
-		const char* target_path = "/set_dataTODO?value=";
+		const char* target_path = "/set_heating_support";
 	};
 }

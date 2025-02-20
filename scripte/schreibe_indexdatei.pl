@@ -7,7 +7,7 @@ if(system("curl --version 1>/dev/null 2>&1") != 0) {
     exit(1);
 }
 if(!$ARGV[0]) {
-    $ARGV[0] = '192.168.0.30';
+    $ARGV[0] = '192.168.0.15';
     print "Benutzte IP des ESP8266-12E-Controllers(zentrale): $ARGV[0]\n";
 }
 

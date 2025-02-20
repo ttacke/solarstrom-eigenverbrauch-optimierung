@@ -121,6 +121,8 @@
 			document.getElementById('keller_luftfeuchtigkeit').innerHTML = daten['keller_luftfeuchtigkeit'];
 			document.getElementById('keller_luft_temperatur').innerHTML = daten['keller_luft_temperatur'];
 			document.getElementById('keller_luft_luftfeuchtigkeit').innerHTML = daten['keller_luft_luftfeuchtigkeit'];
+			
+			document.getElementById('heizunterstuetzung_messwert').innerHTML = daten['heizunterstuetzung_messwert'];
 		}
 		function _setze_ladewunsch(id, typ, timestamp) {
 			var el = document.getElementById(id).getElementsByTagName("button")[0];
@@ -615,7 +617,8 @@
 </div>
 
 <div class="keller_klima">
-	<div>Keller Luft: <span id="keller_luft_temperatur"></span> &#8451; / <span id="keller_luft_luftfeuchtigkeit"></span> %</div>
+	<div>Keller Luft: <span id="keller_luft_temperatur"></span> &#8451; / <span id="keller_luft_luftfeuchtigkeit"></span> %
+	<small>(H:<span id="heizunterstuetzung_messwert"></span>)</small></div>
 	<div>Keller Erde: <span id="keller_temperatur"></span> &#8451; / <span id="keller_luftfeuchtigkeit"></span> %</div>
 </div>
 
