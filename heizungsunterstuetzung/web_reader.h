@@ -60,7 +60,7 @@ namespace Local {
 	public:
 		char finding_buffer[65];
 		char buffer[64];
-		int default_timeout_in_hundertstel_s = 2000;
+		int default_timeout_in_hundertstel_s = 10000;
 		int kurzer_timeout_in_hundertstel_s = 500;
 
 		WebReader(WiFiClient& wlan_client): wlan_client(wlan_client) {
