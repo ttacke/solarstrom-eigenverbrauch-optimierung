@@ -101,6 +101,9 @@ bool _check_internet_connection() {
 
 void loop(void) {
 	runtime = millis();// Will overflow after ~50 days, but this is not a problem
+	if(runtime == 0) {// heartbeat läuft auch mal endlos duch. Kann eigentlich nur diesen Grund haben
+		runtime = last_runtime + 50;
+	}
 	if(last_runtime == 0 || runtime - last_runtime > 60000) {// initial || 1min
 		Serial.println("heartbeat!");
 		beat_count++;
