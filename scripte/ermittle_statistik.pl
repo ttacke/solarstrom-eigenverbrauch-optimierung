@@ -50,7 +50,7 @@ sub _hole_daten {
                 next;
             }
 
-            my @t = $line =~ m/,kb?1([\-\d\.]+),([\d\.]+),kl?1([\-\d\.]+),([\d\.]+)/;
+            my @t = $line =~ m/,kb?1([\-\d\.]+),([\d\.]+),kl?1([\-\d\.]+),([\d\.]+)(?:,hs(\d+),(\d+)|)/;
 
             my @d = gmtime($e[0]);
             my $neu = {
@@ -77,6 +77,9 @@ sub _hole_daten {
                 erde_luftfeuchtigkeit           => $t[1],
                 luft_temperatur                 => $t[2],
                 luft_luftfeuchtigkeit           => $t[3],
+
+                heizungsunterstuetzung_an       => $t[4],
+                heizungsunterstuetzung_messwert => $t[5],
             };
             push(@$daten, $neu);
         }
@@ -304,5 +307,14 @@ my $erster_monat = 1;
 foreach my $key (sort(keys(%$energiemenge))) {
     printf("%s: %.0f kWh %s\n", $key, $energiemenge->{$key} / 1000, ($erster_monat ? ' (nur teilweise!)' : ''));
     $erster_monat = 0;
+}
+
+print "Daten der Heizungsunerstuetzung\n";
+foreach my $e (@$daten) {
+    next if(!$e->{'heizungsunterstuetzung_messwert'});
+
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
+    my $time = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
+    print "$time  $e->{'heizungsunterstuetzung_messwert'}\n";
 }
 print "\n";
