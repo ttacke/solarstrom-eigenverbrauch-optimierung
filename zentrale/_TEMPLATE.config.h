@@ -38,6 +38,11 @@ namespace Local {
 		int wasser_min_schaltzeit_in_min = 60;
 		int heizung_benoetigte_leistung_in_w = 420;
 		int heizung_min_schaltzeit_in_min = 60;
+		int heizstab_benoetigte_leistung_in_w = 1500;
+		int heizstab_einschalt_differenzwert = 540;
+		int heizstab_ausschalt_differenzwert = 543;
+		float heizstab_einschalt_temperatur = 19.9;
+		float heizstab_ausschalt_temperatur = 20.0;
 
 		int grundverbrauch_in_w_pro_h_sommer = 256;
 		int grundverbrauch_in_w_pro_h_winter = 522;

@@ -16,6 +16,8 @@ namespace Local::Api {
 		bool ladeverhalten_wintermodus = false;
 		bool frueh_leeren_lief_heute = true;
 		bool frueh_leeren_ist_aktiv = false;
+		int heizstab_schaltautomat_last_run = 0;
+		int heizstab_schaltautomat_karenzzeit = 300;
 
 		const char* heizung_relay_zustand_seit_filename = "heizung_relay.status";
 
@@ -911,6 +913,29 @@ namespace Local::Api {
 					_schalte_heizung_relay(false);
 					verbraucher.heizung_lastschutz = true;
 					return;
+				}
+				_log((char*) "HeizstabLastgrenze");
+				_schalte_heizstab_relay(false);
+			}
+
+// TODO
+int DIFF = 541;
+float TEMP = 20.0;
+			if(timestamp - heizstab_schaltautomat_last_run > heizstab_schaltautomat_karenzzeit) {
+				heizstab_schaltautomat_last_run = timestamp;
+				if(
+					!_einschalten_wegen_lastgrenzen_verboten(
+						verbraucher, cfg->heizstab_benoetigte_leistung_in_w
+					)
+					&& DIFF <= cfg->heizstab_einschalt_differenzwert
+					&& TEMP <= cfg->heizstab_einschalt_temperatur
+				) {
+					_schalte_heizstab_relay(true);
+				} else if(
+					DIFF >= cfg->heizstab_ausschalt_differenzwert
+					|| TEMP >= cfg->heizstab_ausschalt_temperatur
+				) {
+					_schalte_heizstab_relay(false);
 				}
 			}
 
