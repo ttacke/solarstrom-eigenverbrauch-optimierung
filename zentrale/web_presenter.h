@@ -71,7 +71,7 @@ namespace Local {
 			}
 		}
 
-		void _write_log_data(int now_timestamp) {
+		void _write_log_data(int now_timestamp, bool heizstabbetrieb_ist_erlaubt) {
 			char filename[32];
 			sprintf(filename, anlagen_log_filename_template, year(now_timestamp), month(now_timestamp));
 			if(file_writer.open_file_to_append(filename)) {
@@ -86,7 +86,7 @@ namespace Local {
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(",kb1%.1f,%.1f", temperature, humidity);
 				file_writer.write_formated(",kl1%.1f,%.1f", cellar_temperature, cellar_humidity);
-				file_writer.write_formated(",hs%d,%d", 0, heat_difference);
+				file_writer.write_formated(",hs%d,%d", (heizstabbetrieb_ist_erlaubt ? 1 : 0), heat_difference);
 				file_writer.write_formated("\n");
 				file_writer.close_file();
 			}
@@ -256,7 +256,7 @@ namespace Local {
 			verbraucher_api.fuehre_schaltautomat_aus(verbraucher);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			_write_log_data(now_timestamp);
+			_write_log_data(now_timestamp, verbraucher.heizstabbetrieb_ist_erlaubt);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			if(file_writer.open_file_to_overwrite(data_filename)) {
@@ -423,7 +423,7 @@ namespace Local {
 				);
 				file_writer.write_formated(
 					"\"heizstab_erlaubt\":%s,",
-					"true"
+					(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
 				);
 				file_writer.write_formated(
 					"\"timestamp\":%i}",
