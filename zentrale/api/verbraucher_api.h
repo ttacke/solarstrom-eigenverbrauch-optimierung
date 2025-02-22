@@ -867,11 +867,7 @@ namespace Local::Api {
 			_fuelle_akkuladestands_vorhersage(verbraucher, wetter);
 		}
 
-		void fuehre_schaltautomat_aus(
-			Local::Model::Verbraucher& verbraucher,
-			float wohnraum_temperatur,
-			int heizungs_temperatur_differenz
-		) {
+		void fuehre_schaltautomat_aus(Local::Model::Verbraucher& verbraucher) {
 			int ausschalter_auto_relay_zustand_seit = verbraucher.auto_relay_zustand_seit;
 			int ausschalter_roller_relay_zustand_seit = verbraucher.roller_relay_zustand_seit;
 			int akku_zielladestand_in_promille = cfg->akku_zielladestand_in_promille;
@@ -919,7 +915,8 @@ namespace Local::Api {
 					return;
 				}
 				_log((char*) "HeizstabLastgrenze");
-				_schalte_heizstab_relay(false);
+				verbraucher.heizstabbetrieb_ist_erlaubt = false;
+				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
 			}
 
 			if(timestamp - heizstab_schaltautomat_last_run > heizstab_schaltautomat_karenzzeit) {
@@ -928,16 +925,17 @@ namespace Local::Api {
 					!_einschalten_wegen_lastgrenzen_verboten(
 						verbraucher, cfg->heizstab_benoetigte_leistung_in_w
 					)
-					&& heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
-					&& wohnraum_temperatur <= cfg->heizstab_einschalt_temperatur
+					&& verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
+					&& verbraucher.wohnraum_temperatur <= cfg->heizstab_einschalt_temperatur
 				) {
-					_schalte_heizstab_relay(true);
+					verbraucher.heizstabbetrieb_ist_erlaubt = true;
 				} else if(
-					heizungs_temperatur_differenz >= cfg->heizstab_ausschalt_differenzwert
-					|| wohnraum_temperatur >= cfg->heizstab_ausschalt_temperatur
+					verbraucher.heizungs_temperatur_differenz >= cfg->heizstab_ausschalt_differenzwert
+					|| verbraucher.wohnraum_temperatur >= cfg->heizstab_ausschalt_temperatur
 				) {
-					_schalte_heizstab_relay(false);
+					verbraucher.heizstabbetrieb_ist_erlaubt = false;
 				}
+				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
 			}
 
 			int karenzzeit = (5 * 60);

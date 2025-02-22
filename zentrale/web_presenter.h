@@ -251,7 +251,9 @@ namespace Local {
 			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			verbraucher_api.fuehre_schaltautomat_aus(verbraucher, temperature, heat_difference);
+			verbraucher.wohnraum_temperatur = temperature;
+			verbraucher.heizungs_temperatur_differenz = heat_difference;
+			verbraucher_api.fuehre_schaltautomat_aus(verbraucher);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			_write_log_data(now_timestamp);

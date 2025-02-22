@@ -62,6 +62,10 @@ namespace Local::Model {
 		bool ladeverhalten_wintermodus = false;
 		int netzbezug_in_w = 0;
 
+		float wohnraum_temperatur = 0;
+		int heizungs_temperatur_differenz = 0;
+		bool heizstabbetrieb_ist_erlaubt = false;
+
 		int gib_stundenvorhersage_akku_ladestand_als_fibonacci(int index) {
 			int max_promille = 0;
 			for(int i = 0; i < 4; i++) {
