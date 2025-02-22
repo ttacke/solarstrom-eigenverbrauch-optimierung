@@ -354,23 +354,6 @@ namespace Local::Api {
 			}
 		}
 
-		void _schalte_roller_relay(bool ein) {
-			_schalte_shellyplug(
-				ein, cfg->roller_relay_host, cfg->roller_relay_port,
-				web_reader->default_timeout_in_hundertstel_s
-			);
-			if(roller_benoetigte_ladeleistung_in_w_cache == cfg->roller_benoetigte_leistung_gering_in_w) {
-				_schalte_shellyplug(
-					ein, cfg->roller_aussen_relay_host, cfg->roller_aussen_relay_port,
-					web_reader->kurzer_timeout_in_hundertstel_s
-				);
-			}
-			if(file_writer.open_file_to_overwrite(roller_relay_zustand_seit_filename)) {
-				file_writer.write_formated("%d", timestamp);
-				file_writer.close_file();
-			}
-		}
-
 		void _schalte_auto_relay(bool ein) {
 			// Wird invertiert, damit der Zustand ohne Steuerung der normale Wallboxbetrieb ist
 			_schalte_netz_relay(ein ? false : true, cfg->auto_relay_host, cfg->auto_relay_port);
@@ -394,6 +377,14 @@ namespace Local::Api {
 				file_writer.write_formated("%d", timestamp);
 				file_writer.close_file();
 			}
+		}
+
+		void _schalte_heizstab_relay(bool ein) {
+			_log((char*) "schalte heizstab: ", (char*) (ein ? "erlaubt" : "aus"));
+			_schalte_shellyplug(
+				ein, cfg->heizstab_relay_host, cfg->heizstab_relay_port,
+				web_reader->default_timeout_in_hundertstel_s
+			);
 		}
 
 		int _lese_zustand_seit(const char* filename) {
