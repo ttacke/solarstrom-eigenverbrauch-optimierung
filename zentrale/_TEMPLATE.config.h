@@ -26,6 +26,8 @@ namespace Local {
 		const int heizung_relay_port = 80;
 //		const char* router_neustart_relay_host = "192.168.0.36";
 //		const int router_neustart_relay_port = 80;
+		const char* heizstab_relay_host = "192.168.0.38";
+		const int heizstab_relay_port = 80;
 
 		int roller_benoetigte_leistung_gering_in_w = 420;
 		int roller_benoetigte_leistung_hoch_in_w = 840;

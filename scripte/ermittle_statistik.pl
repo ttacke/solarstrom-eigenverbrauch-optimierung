@@ -311,7 +311,7 @@ foreach my $key (sort(keys(%$energiemenge))) {
 
 print "Daten der Heizungs-Temperatur-Differenz\n";
 foreach my $e (@$daten) {
-    next if(!$e->{'heizung_temperatur_differenz'});
+    next if(!$e->{'heizung_temperatur_differenz'} || $e->{'zeitpunkt'} < "1740222177");
 
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
     my $time = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
@@ -321,4 +321,5 @@ foreach my $e (@$daten) {
 # 537 war den ganzen Tag, als die Heizung über gebühr lief (Kessel 25,0°C, Vorlauf 24,1°C)
 # 540 = ausschaltgrenze, 537 einschaltgrenze
 # zusätzlich bei einschalten: <20°
+# -- nach Einbau vermutlich 540. Die Werte sind etwas anders. Prüfen
 print "\n";
