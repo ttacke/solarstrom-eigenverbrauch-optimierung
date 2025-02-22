@@ -867,7 +867,11 @@ namespace Local::Api {
 			_fuelle_akkuladestands_vorhersage(verbraucher, wetter);
 		}
 
-		void fuehre_schaltautomat_aus(Local::Model::Verbraucher& verbraucher) {
+		void fuehre_schaltautomat_aus(
+			Local::Model::Verbraucher& verbraucher,
+			float wohnraum_temperatur,
+			int heizungs_temperatur_differenz
+		) {
 			int ausschalter_auto_relay_zustand_seit = verbraucher.auto_relay_zustand_seit;
 			int ausschalter_roller_relay_zustand_seit = verbraucher.roller_relay_zustand_seit;
 			int akku_zielladestand_in_promille = cfg->akku_zielladestand_in_promille;
@@ -918,22 +922,19 @@ namespace Local::Api {
 				_schalte_heizstab_relay(false);
 			}
 
-// TODO
-int DIFF = 541;
-float TEMP = 20.0;
 			if(timestamp - heizstab_schaltautomat_last_run > heizstab_schaltautomat_karenzzeit) {
 				heizstab_schaltautomat_last_run = timestamp;
 				if(
 					!_einschalten_wegen_lastgrenzen_verboten(
 						verbraucher, cfg->heizstab_benoetigte_leistung_in_w
 					)
-					&& DIFF <= cfg->heizstab_einschalt_differenzwert
-					&& TEMP <= cfg->heizstab_einschalt_temperatur
+					&& heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
+					&& wohnraum_temperatur <= cfg->heizstab_einschalt_temperatur
 				) {
 					_schalte_heizstab_relay(true);
 				} else if(
-					DIFF >= cfg->heizstab_ausschalt_differenzwert
-					|| TEMP >= cfg->heizstab_ausschalt_temperatur
+					heizungs_temperatur_differenz >= cfg->heizstab_ausschalt_differenzwert
+					|| wohnraum_temperatur >= cfg->heizstab_ausschalt_temperatur
 				) {
 					_schalte_heizstab_relay(false);
 				}

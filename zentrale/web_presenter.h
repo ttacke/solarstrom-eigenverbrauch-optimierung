@@ -40,7 +40,7 @@ namespace Local {
 		float temperature = 0;
 		float humidity = 0;
 		float cellar_temperature = 0;
-		float air_humidity = 0;
+		float cellar_humidity = 0;
 		int heat_difference = 0;
 
 		void _lese_systemstatus_daten() {
@@ -85,7 +85,7 @@ namespace Local {
 				verbraucher.write_log_data(file_writer);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(",kb1%.1f,%.1f", temperature, humidity);
-				file_writer.write_formated(",kl1%.1f,%.1f", cellar_temperature, air_humidity);
+				file_writer.write_formated(",kl1%.1f,%.1f", cellar_temperature, cellar_humidity);
 				file_writer.write_formated(",hs%d,%d", 0, heat_difference);
 				file_writer.write_formated("\n");
 				file_writer.close_file();
@@ -138,7 +138,7 @@ namespace Local {
 
 		void set_cellar_temperature_and_humidity(float temp, float hum) {
 		    cellar_temperature = temp;
-		    air_humidity = hum;
+		    cellar_humidity = hum;
 		    webserver.server.send(200, "text/plain", "ok");
 		}
 
@@ -251,7 +251,7 @@ namespace Local {
 			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			verbraucher_api.fuehre_schaltautomat_aus(verbraucher);
+			verbraucher_api.fuehre_schaltautomat_aus(verbraucher, temperature, heat_difference);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			_write_log_data(now_timestamp);
@@ -413,7 +413,7 @@ namespace Local {
 				);
 				file_writer.write_formated(
 					"\"keller_luftfeuchtigkeit\":%.1f,",
-					air_humidity
+					cellar_humidity
 				);
 				file_writer.write_formated(
 					"\"heizung_temperatur_differenz\":%d,",
