@@ -117,12 +117,14 @@
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
 
+			document.getElementById('wohnraum_temperatur').innerHTML = daten['wohnraum_temperatur'];
+			document.getElementById('wohnraum_luftfeuchtigkeit').innerHTML = daten['wohnraum_luftfeuchtigkeit'];
 			document.getElementById('keller_temperatur').innerHTML = daten['keller_temperatur'];
 			document.getElementById('keller_luftfeuchtigkeit').innerHTML = daten['keller_luftfeuchtigkeit'];
-			document.getElementById('keller_luft_temperatur').innerHTML = daten['keller_luft_temperatur'];
-			document.getElementById('keller_luft_luftfeuchtigkeit').innerHTML = daten['keller_luft_luftfeuchtigkeit'];
 			
 			document.getElementById('heizung_temperatur_differenz').innerHTML = daten['heizung_temperatur_differenz'];
+			document.getElementById('heizstab_erlaubt').className = daten['heizstab_erlaubt'] ? 'on' : 'off';
+			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'ja' : 'nein';
 		}
 		function _setze_ladewunsch(id, typ, timestamp) {
 			var el = document.getElementById(id).getElementsByTagName("button")[0];
@@ -464,7 +466,7 @@
 		}
 
 		.zusatzinfo {
-			font-size: 1.0rem;
+			font-size: 0.8rem;
 			text-align: center;
 		}
 			.zusatzinfo>span {
@@ -595,6 +597,10 @@
 		HEIZUNG
 		<br><span class="ladestatus">-</span>
 	</span>
+	<span id="heizstab">
+		HEIZSTAB
+		<br><span class="ladestatus">-</span>
+	</span>
 </div>
 
 <table class="balkentabelle" id="balkenanzeige"></table>
@@ -617,9 +623,9 @@
 </div>
 
 <div class="keller_klima">
-	<div>Keller Luft: <span id="keller_luft_temperatur"></span> &#8451; / <span id="keller_luft_luftfeuchtigkeit"></span> %
+	<div>Wohnraum: <span id="wohnraum_temperatur"></span> &#8451; / <span id="wohnraum_luftfeuchtigkeit"></span> %</div>
+	<div>Keller: <span id="keller_temperatur"></span> &#8451; / <span id="keller_luftfeuchtigkeit"></span> %
 	<small>(H:<span id="heizung_temperatur_differenz"></span>)</small></div>
-	<div>Keller Erde: <span id="keller_temperatur"></span> &#8451; / <span id="keller_luftfeuchtigkeit"></span> %</div>
 </div>
 
 </body>

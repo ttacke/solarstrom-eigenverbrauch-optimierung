@@ -45,8 +45,8 @@ void setup(void) {
 		    atof(web_presenter.webserver.server.arg("hum").c_str())
 		);
 	});
-	web_presenter.webserver.add_http_get_handler("/set_air_temperature_and_humidity", []() {// &hum=45&temp=22.38
-		web_presenter.set_air_temperature_and_humidity(
+	web_presenter.webserver.add_http_get_handler("/set_cellar_temperature_and_humidity", []() {// &hum=45&temp=22.38
+		web_presenter.set_cellar_temperature_and_humidity(
 		    atof(web_presenter.webserver.server.arg("temp").c_str()),
 		    atof(web_presenter.webserver.server.arg("hum").c_str())
 		);

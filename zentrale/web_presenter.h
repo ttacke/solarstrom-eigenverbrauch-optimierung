@@ -39,7 +39,7 @@ namespace Local {
 		char log_buffer[64];
 		float temperature = 0;
 		float humidity = 0;
-		float air_temperature = 0;
+		float cellar_temperature = 0;
 		float air_humidity = 0;
 		int heat_difference = 0;
 
@@ -85,7 +85,7 @@ namespace Local {
 				verbraucher.write_log_data(file_writer);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(",kb1%.1f,%.1f", temperature, humidity);
-				file_writer.write_formated(",kl1%.1f,%.1f", air_temperature, air_humidity);
+				file_writer.write_formated(",kl1%.1f,%.1f", cellar_temperature, air_humidity);
 				file_writer.write_formated(",hs%d,%d", 0, heat_difference);
 				file_writer.write_formated("\n");
 				file_writer.close_file();
@@ -136,8 +136,8 @@ namespace Local {
 		    webserver.server.send(200, "text/plain", "ok");
 		}
 
-		void set_air_temperature_and_humidity(float temp, float hum) {
-		    air_temperature = temp;
+		void set_cellar_temperature_and_humidity(float temp, float hum) {
+		    cellar_temperature = temp;
 		    air_humidity = hum;
 		    webserver.server.send(200, "text/plain", "ok");
 		}
@@ -403,16 +403,16 @@ namespace Local {
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
-					"\"keller_temperatur\":%.1f,\"keller_luftfeuchtigkeit\":%.1f,",
+					"\"wohnraum_temperatur\":%.1f,\"wohnraum_luftfeuchtigkeit\":%.1f,",
 					temperature,
 					humidity
 				);
 				file_writer.write_formated(
-					"\"keller_luft_temperatur\":%.1f,",
-					air_temperature
+					"\"keller_temperatur\":%.1f,",
+					cellar_temperature
 				);
 				file_writer.write_formated(
-					"\"keller_luft_luftfeuchtigkeit\":%.1f,",
+					"\"keller_luftfeuchtigkeit\":%.1f,",
 					air_humidity
 				);
 				file_writer.write_formated(
@@ -420,8 +420,8 @@ namespace Local {
 					heat_difference
 				);
 				file_writer.write_formated(
-					"\"heizunterstuetzung\":%s,",
-					"false"
+					"\"heizstab_erlaubt\":%s,",
+					"true"
 				);
 				file_writer.write_formated(
 					"\"timestamp\":%i}",
