@@ -79,7 +79,7 @@ sub _hole_daten {
                 luft_luftfeuchtigkeit           => $t[3],
 
                 heizungsunterstuetzung_an       => $t[4],
-                heizungsunterstuetzung_messwert => $t[5],
+                heizung_temperatur_differenz => $t[5],
             };
             push(@$daten, $neu);
         }
@@ -309,12 +309,16 @@ foreach my $key (sort(keys(%$energiemenge))) {
     $erster_monat = 0;
 }
 
-print "Daten der Heizungsunerstuetzung\n";
+print "Daten der Heizungs-Temperatur-Differenz\n";
 foreach my $e (@$daten) {
-    next if(!$e->{'heizungsunterstuetzung_messwert'});
+    next if(!$e->{'heizung_temperatur_differenz'});
 
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
     my $time = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
-    print "$time  $e->{'heizungsunterstuetzung_messwert'}\n";
+    print "$time  $e->{'heizung_temperatur_differenz'}\n";
 }
+# TODO
+# 537 war den ganzen Tag, als die Heizung über gebühr lief (Kessel 25,0°C, Vorlauf 24,1°C)
+# 540 = ausschaltgrenze, 537 einschaltgrenze
+# zusätzlich bei einschalten: <20°
 print "\n";

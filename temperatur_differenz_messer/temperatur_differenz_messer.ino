@@ -1,18 +1,4 @@
-//*TODO
-// Diode an ausgang: leuchtet, wenn heizstab ein
-// Zum loggen erst mal Daten lesen und mitschreiben (extern)
-// Dann ermitteln, welche Werte ok sind
-// dann schaltgrenzen festlegen
-// dann messen, und wenn schalten oder x minuten rum, dann shelly-1 aufrufen und schalten
-// geht das so herum überhaupt?
-
-// Nochmal 100der Log
-// wlan trennen
-// 5min messen
-// dann wlan verbinden und für 1min online sein, keine Messung
-// trennen, warten (1min), 5min messen, etc etc
-
-// TODO roller-shellies: button-url anpassen. ShellyButton: ebenso.
+// WLAN-On/Off nicht zu oft, denn das wird immer ins Flash geschrieben was die Haltbarkeit verringert
 #include "config.h"
 #include "wlan.h"
 #include "web_reader.h"
@@ -22,8 +8,9 @@ Local::Config cfg;
 Local::Wlan wlan(cfg.wlan_ssid, cfg.wlan_pwd);
 Local::WebReader web_reader(wlan.client);
 int sensor_values_pointer = 0;
-int sensor_values[60];
-int sensor_values_length = 60; // 300 = alle 5 Minuten uebermitteln
+int sensor_values[300]; // Anzahl der Sekunden der Messdauer
+int sensor_values_length = 300; // Anzahl der Sekunden der Messdauer
+int wlan_pause = 10; // Anzahl der Sekunden, die nach WLAN Trennung gewartet wird
 char buffer[64];
 
 void _add_sensor_value(int new_val) {
@@ -49,9 +36,7 @@ int _get_sensor_median_and_reset_values() {
 	return sensor_values[(int) round((float) sensor_values_length / 2)];
 }
 void _post_sensor_value(int value) {
-	// TODO eigentlich soll hier direkt das Shelly an und ausgeschaltet werden, aber Daten sammeln ist immer gut
-	// TODO schalter hier uebertragen
-	sprintf(buffer, "%s?val=%d&heating_element=%d", cfg.target_path, value, 1);
+	sprintf(buffer, "%s%d", cfg.target_path, value);
 	Serial.println("Send value: " + (String) buffer);
 	web_reader.send_http_get_request(
 		cfg.target_host,
@@ -66,10 +51,8 @@ void setup(void) {
 		Serial.print('o');
 		delay(500);
 	}
-	Serial.println("\nStart strom-eigenverbrauch-optimierung Heizungsunterstuetzung");
+	Serial.println("\nStart strom-eigenverbrauch-optimierung Temperatur-Differenz-Messer");
 	Serial.printf("Free stack: %u heap: %u\n", ESP.getFreeContStack(), ESP.getFreeHeap());
-	// DEBUG
-	//pinMode(D4, OUTPUT);
 }
 void loop(void) {
 	_add_sensor_value(analogRead(A0));
@@ -78,11 +61,8 @@ void loop(void) {
 		wlan.connect();
 		_post_sensor_value(value);
 		wlan.disconnect();
-		delay(10000);
+		delay(wlan_pause * 1000);
 	} else {
-		// TODO Wenn Heizung an, dann schalten!
-		// Serial.println(_get_sensor_median());
-		// digitalWrite(D4, HIGH); An/aus
 		delay(1000);
 	}
 }
