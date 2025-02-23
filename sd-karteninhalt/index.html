@@ -123,8 +123,8 @@
 			document.getElementById('keller_luftfeuchtigkeit').innerHTML = daten['keller_luftfeuchtigkeit'];
 			
 			document.getElementById('heizung_temperatur_differenz').innerHTML = daten['heizung_temperatur_differenz'];
-			document.getElementById('heizstab_erlaubt').className = daten['heizstab_erlaubt'] ? 'on' : 'off';
-			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'erlaubt' : 'aus';
+			document.getElementById('heizstab_erlaubt').className = daten['heizstab_erlaubt'] ? 'off' : 'schutz';
+			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'erlaubt' : 'sperre';
 		}
 		function _setze_ladewunsch(id, typ, timestamp) {
 			var el = document.getElementById(id).getElementsByTagName("button")[0];
@@ -547,14 +547,17 @@
 				color: #FFF;
 				color: var(--hell);
 			}
-		.keller_klima {
+		.weitere_info {
 			text-align: center;
 			font-size: 1.5rem;
 		}
-			.keller_klima span {
+			.weitere_info span {
 				display: inline-block;
 				font-weight: bold;
 			}
+		small {
+			font-size: 0.8rem;
+		}
 	</style>
 </head>
 <body onload="refresh('', '', '');">
@@ -577,10 +580,6 @@
 </div>
 
 <div class="zusatzinfo">
-	<span id="solarerzeugung_ist_aktiv">
-		N<span id="solaranteil_in_prozent_string1"></span>%
-		<br>S<span id="solaranteil_in_prozent_string2"></span>%
-	</span>
 	<span id="auto_laden_an">
 		AUTO
 		<br><span class="ladestatus">-</span>
@@ -589,16 +588,16 @@
 		ROLLER
 		<br><span class="ladestatus">-</span>
 	</span>
+	<span id="heizstab_erlaubt">
+		HEIZSTAB
+		<br><span class="ladestatus">-</span>
+	</span>
 	<span id="wasser_ueberladen">
 		WASSER
 		<br><span class="ladestatus">-</span>
 	</span>
 	<span id="heizung_ueberladen">
 		HEIZUNG
-		<br><span class="ladestatus">-</span>
-	</span>
-	<span id="heizstab_erlaubt">
-		HEIZSTAB
 		<br><span class="ladestatus">-</span>
 	</span>
 </div>
@@ -622,10 +621,15 @@
 	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'solar' : 'force', this)">&#9889;</button>
 </div>
 
-<div class="keller_klima">
-	<div>Wohnraum: <span id="wohnraum_temperatur"></span> &#8451; / <span id="wohnraum_luftfeuchtigkeit"></span> %</div>
-	<div>Keller: <span id="keller_temperatur"></span> &#8451; / <span id="keller_luftfeuchtigkeit"></span> %
-	<small>(H:<span id="heizung_temperatur_differenz"></span>)</small></div>
+<div class="weitere_info">
+	<div>
+		Wohnraum: <span id="wohnraum_temperatur"></span> &#8451; / <span id="wohnraum_luftfeuchtigkeit"></span> %
+		<small><span id="solarerzeugung_ist_aktiv">N<span id="solaranteil_in_prozent_string1"></span>%/S<span id="solaranteil_in_prozent_string2"></span>%</span></small>
+	</div>
+	<div>
+		Keller: <span id="keller_temperatur"></span> &#8451; / <span id="keller_luftfeuchtigkeit"></span> %
+		<small>Diff:<span id="heizung_temperatur_differenz"></span></small>
+	</div>
 </div>
 
 </body>
