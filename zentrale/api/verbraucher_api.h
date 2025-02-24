@@ -19,15 +19,10 @@ namespace Local::Api {
 		int heizstab_schaltautomat_last_run = 0;
 		int heizstab_schaltautomat_karenzzeit = 300;
 
-		const char* heizung_relay_zustand_seit_filename = "heizung_relay.status";
-
-		const char* wasser_relay_zustand_seit_filename = "wasser_relay.status";
-
 		const char* roller_ladestatus_filename = "roller.ladestatus";
 		const char* roller_leistung_filename = "roller_leistung.status";
 		const char* roller_leistung_log_filename = "roller_leistung.log";
 
-		const char* auto_relay_zustand_seit_filename = "auto_relay.zustand_seit";
 		const char* auto_ladestatus_filename = "auto.ladestatus";
 		const char* auto_leistung_log_filename = "auto_leistung.log";
 
@@ -284,16 +279,16 @@ namespace Local::Api {
 
 		void _ermittle_relay_zustaende(Local::Model::Verbraucher& verbraucher) {
 			verbraucher.heizung_relay_ist_an = _netz_relay_ist_an(cfg->heizung_relay_host, cfg->heizung_relay_port);
-			verbraucher.heizung_relay_zustand_seit = _lese_zustand_seit(heizung_relay_zustand_seit_filename);
+			verbraucher.heizung_relay_zustand_seit = Local::SemipersistentData::heizung_relay_zustand_seit;
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			verbraucher.wasser_relay_ist_an = _netz_relay_ist_an(cfg->wasser_relay_host, cfg->wasser_relay_port);
-			verbraucher.wasser_relay_zustand_seit = _lese_zustand_seit(wasser_relay_zustand_seit_filename);
+			verbraucher.wasser_relay_zustand_seit = Local::SemipersistentData::wasser_relay_zustand_seit;
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			// Wird invertiert, damit der Zustand ohne Steuerung der normale Wallboxbetrieb ist
 			verbraucher.auto_relay_ist_an = !_netz_relay_ist_an(cfg->auto_relay_host, cfg->auto_relay_port);
-			verbraucher.auto_relay_zustand_seit = _lese_zustand_seit(auto_relay_zustand_seit_filename);
+			verbraucher.auto_relay_zustand_seit = Local::SemipersistentData::auto_relay_zustand_seit;
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			verbraucher.roller_relay_ist_an = shelly_roller_cache_ison;
@@ -355,26 +350,17 @@ namespace Local::Api {
 		void _schalte_auto_relay(bool ein) {
 			// Wird invertiert, damit der Zustand ohne Steuerung der normale Wallboxbetrieb ist
 			_schalte_netz_relay(ein ? false : true, cfg->auto_relay_host, cfg->auto_relay_port);
-			if(file_writer.open_file_to_overwrite(auto_relay_zustand_seit_filename)) {
-				file_writer.write_formated("%d", timestamp);
-				file_writer.close_file();
-			}
+			Local::SemipersistentData::auto_relay_zustand_seit = timestamp;
 		}
 
 		void _schalte_wasser_relay(bool ein) {
 			_schalte_netz_relay(ein, cfg->wasser_relay_host, cfg->wasser_relay_port);
-			if(file_writer.open_file_to_overwrite(wasser_relay_zustand_seit_filename)) {
-				file_writer.write_formated("%d", timestamp);
-				file_writer.close_file();
-			}
+			Local::SemipersistentData::wasser_relay_zustand_seit = timestamp;
 		}
 
 		void _schalte_heizung_relay(bool ein) {
 			_schalte_netz_relay(ein, cfg->heizung_relay_host, cfg->heizung_relay_port);
-			if(file_writer.open_file_to_overwrite(heizung_relay_zustand_seit_filename)) {
-				file_writer.write_formated("%d", timestamp);
-				file_writer.close_file();
-			}
+			Local::SemipersistentData::heizung_relay_zustand_seit = timestamp;
 		}
 
 		void _schalte_heizstab_relay(bool ein) {

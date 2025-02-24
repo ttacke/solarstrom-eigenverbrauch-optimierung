@@ -33,7 +33,6 @@ namespace Local {
 
 		const char* system_status_filename = "system_status.csv";
 		int stunden_wettervorhersage_letzter_abruf;
-		int tages_wettervorhersage_letzter_abruf;
 		const char* anlagen_log_filename_template = "anlage_log-%4d-%02d.csv";
 		const char* ui_filename = "index.html";
 		char log_buffer[64];
@@ -42,34 +41,6 @@ namespace Local {
 		float cellar_temperature = 0;
 		float cellar_humidity = 0;
 		int heat_difference = 0;
-
-		void _lese_systemstatus_daten() {
-			if(file_reader.open_file_to_read(system_status_filename)) {
-				while(file_reader.read_next_block_to_buffer()) {
-					if(file_reader.find_in_buffer((char*) "\nstunden_wettervorhersage_letzter_abruf,([0-9]+),")) {
-						stunden_wettervorhersage_letzter_abruf = atoi(file_reader.finding_buffer);
-					}
-					if(file_reader.find_in_buffer((char*) "\ntages_wettervorhersage_letzter_abruf,([0-9]+),")) {
-						tages_wettervorhersage_letzter_abruf = atoi(file_reader.finding_buffer);
-					}
-				}
-				file_reader.close_file();
-			}
-		}
-
-		void _schreibe_systemstatus_daten() {
-			if(file_writer.open_file_to_overwrite(system_status_filename)) {
-				file_writer.write_formated(
-					"\nstunden_wettervorhersage_letzter_abruf,%d,",
-					stunden_wettervorhersage_letzter_abruf
-				);
-				file_writer.write_formated(
-					"\ntages_wettervorhersage_letzter_abruf,%d,",
-					tages_wettervorhersage_letzter_abruf
-				);
-				file_writer.close_file();
-			}
-		}
 
 		void _write_log_data(int now_timestamp, bool heizstabbetrieb_ist_erlaubt) {
 			char filename[32];
@@ -218,32 +189,29 @@ namespace Local {
 
 			Local::Api::WettervorhersageAPI wettervorhersage_api(*cfg, web_reader);
 
-			_lese_systemstatus_daten();
+			if(!Local::SemipersistentData::stunden_wettervorhersage_letzter_abruf) {
+				Local::SemipersistentData::stunden_wettervorhersage_letzter_abruf = now_timestamp;
+			}
 			if(
-				!stunden_wettervorhersage_letzter_abruf
-				|| (
-					stunden_wettervorhersage_letzter_abruf < now_timestamp - 60*45// max alle 45min
-					&& minute(now_timestamp) < 20
-					&& minute(now_timestamp) >= 10
-				)
+				Local::SemipersistentData::stunden_wettervorhersage_letzter_abruf < now_timestamp - 60*45// max alle 45min
+				&& minute(now_timestamp) < 20
+				&& minute(now_timestamp) >= 10
 			) {// Insgesamt also 1x die Stunde ca 10 nach um
 				Serial.println("Schreibe Stunden-Wettervorhersage");
 				wettervorhersage_api.stundendaten_holen_und_persistieren(file_reader, file_writer);
-				stunden_wettervorhersage_letzter_abruf = now_timestamp;
-				_schreibe_systemstatus_daten();
+				Local::SemipersistentData::stunden_wettervorhersage_letzter_abruf = now_timestamp;
 				yield();
 			}
 
+			if(!Local::SemipersistentData::tages_wettervorhersage_letzter_abruf) {
+				Local::SemipersistentData::tages_wettervorhersage_letzter_abruf = now_timestamp;
+			}
 			if(
-				!tages_wettervorhersage_letzter_abruf
-				|| (
-					tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*4)
-				)
+				Local::SemipersistentData::tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*4)
 			) {// Insgesamt also 1x alle 4 Stunden
 				Serial.println("Schreibe Tages-Wettervorhersage");
 				wettervorhersage_api.tagesdaten_holen_und_persistieren(file_reader, file_writer);
-				tages_wettervorhersage_letzter_abruf = now_timestamp;
-				_schreibe_systemstatus_daten();
+				Local::SemipersistentData::tages_wettervorhersage_letzter_abruf = now_timestamp;
 				yield();
 			}
 			wettervorhersage_api.persistierte_daten_einsetzen(file_reader, file_writer, wetter, now_timestamp);
