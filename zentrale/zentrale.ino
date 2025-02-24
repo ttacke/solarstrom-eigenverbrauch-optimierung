@@ -1,4 +1,5 @@
 #include "config.h"
+#include "semipersistent_data.h"
 #include "service/wlan.h"
 #include "service/web_reader.h"
 #include "web_presenter.h"

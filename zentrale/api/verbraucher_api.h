@@ -23,7 +23,6 @@ namespace Local::Api {
 
 		const char* wasser_relay_zustand_seit_filename = "wasser_relay.status";
 
-		const char* roller_relay_zustand_seit_filename = "roller_relay.zustand_seit";
 		const char* roller_ladestatus_filename = "roller.ladestatus";
 		const char* roller_leistung_filename = "roller_leistung.status";
 		const char* roller_leistung_log_filename = "roller_leistung.log";
@@ -298,7 +297,7 @@ namespace Local::Api {
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			verbraucher.roller_relay_ist_an = shelly_roller_cache_ison;
-			verbraucher.roller_relay_zustand_seit = _lese_zustand_seit(roller_relay_zustand_seit_filename);
+			verbraucher.roller_relay_zustand_seit = Local::SemipersistentData::roller_relay_zustand_seit;
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 		}
 
@@ -350,10 +349,7 @@ namespace Local::Api {
 					web_reader->kurzer_timeout_in_hundertstel_s
 				);
 			}
-			if(file_writer.open_file_to_overwrite(roller_relay_zustand_seit_filename)) {
-				file_writer.write_formated("%d", timestamp);
-				file_writer.close_file();
-			}
+			Local::SemipersistentData::roller_relay_zustand_seit = timestamp;
 		}
 
 		void _schalte_auto_relay(bool ein) {
