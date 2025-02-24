@@ -40,6 +40,7 @@ namespace Local::Api {
 			// geht der Abruf schief, wird die vorherige Datei zerstoehrt.
 			// Der entstehende Schaden ist nicht relevant genug, um sich darum zu kuemmern
 			if(!file_writer.open_file_to_overwrite(filename)) {
+				Serial.println("Schreibfehler!");
 				return;
 			}
 			sprintf(request_uri, uri, cfg->accuweather_location_id, cfg->accuweather_api_key);

@@ -27,26 +27,6 @@ BEGIN {
     }
     print "Anzahl der Monate, die die Log aus der Vergangenheit geholt wird: $MONATE_IN_VERGANGENHEIT\n";
 }
-my @files = qw/
-    system_status.csv
-    wetter_stundenvorhersage.json
-    wetter_stundenvorhersage.csv
-    wetter_tagesvorhersage.json
-    wetter_tagesvorhersage.csv
-    heizung_relay.status
-    wasser_relay.status
-    roller_relay.zustand_seit
-    roller.ladestatus
-    roller_leistung.status
-    roller_leistung.log
-    auto_relay.zustand_seit
-    auto.ladestatus
-    auto_leistung.log
-    verbrauch_leistung.log
-    erzeugung_leistung.log
-    frueh_laden_auto.status
-    frueh_laden_roller.status
-/;
 sub _backup_file {
     my ($filename) = @_;
 
@@ -56,7 +36,7 @@ sub _backup_file {
         `cp $source ../sd-karteninhalt/$filename.bak.$time`;
     }
 }
-@files = ();
+my @files = ();
 for(my $i = 0; $i <= $MONATE_IN_VERGANGENHEIT; $i++) {
     my @d = localtime();
     my $year = $d[5] + 1900;
