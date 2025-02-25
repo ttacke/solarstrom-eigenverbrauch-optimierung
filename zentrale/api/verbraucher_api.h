@@ -14,8 +14,6 @@ namespace Local::Api {
 		int shelly_roller_cache_power = 0;
 		int roller_benoetigte_ladeleistung_in_w_cache = 0;
 		bool ladeverhalten_wintermodus = false;
-		bool frueh_leeren_lief_heute = true;
-		bool frueh_leeren_ist_aktiv = false;
 		int heizstab_schaltautomat_last_run = 0;
 		int heizstab_schaltautomat_karenzzeit = 300;
 
@@ -23,41 +21,6 @@ namespace Local::Api {
 		const char* roller_leistung_filename = "roller_leistung.status";
 		const char* auto_ladestatus_filename = "auto.ladestatus";
 		const char* automatisierung_log_filename_template = "verbraucher_automatisierung-%4d-%02d.log";
-		const char* frueh_leeren_status_filename_template = "frueh_laden_%s.status";
-
-		void _lese_frueh_leeren_status(char* key) {
-			char filename[32];
-			sprintf(filename, frueh_leeren_status_filename_template, key);
-			frueh_leeren_lief_heute = false;
-			frueh_leeren_ist_aktiv = false;
-			if(file_reader->open_file_to_read(filename)) {
-				while(file_reader->read_next_block_to_buffer()) {
-					if(file_reader->find_in_buffer((char*) "([0-9-]+);")) {
-						char heute[16] = "";
-						sprintf(heute, "%4d-%02d-%02d", year(timestamp), month(timestamp), day(timestamp));
-						if(strcmp(file_reader->finding_buffer, heute) == 0) {
-							frueh_leeren_lief_heute = true;
-						}
-					}
-					if(file_reader->find_in_buffer((char*) "(an)")) {
-						frueh_leeren_ist_aktiv = true;
-					}
-				}
-				file_reader->close_file();
-			}
-		}
-
-		void _schreibe_frueh_leeren_status(char* key, bool ist_aktiv) {
-			char filename[32];
-			sprintf(filename, frueh_leeren_status_filename_template, key);
-			if(file_writer.open_file_to_overwrite(filename)) {
-				file_writer.write_formated(
-					"%4d-%02d-%02d;%s", year(timestamp), month(timestamp), day(timestamp),
-					ist_aktiv ? "an" : "aus"
-				);
-				file_writer.close_file();
-			}
-		}
 
 		void _log(char* msg) {
 			char filename[32];
@@ -154,6 +117,8 @@ namespace Local::Api {
 			int benoetigte_leistung_in_w,
 			bool relay_ist_an,
 			int akku_zielladestand_in_promille,
+			int *frueh_leeren_zuletzt_gestartet_an_timestamp,
+			bool *frueh_leeren_ist_aktiv,
 			F1 && schalt_func,
 			F2 && lastschutz_an_func
 		) {
@@ -188,10 +153,9 @@ namespace Local::Api {
 
 			bool akku_ist_zu_voll = verbraucher.aktueller_akku_ladenstand_in_promille >= cfg->akku_ladestand_in_promille_fuer_erzwungenes_laden ? true : false;
 
-			_lese_frueh_leeren_status(log_key);
 			if(
-				!frueh_leeren_lief_heute
-				&& !frueh_leeren_ist_aktiv
+				day(*frueh_leeren_zuletzt_gestartet_an_timestamp) != day(timestamp)
+				&& !*frueh_leeren_ist_aktiv
 				&& !relay_ist_an
 				&& hour(timestamp) == cfg->frueh_leeren_starte_in_stunde_utc
 				&& akku_erreicht_zielladestand
@@ -205,13 +169,14 @@ namespace Local::Api {
 					lastschutz_an_func();
 				} else {
 					_log(log_key, (char*) "-solar>FruehLeerenAn");
-					_schreibe_frueh_leeren_status(log_key, true);
+					*frueh_leeren_zuletzt_gestartet_an_timestamp = timestamp;
+					*frueh_leeren_ist_aktiv = true;
 					schalt_func(true);
 					return true;
 				}
 			}
 
-			if(frueh_leeren_ist_aktiv) {
+			if(*frueh_leeren_ist_aktiv) {
 				if(
 					relay_ist_an
 					&& (
@@ -224,7 +189,8 @@ namespace Local::Api {
 					)
 				) {
 					_log(log_key, (char*) "-solar>FruehLeerenAus");
-					_schreibe_frueh_leeren_status(log_key, false);
+					*frueh_leeren_zuletzt_gestartet_an_timestamp = timestamp;
+					*frueh_leeren_ist_aktiv = false;
 					schalt_func(false);
 					return true;
 				}
@@ -900,6 +866,8 @@ namespace Local::Api {
 					verbraucher.auto_benoetigte_ladeleistung_in_w,
 					verbraucher.auto_relay_ist_an,
 					akku_zielladestand_in_promille,
+					&Local::SemipersistentData::frueh_leeren_auto_zuletzt_gestartet_an_timestamp,
+					&Local::SemipersistentData::frueh_leeren_auto_ist_aktiv,
 					[&](bool ein) { _schalte_auto_relay(ein); },
 					[&]() { verbraucher.auto_lastschutz = true; }
 				)
@@ -917,6 +885,8 @@ namespace Local::Api {
 					verbraucher.roller_benoetigte_ladeleistung_in_w,
 					verbraucher.roller_relay_ist_an,
 					akku_zielladestand_in_promille,
+					&Local::SemipersistentData::frueh_leeren_roller_zuletzt_gestartet_an_timestamp,
+					&Local::SemipersistentData::frueh_leeren_roller_ist_aktiv,
 					[&](bool ein) { _schalte_roller_relay(ein); },
 					[&]() { verbraucher.roller_lastschutz = true; }
 				)

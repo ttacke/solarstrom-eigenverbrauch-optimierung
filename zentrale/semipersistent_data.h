@@ -13,4 +13,8 @@ namespace Local::SemipersistentData {
 	int roller_ladeleistung_log_in_w[5] = {0,0,0,0,0};
 	int verbrauch_log_in_w[5] = {0,0,0,0,0};
 	int erzeugung_log_in_w[30] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	int frueh_leeren_auto_zuletzt_gestartet_an_timestamp = 0;
+	bool frueh_leeren_auto_ist_aktiv = false;
+	int frueh_leeren_roller_zuletzt_gestartet_an_timestamp = 0;
+	bool frueh_leeren_roller_ist_aktiv = false;
 }
