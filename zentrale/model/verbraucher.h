@@ -14,11 +14,11 @@ namespace Local::Model {
 		}
 
 		int _gib_genutzte_auto_ladeleistung_in_w() {
-			return _gib_listen_maximum(auto_ladeleistung_log_in_w, 5);
+			return _gib_listen_maximum(Local::SemipersistentData::auto_ladeleistung_log_in_w, 5);
 		}
 
 		int _gib_genutzte_roller_ladeleistung_in_w() {
-			return _gib_listen_maximum(roller_ladeleistung_log_in_w, 5);
+			return _gib_listen_maximum(Local::SemipersistentData::roller_ladeleistung_log_in_w, 5);
 		}
 
 	public:
@@ -36,7 +36,6 @@ namespace Local::Model {
 		int auto_ladestatus_seit = 0;
 		int auto_benoetigte_ladeleistung_in_w = 0;
 		int aktuelle_auto_ladeleistung_in_w = 0;
-		int auto_ladeleistung_log_in_w[5];
 		bool auto_relay_ist_an = false;
 		bool auto_lastschutz = false;
 		int auto_relay_zustand_seit = 0;
@@ -45,15 +44,12 @@ namespace Local::Model {
 		int roller_ladestatus_seit = 0;
 		int roller_benoetigte_ladeleistung_in_w = 0;
 		int aktuelle_roller_ladeleistung_in_w = 0;
-		int roller_ladeleistung_log_in_w[5];
 		bool roller_relay_ist_an = false;
 		bool roller_lastschutz = false;
 		int roller_relay_zustand_seit = 0;
 
 		int aktueller_verbrauch_in_w = 0;
-		int verbrauch_log_in_w[5];
 		int aktuelle_erzeugung_in_w = 0;
-		int erzeugung_log_in_w[30];
 		int aktueller_akku_ladenstand_in_promille = 0;
 		int akku_ladestandsvorhersage_in_promille[48];
 		int solarerzeugung_in_w = 0;
@@ -146,13 +142,13 @@ namespace Local::Model {
 		int gib_beruhigten_ueberschuss_in_w() {
 			int erzeugung = aktuelle_erzeugung_in_w;
 			for(int i = 0; i < 30; i++) {
-				erzeugung += erzeugung_log_in_w[i];
+				erzeugung += Local::SemipersistentData::erzeugung_log_in_w[i];
 			}
 
 			int max_verbrauch = aktueller_verbrauch_in_w;
 			for(int i = 0; i < 5; i++) {
-				if(max_verbrauch < verbrauch_log_in_w[i]) {
-					max_verbrauch = verbrauch_log_in_w[i];
+				if(max_verbrauch < Local::SemipersistentData::verbrauch_log_in_w[i]) {
+					max_verbrauch = Local::SemipersistentData::verbrauch_log_in_w[i];
 				}
 			}
 			return round((erzeugung / 31) - max_verbrauch);

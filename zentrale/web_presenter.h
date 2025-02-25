@@ -31,8 +31,6 @@ namespace Local {
 		Local::Model::Wetter wetter;
 		Local::Model::Verbraucher verbraucher;
 
-		const char* system_status_filename = "system_status.csv";
-		int stunden_wettervorhersage_letzter_abruf;
 		const char* anlagen_log_filename_template = "anlage_log-%4d-%02d.csv";
 		const char* ui_filename = "index.html";
 		char log_buffer[64];

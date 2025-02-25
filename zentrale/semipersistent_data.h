@@ -9,4 +9,8 @@ namespace Local::SemipersistentData {
 	int auto_relay_zustand_seit = 0;
 	int stunden_wettervorhersage_letzter_abruf = 0;
 	int tages_wettervorhersage_letzter_abruf = 0;
+	int auto_ladeleistung_log_in_w[5] = {0,0,0,0,0};
+	int roller_ladeleistung_log_in_w[5] = {0,0,0,0,0};
+	int verbrauch_log_in_w[5] = {0,0,0,0,0};
+	int erzeugung_log_in_w[30] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 }

@@ -21,14 +21,7 @@ namespace Local::Api {
 
 		const char* roller_ladestatus_filename = "roller.ladestatus";
 		const char* roller_leistung_filename = "roller_leistung.status";
-		const char* roller_leistung_log_filename = "roller_leistung.log";
-
 		const char* auto_ladestatus_filename = "auto.ladestatus";
-		const char* auto_leistung_log_filename = "auto_leistung.log";
-
-		const char* verbrauch_leistung_log_filename = "verbrauch_leistung.log";
-		const char* erzeugung_leistung_log_filename = "erzeugung_leistung.log";
-
 		const char* automatisierung_log_filename_template = "verbraucher_automatisierung-%4d-%02d.log";
 		const char* frueh_leeren_status_filename_template = "frueh_laden_%s.status";
 
@@ -371,19 +364,6 @@ namespace Local::Api {
 			);
 		}
 
-		int _lese_zustand_seit(const char* filename) {
-			int seit = 0;
-			if(file_reader->open_file_to_read(filename)) {
-				while(file_reader->read_next_block_to_buffer()) {
-					if(file_reader->find_in_buffer((char*) "([0-9]+)")) {
-						seit = atoi(file_reader->finding_buffer);
-					}
-				}
-				file_reader->close_file();
-			}
-			return seit;
-		}
-
 		int _gib_roller_benoetigte_ladeleistung_in_w() {
 			int leistung = cfg->roller_benoetigte_leistung_hoch_in_w;
 			if(file_reader->open_file_to_read(roller_leistung_filename)) {
@@ -425,52 +405,13 @@ namespace Local::Api {
 			}
 		}
 
-		void _lies_verbraucher_log(int* liste, const char* log_filename, int length) {
-			for(int i = 0; i < length; i++) {
-				liste[i] = 0;
-			}
-			if(file_reader->open_file_to_read(log_filename)) {
-				int counter = 0;
-				while(file_reader->read_next_block_to_buffer()) {
-					counter++;
-					char suche[32] = "";
-					for(int i = 0; i < length; i++) {
-						sprintf(suche, ">%d=([-0-9]+)<", i);
-						if(file_reader->find_in_buffer((char*) suche)) {
-							liste[i] = atoi(file_reader->finding_buffer);
-						}
-					}
-					if(counter > 100) {
-						break;
-					}
-				}
-				file_reader->close_file();
-				if(counter > 100) {
-					Serial.println("Errors in file. Try to remove it...");
-					Serial.println(log_filename);
-					if(file_writer.delete_file(log_filename)) {
-						Serial.println("ok");
-					} else {
-						Serial.println("Failed! Cant delete it");
-					}
-				}
-			}
-		}
-
 		void _schreibe_verbraucher_log(
-			int* liste, int aktuell, const char* log_filename, int length
+			int* liste, int aktuell, int length
 		) {
 			for(int i = 1; i < length; i++) {
 				liste[i - 1] = liste[i];
 			}
 			liste[length - 1] = aktuell;
-
-			if(file_writer.open_file_to_overwrite(log_filename)) {
-				for(int i = 0; i < length; i++) {
-					file_writer.write_formated(">%d=%d<", i, liste[i]);
-				}
-				file_writer.close_file();
-			}
 		}
 
 		int _lese_ladestatus(Local::Model::Verbraucher::Ladestatus& ladestatus, const char* filename) {
@@ -784,29 +725,17 @@ namespace Local::Api {
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(
 				(float) (elektroanlage.l1_strom_ma + elektroanlage.l1_solarstrom_ma) / 1000 * 230
 			);
-			_lies_verbraucher_log(
-				verbraucher.auto_ladeleistung_log_in_w,
-				auto_leistung_log_filename,
-				5
-			);
 			_schreibe_verbraucher_log(
-				verbraucher.auto_ladeleistung_log_in_w,
+				Local::SemipersistentData::auto_ladeleistung_log_in_w,
 				verbraucher.aktuelle_auto_ladeleistung_in_w,
-				auto_leistung_log_filename,
 				5
 			);
 			verbraucher.auto_benoetigte_ladeleistung_in_w = cfg->auto_benoetigte_leistung_in_w;
 
 			verbraucher.aktuelle_roller_ladeleistung_in_w = shelly_roller_cache_power;
-			_lies_verbraucher_log(
-				verbraucher.roller_ladeleistung_log_in_w,
-				roller_leistung_log_filename,
-				5
-			);
 			_schreibe_verbraucher_log(
-				verbraucher.roller_ladeleistung_log_in_w,
+				Local::SemipersistentData::roller_ladeleistung_log_in_w,
 				verbraucher.aktuelle_roller_ladeleistung_in_w,
-				roller_leistung_log_filename,
 				5
 			);
 			verbraucher.roller_benoetigte_ladeleistung_in_w = roller_benoetigte_ladeleistung_in_w_cache;
@@ -815,27 +744,15 @@ namespace Local::Api {
 			verbraucher.netzbezug_in_w = elektroanlage.netzbezug_in_w;
 
 			verbraucher.aktueller_verbrauch_in_w = elektroanlage.stromverbrauch_in_w;
-			_lies_verbraucher_log(
-				verbraucher.verbrauch_log_in_w,
-				verbrauch_leistung_log_filename,
-				5
-			);
 			_schreibe_verbraucher_log(
-				verbraucher.verbrauch_log_in_w,
+				Local::SemipersistentData::verbrauch_log_in_w,
 				verbraucher.aktueller_verbrauch_in_w,
-				verbrauch_leistung_log_filename,
 				5
 			);
 			verbraucher.aktuelle_erzeugung_in_w = elektroanlage.solarerzeugung_in_w;
-			_lies_verbraucher_log(
-				verbraucher.erzeugung_log_in_w,
-				erzeugung_leistung_log_filename,
-				30
-			);
 			_schreibe_verbraucher_log(
-				verbraucher.erzeugung_log_in_w,
+				Local::SemipersistentData::erzeugung_log_in_w,
 				verbraucher.aktuelle_erzeugung_in_w,
-				erzeugung_leistung_log_filename,
 				30
 			);
 
@@ -1048,7 +965,9 @@ namespace Local::Api {
 				file_writer.write_formated("%s,%i", stat, timestamp);
 				file_writer.close_file();
 			}
-			file_writer.delete_file(roller_leistung_log_filename);
+			for(int i = 0; i < 5; i++) {
+				Local::SemipersistentData::roller_ladeleistung_log_in_w[i] = 0;
+			}
 		}
 
 		void setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus status) {
@@ -1064,7 +983,9 @@ namespace Local::Api {
 				file_writer.write_formated("%s,%i", stat, timestamp);
 				file_writer.close_file();
 			}
-			file_writer.delete_file(auto_leistung_log_filename);
+			for(int i = 0; i < 5; i++) {
+				Local::SemipersistentData::auto_ladeleistung_log_in_w[i] = 0;
+			}
 		}
 
 //		void starte_router_neu() {
