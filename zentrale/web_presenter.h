@@ -196,7 +196,7 @@ namespace Local {
 				&& minute(now_timestamp) >= 10
 			) {// Insgesamt also 1x die Stunde ca 10 nach um
 				Serial.println("Schreibe Stunden-Wettervorhersage");
-				wettervorhersage_api.stundendaten_holen_und_persistieren(file_reader, file_writer);
+				wettervorhersage_api.stundendaten_holen_und_persistieren(file_reader, file_writer, now_timestamp);
 				Local::SemipersistentData::stunden_wettervorhersage_letzter_abruf = now_timestamp;
 				yield();
 			}
@@ -208,7 +208,7 @@ namespace Local {
 				Local::SemipersistentData::tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*4)
 			) {// Insgesamt also 1x alle 4 Stunden
 				Serial.println("Schreibe Tages-Wettervorhersage");
-				wettervorhersage_api.tagesdaten_holen_und_persistieren(file_reader, file_writer);
+				wettervorhersage_api.tagesdaten_holen_und_persistieren(file_reader, file_writer, now_timestamp);
 				Local::SemipersistentData::tages_wettervorhersage_letzter_abruf = now_timestamp;
 				yield();
 			}

@@ -10,10 +10,12 @@ namespace Local::Api {
 	using BaseAPI::BaseAPI;
 
 	protected:
-		const char* hourly_filename = "wetter_stundenvorhersage.json";
-		const char* hourly_cache_filename = "wetter_stundenvorhersage.csv";
-		const char* dayly_filename = "wetter_tagesvorhersage.json";
-		const char* dayly_cache_filename = "wetter_tagesvorhersage.csv";
+		// SD Daten korrumpieren innerhalb weniger Jahre, daher 1x im Jahr autom. wechseln
+		char filename_buffer[40];
+		const char* hourly_filename_template = "wetter_stundenvorhersage_%04d.json";
+		const char* hourly_cache_filename_template = "wetter_stundenvorhersage_%04d.csv";
+		const char* dayly_filename_template = "wetter_tagesvorhersage_%04d.json";
+		const char* dayly_cache_filename_template = "wetter_tagesvorhersage_%04d.csv";
 		const char* hourly_request_uri = "/forecasts/v1/hourly/12hour/%d?apikey=%s&language=de-de&details=true&metric=true";
 		const char* dayly_request_uri = "/forecasts/v1/daily/5day/%d?apikey=%s&language=de-de&details=true&metric=true";
 		char request_uri[128];
@@ -35,7 +37,7 @@ namespace Local::Api {
 		void _daten_holen_und_persistieren(
 			Local::Service::FileReader& file_reader,
 			Local::Service::FileWriter& file_writer,
-			const char* filename, const char* uri
+			const char* filename, const char* uri, int now_timestamp
 		) {
 			// geht der Abruf schief, wird die vorherige Datei zerstoehrt.
 			// Der entstehende Schaden ist nicht relevant genug, um sich darum zu kuemmern
@@ -57,7 +59,8 @@ namespace Local::Api {
 		}
 
 		void _lese_stundendaten_und_setze_ein(Local::Service::FileReader& file_reader, int now_timestamp) {
-			if(!file_reader.open_file_to_read(hourly_filename)) {
+			sprintf(filename_buffer, hourly_filename_template, year(now_timestamp));
+			if(!file_reader.open_file_to_read(filename_buffer)) {
 				return;
 			}
 
@@ -101,7 +104,8 @@ namespace Local::Api {
 		}
 
 		void _lese_tagesdaten_und_setze_ein(Local::Service::FileReader& file_reader, int now_timestamp) {
-			if(!file_reader.open_file_to_read(dayly_filename)) {
+			sprintf(filename_buffer, dayly_filename_template, year(now_timestamp));
+			if(!file_reader.open_file_to_read(filename_buffer)) {
 				return;
 			}
 
@@ -158,7 +162,8 @@ namespace Local::Api {
 		}
 
 		void _lese_stundencache_und_setze_ein(Local::Service::FileReader& file_reader, int now_timestamp) {
-			if(!file_reader.open_file_to_read(hourly_cache_filename)) {
+			sprintf(filename_buffer, hourly_cache_filename_template, year(now_timestamp));
+			if(!file_reader.open_file_to_read(filename_buffer)) {
 				return;
 			}
 			int i = 0;
@@ -178,7 +183,8 @@ namespace Local::Api {
 		}
 
 		void _lese_tagescache_und_setze_ein(Local::Service::FileReader& file_reader, int now_timestamp) {
-			if(!file_reader.open_file_to_read(dayly_cache_filename)) {
+			sprintf(filename_buffer, dayly_cache_filename_template, year(now_timestamp));
+			if(!file_reader.open_file_to_read(filename_buffer)) {
 				return;
 			}
 			int i = 0;
@@ -198,8 +204,9 @@ namespace Local::Api {
 			file_reader.close_file();
 		}
 
-		void _schreibe_stundencache(Local::Service::FileWriter& file_writer) {
-			if(!file_writer.open_file_to_overwrite(hourly_cache_filename)) {
+		void _schreibe_stundencache(Local::Service::FileWriter& file_writer, int now_timestamp) {
+			sprintf(filename_buffer, hourly_cache_filename_template, year(now_timestamp));
+			if(!file_writer.open_file_to_overwrite(filename_buffer)) {
 				return;
 			}
 			for(int i = 0; i < stunden_anzahl; i++) {
@@ -212,8 +219,9 @@ namespace Local::Api {
 			file_writer.close_file();
 		}
 
-		void _schreibe_tagescache(Local::Service::FileWriter& file_writer) {
-			if(!file_writer.open_file_to_overwrite(dayly_cache_filename)) {
+		void _schreibe_tagescache(Local::Service::FileWriter& file_writer, int now_timestamp) {
+			sprintf(filename_buffer, dayly_cache_filename_template, year(now_timestamp));
+			if(!file_writer.open_file_to_overwrite(filename_buffer)) {
 				return;
 			}
 			for(int i = 0; i < tage_anzahl; i++) {
@@ -229,16 +237,20 @@ namespace Local::Api {
 	public:
 		void stundendaten_holen_und_persistieren(
 			Local::Service::FileReader& file_reader,
-			Local::Service::FileWriter& file_writer
+			Local::Service::FileWriter& file_writer,
+			int now_timestamp
 		) {
-			_daten_holen_und_persistieren(file_reader, file_writer, hourly_filename, hourly_request_uri);
+			sprintf(filename_buffer, hourly_filename_template, year(now_timestamp));
+			_daten_holen_und_persistieren(file_reader, file_writer, filename_buffer, hourly_request_uri, now_timestamp);
 		}
 
 		void tagesdaten_holen_und_persistieren(
 			Local::Service::FileReader& file_reader,
-			Local::Service::FileWriter& file_writer
+			Local::Service::FileWriter& file_writer,
+			int now_timestamp
 		) {
-			_daten_holen_und_persistieren(file_reader, file_writer, dayly_filename, dayly_request_uri);
+			sprintf(filename_buffer, dayly_filename_template, year(now_timestamp));
+			_daten_holen_und_persistieren(file_reader, file_writer, filename_buffer, dayly_request_uri, now_timestamp);
 		}
 
 		void persistierte_daten_einsetzen(
@@ -259,7 +271,7 @@ namespace Local::Api {
 			for(int i = 0; i < stunden_anzahl; i++) {
 				wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_stunden_liste[i]);
 			}
-			_schreibe_stundencache(file_writer);
+			_schreibe_stundencache(file_writer, now_timestamp);
 
 			_reset(zeitpunkt_tage_liste, tage_anzahl);
 			_reset(solarstrahlung_tage_liste, tage_anzahl);
@@ -276,7 +288,7 @@ namespace Local::Api {
 			for(int i = 0; i < tage_anzahl; i++) {
 				wetter.setze_tagesvorhersage_solarstrahlung(i, solarstrahlung_tage_liste[i]);
 			}
-			_schreibe_tagescache(file_writer);
+			_schreibe_tagescache(file_writer, now_timestamp);
 		}
 	};
 }
