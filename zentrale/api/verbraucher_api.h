@@ -759,29 +759,28 @@ namespace Local::Api {
 					_log((char*) "AutoLastgrenze");
 					_schalte_auto_relay(false);
 					verbraucher.auto_lastschutz = true;
-					return;
 				}
 				if(verbraucher.roller_relay_ist_an) {
 					_log((char*) "RollerLastgrenze");
 					_schalte_roller_relay(false);
 					verbraucher.roller_lastschutz = true;
-					return;
 				}
 				if(verbraucher.wasser_relay_ist_an) {
 					_log((char*) "WasserLastgrenze");
 					_schalte_wasser_relay(false);
 					verbraucher.wasser_lastschutz = true;
-					return;
 				}
 				if(verbraucher.heizung_relay_ist_an) {
 					_log((char*) "HeizungLastgrenze");
 					_schalte_heizung_relay(false);
 					verbraucher.heizung_lastschutz = true;
-					return;
 				}
-				_log((char*) "HeizstabLastgrenze");
-				verbraucher.heizstabbetrieb_ist_erlaubt = false;
-				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
+				if(verbraucher.heizstabbetrieb_ist_erlaubt) {
+					_log((char*) "HeizstabLastgrenze");
+					verbraucher.heizstabbetrieb_ist_erlaubt = false;
+					_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
+				}
+				return;
 			}
 
 			if(timestamp - heizstab_schaltautomat_last_run > heizstab_schaltautomat_karenzzeit) {
@@ -790,8 +789,14 @@ namespace Local::Api {
 					!_einschalten_wegen_lastgrenzen_verboten(
 						verbraucher, cfg->heizstab_benoetigte_leistung_in_w
 					)
-					&& verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
-					&& verbraucher.wohnraum_temperatur <= cfg->heizstab_einschalt_temperatur
+					&& (
+						(
+							verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
+							&& verbraucher.wohnraum_temperatur <= cfg->heizstab_einschalt_temperatur
+						)
+						||
+						verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
+					)
 				) {
 					verbraucher.heizstabbetrieb_ist_erlaubt = true;
 				} else if(
