@@ -41,6 +41,16 @@ namespace Local {
 			}
 		}
 
+		bool _has_chunk_header() {
+			if(is_chunked) {
+				return is_chunked;
+			}
+			if(find_in_buffer((char*) "\r\nTransfer[-]Encoding: *chunked\r\n")) {
+				return true;
+			}
+			return false;
+		}
+
 		void _prepare_search_buffer() {
 			int old_buffer_strlen = strlen(old_buffer);
 			memcpy(search_buffer, old_buffer, old_buffer_strlen);
@@ -55,6 +65,9 @@ namespace Local {
 			std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
 			_prepare_search_buffer();
 			content_length -= strlen(buffer);
+			if(content_length <= 0 && is_chunked) {
+				_handle_chunked_content_length();
+			}
 		}
 
 	public:
@@ -62,6 +75,7 @@ namespace Local {
 		char buffer[64];
 		int default_timeout_in_hundertstel_s = 2000;
 		int kurzer_timeout_in_hundertstel_s = 500;
+		bool is_chunked = false;
 
 		WebReader(WiFiClient& wlan_client): wlan_client(wlan_client) {
 		}
@@ -89,6 +103,7 @@ namespace Local {
 			content_length = 0;
 			old_buffer[0] = '\0';
 			buffer[0] = '\0';
+			is_chunked = false;
 			if(!wlan_client.connect(host, port)) {
 				return false;
 			}
@@ -129,7 +144,13 @@ namespace Local {
 				std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
 				_prepare_search_buffer();
 				_read_content_length_header();
+				if(!content_length) {
+					is_chunked = _has_chunk_header();
+				}
 				if(content_start_reached) {
+					if(is_chunked) {
+						_handle_chunked_content_length();
+					}
 					old_buffer[0] = '\0';
 					buffer[0] = '\0';
 					if(content_length > 0) {
@@ -140,6 +161,23 @@ namespace Local {
 				}
 			}
 			return false;
+		}
+
+		void _handle_chunked_content_length() {
+			int read_size = 0;
+			buffer[0] = '\0';
+			while(true) {
+				wlan_client.readBytes(buffer + read_size, 1);
+				read_size++;
+				if(
+					read_size >= 2
+					&& strncmp(buffer + read_size - 2, "\r\n", 2) == 0
+				) {
+					std::fill(buffer + read_size - 2, buffer + sizeof(buffer), 0); // ende abschneiden
+					content_length = content_length + strtoul(buffer, 0, 16);
+					break;
+				}
+			}
 		}
 
 		bool read_next_block_to_buffer() {
