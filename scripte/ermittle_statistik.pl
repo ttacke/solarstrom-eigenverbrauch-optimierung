@@ -96,6 +96,34 @@ print "\nAnzahl der Log-Datensaetze: " . scalar(@$daten) . "\n";
 my $logdaten_in_tagen = ($daten->[$#$daten]->{'zeitpunkt'} - $daten->[0]->{'zeitpunkt'}) / 86400;
 print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n";
 
+my $amp_filename = '3phasiger_lastverlauf.csv';
+open(my $amp_file, '>', $amp_filename) or die $!;
+print $amp_file "Datum,1,2,3\n";
+my ($l1, $l2, $l3) = (0, 0, 0);
+my ($l1max, $l2max, $l3max) = (0, 0, 0);
+foreach my $e (@$daten) {
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
+    next if($year + 1900 < 2024);
+
+    $l1 = $e->{"l1_strom_ma"} if($l1 < $e->{"l1_strom_ma"});
+    $l2 = $e->{"l2_strom_ma"} if($l2 < $e->{"l2_strom_ma"});
+    $l3 = $e->{"l3_strom_ma"} if($l3 < $e->{"l3_strom_ma"});
+
+    $l1max = $l1 if($l1max < $l1);
+    $l2max = $l2 if($l2max < $l2);
+    $l3max = $l3 if($l3max < $l3);
+    if($min == 0) {
+        print $amp_file sprintf(
+            "%4d-%02d-%02d %d:%02d,%d,%d,%d\n",
+            $year + 1900, $mon + 1, $mday, $hour, $min, $e->{"l1_strom_ma"}, $e->{"l2_strom_ma"}, $e->{"l3_strom_ma"}
+        );
+        ($l1, $l2, $l3) = (0, 0, 0);
+    }
+}
+close($amp_file) or die $!;
+print "CSV-Datei $amp_filename wurde erstellt\n";
+print "L1max: $l1max, L2max: $l2max, L3max: $l3max  (in mA)\n";
+
 foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
     my $name = $e->[0];
     my $monate = $e->[1];
@@ -309,17 +337,13 @@ foreach my $key (sort(keys(%$energiemenge))) {
     $erster_monat = 0;
 }
 
-print "Daten der Heizungs-Temperatur-Differenz\n";
-foreach my $e (@$daten) {
-    next if(!$e->{'heizung_temperatur_differenz'} || $e->{'zeitpunkt'} < "1740222177");
+# print "Daten der Heizungs-Temperatur-Differenz\n";
+# foreach my $e (@$daten) {
+#     next if(!$e->{'heizung_temperatur_differenz'} || $e->{'zeitpunkt'} < "1740222177");
+#
+#     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
+#     my $time = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
+#     print "$time  $e->{'heizung_temperatur_differenz'}\n";
+# }
 
-    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
-    my $time = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
-    print "$time  $e->{'heizung_temperatur_differenz'}\n";
-}
-# TODO
-# 537 war den ganzen Tag, als die Heizung über gebühr lief (Kessel 25,0°C, Vorlauf 24,1°C)
-# 540 = ausschaltgrenze, 537 einschaltgrenze
-# zusätzlich bei einschalten: <20°
-# -- nach Einbau vermutlich 540. Die Werte sind etwas anders. Prüfen
 print "\n";
