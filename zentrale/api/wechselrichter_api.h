@@ -68,6 +68,14 @@ namespace Local::Api {
 				elektroanlage.l1_solarstrom_ma = round(atof(web_reader->finding_buffer) * 1000);
 				findings2 |= 0b0000'0001;
 			}
+			if(web_reader->find_in_buffer((char*) "\"ACBRIDGE_CURRENT_ACTIVE_MEAN_02_F32\" *: *([-0-9.]+)[^0-9]")) {
+				elektroanlage.l2_solarstrom_ma = round(atof(web_reader->finding_buffer) * 1000);
+				findings2 |= 0b0000'0010;
+			}
+			if(web_reader->find_in_buffer((char*) "\"ACBRIDGE_CURRENT_ACTIVE_MEAN_03_F32\" *: *([-0-9.]+)[^0-9]")) {
+				elektroanlage.l3_solarstrom_ma = round(atof(web_reader->finding_buffer) * 1000);
+				findings2 |= 0b0000'0100;
+			}
 		}
 
 	public:
@@ -82,6 +90,7 @@ namespace Local::Api {
 			while(web_reader->read_next_block_to_buffer()) {
 				_daten_extrahieren_und_einsetzen(elektroanlage);
 			}
+			// TODO API nutzen
 			web_reader->send_http_get_request(
 				cfg->wechselrichter_host,
 				cfg->wechselrichter_port,
@@ -90,7 +99,7 @@ namespace Local::Api {
 			while(web_reader->read_next_block_to_buffer()) {
 				_detaildaten_einsetzen(elektroanlage);
 			}
-			if(!(findings & 0b1111'1111) && !(findings2 & 0b0000'0001)) {
+			if(!(findings & 0b1111'1111) && !(findings2 & 0b0000'0111)) {
 				elektroanlage.solarerzeugung_in_w = 0;
 				elektroanlage.solarakku_zuschuss_in_w = 0;
 				elektroanlage.solarakku_ladestand_in_promille = 0;

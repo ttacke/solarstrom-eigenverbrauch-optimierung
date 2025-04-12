@@ -688,8 +688,14 @@ namespace Local::Api {
 
 			_ermittle_relay_zustaende(verbraucher);
 
+			int auto_ladeleistung_temp = elektroanlage.l1_strom_ma + elektroanlage.l1_solarstrom_ma;
+			if(cfg->auto_benutzter_leiter == 2) {
+				auto_ladeleistung_temp = elektroanlage.l2_strom_ma + elektroanlage.l2_solarstrom_ma;
+			} else {
+				auto_ladeleistung_temp = elektroanlage.l3_strom_ma + elektroanlage.l3_solarstrom_ma;
+			}
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(
-				(float) (elektroanlage.l1_strom_ma + elektroanlage.l1_solarstrom_ma) / 1000 * 230
+				(float) auto_ladeleistung_temp / 1000 * 230
 			);
 			_schreibe_verbraucher_log(
 				Local::SemipersistentData::auto_ladeleistung_log_in_w,

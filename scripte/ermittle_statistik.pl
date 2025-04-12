@@ -36,7 +36,7 @@ sub _hole_daten {
         $/ = "\n";
         while(my $line = <$fh>) {
             chomp($line);
-            my @e = $line =~ m/^(\d{10,}),(e[23]),([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),(\d+),(?:(\d+),|)/;
+            my @e = $line =~ m/^(\d{10,}),(e[23]),([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),(\d+),(?:(\d+),|)(?:(\d+),(\d+),(\d+),|)/;
             if(!scalar(@e)) {
                 # warn $line;
                 $fehler++;
@@ -69,6 +69,9 @@ sub _hole_daten {
                 gib_anteil_pv1_in_prozent       => $e[10],
                 ersatzstrom_ist_aktiv           => $e[11] ? 1 : 0,
                 gesamt_energiemenge_in_wh       => $e[1] eq 'e2' ? 0 : $e[12],
+                l1_solarstrom_ma       => ($e[1] eq 'e2' || $e[1] eq 'e3') ? 0 : $e[13],
+                l2_solarstrom_ma       => ($e[1] eq 'e2' || $e[1] eq 'e3') ? 0 : $e[13],
+                l3_solarstrom_ma       => ($e[1] eq 'e2' || $e[1] eq 'e3') ? 0 : $e[13],
 
                 stunden_solarstrahlung          => $w[0],
                 tages_solarstrahlung            => $w[1],

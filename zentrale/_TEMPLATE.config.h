@@ -32,8 +32,9 @@ namespace Local {
 		int roller_benoetigte_leistung_gering_in_w = 420;
 		int roller_benoetigte_leistung_hoch_in_w = 840;
 		int roller_min_schaltzeit_in_min = 10;
-		int auto_benoetigte_leistung_in_w = 2990;
+		int auto_benoetigte_leistung_in_w = 2300;
 		int auto_min_schaltzeit_in_min = 10;
+		int auto_benutzter_leiter = 1; // 1, 2, 3
 		int wasser_benoetigte_leistung_in_w = 420;
 		int wasser_min_schaltzeit_in_min = 60;
 		int heizung_benoetigte_leistung_in_w = 420;

@@ -13,6 +13,8 @@ namespace Local::Model {
 		int l2_strom_ma = 0;
 		int l3_strom_ma = 0;
 		int l1_solarstrom_ma = 0;
+		int l2_solarstrom_ma = 0;
+		int l3_solarstrom_ma = 0;
 		int leistungsanteil_pv1 = 0;
 		int leistungsanteil_pv2 = 0;
 		bool ersatzstrom_ist_aktiv = false;
@@ -31,7 +33,7 @@ namespace Local::Model {
 
 		void write_log_data(Local::Service::FileWriter& file_writer) {
 			file_writer.write_formated(
-				"e3,%d,%d,%d,%d,%d,",
+				"e4,%d,%d,%d,%d,%d,",
 				netzbezug_in_w,
 				solarakku_zuschuss_in_w,
 				solarerzeugung_in_w,
@@ -46,6 +48,12 @@ namespace Local::Model {
 				gib_anteil_pv1_in_prozent(),
 				ersatzstrom_ist_aktiv ? 1 : 0,
 				gesamt_energiemenge_in_wh
+			);
+			file_writer.write_formated(
+				",%d,%d,%d",
+				l1_solarstrom_ma,
+				l2_solarstrom_ma,
+				l3_solarstrom_ma
 			);
 		}
 	};
