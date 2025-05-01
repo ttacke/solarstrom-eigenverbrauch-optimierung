@@ -690,7 +690,7 @@ namespace Local::Api {
 			int auto_ladeleistung_temp = elektroanlage.l1_strom_ma + elektroanlage.l1_solarstrom_ma;
 			if(cfg->auto_benutzter_leiter == 2) {
 				auto_ladeleistung_temp = elektroanlage.l2_strom_ma + elektroanlage.l2_solarstrom_ma;
-			} else {
+			} else if(cfg->auto_benutzter_leiter == 3) {
 				auto_ladeleistung_temp = elektroanlage.l3_strom_ma + elektroanlage.l3_solarstrom_ma;
 			}
 			verbraucher.aktuelle_auto_ladeleistung_in_w = round(
