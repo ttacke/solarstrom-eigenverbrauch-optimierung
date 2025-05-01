@@ -14,8 +14,7 @@ namespace Local::Api {
 		int shelly_roller_cache_power = 0;
 		int roller_benoetigte_ladeleistung_in_w_cache = 0;
 		bool ladeverhalten_wintermodus = false;
-		int heizstab_schaltautomat_last_run = 0;
-		int heizstab_schaltautomat_karenzzeit = 300;
+		int heizstab_relay_maximale_wartezeit = 3600;
 
 		const char* roller_ladestatus_filename = "roller.ladestatus";
 		const char* roller_leistung_filename = "roller_leistung.status";
@@ -789,41 +788,47 @@ namespace Local::Api {
 				return;
 			}
 
-			if(timestamp - heizstab_schaltautomat_last_run > heizstab_schaltautomat_karenzzeit) {
-				heizstab_schaltautomat_last_run = timestamp;
-				if(
-					!_einschalten_wegen_lastgrenzen_verboten(
-						verbraucher, cfg->heizstab_benoetigte_leistung_in_w
-					)
-					&& (
-						(
-							verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
-							&& verbraucher.wohnraum_temperatur <= cfg->heizstab_einschalt_temperatur
-						)
-						||
-						verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
-					)
-				) {
-					verbraucher.heizstabbetrieb_ist_erlaubt = true;
-				} else if(
-					verbraucher.heizungs_temperatur_differenz >= cfg->heizstab_ausschalt_differenzwert
-					|| verbraucher.wohnraum_temperatur >= cfg->heizstab_ausschalt_temperatur
-				) {
-					verbraucher.heizstabbetrieb_ist_erlaubt = false;
-				}
-				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
-			}
-
 			int karenzzeit = (5 * 60);
 			if(
 				verbraucher.auto_relay_zustand_seit >= timestamp - karenzzeit
 				|| verbraucher.roller_relay_zustand_seit >= timestamp - karenzzeit
 				|| verbraucher.wasser_relay_zustand_seit >= timestamp - karenzzeit
 				|| verbraucher.heizung_relay_zustand_seit >= timestamp - karenzzeit
+				|| Local::SemipersistentData::heizstab_relay_zustand_seit >= timestamp - karenzzeit
 			) {
 				// Von Einschalten bis voller Verbrauch vergeht Zeit
 				// ohne dies wird ggf mehr zugeschaltet als sinnvoll ist
 				_log((char*) "SchaltKarenzzeit");
+				return;
+			}
+
+			if(
+				!_einschalten_wegen_lastgrenzen_verboten(
+					verbraucher, cfg->heizstab_benoetigte_leistung_in_w
+				)
+				&& (
+					(
+						verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
+						&& verbraucher.wohnraum_temperatur <= cfg->heizstab_einschalt_temperatur
+					)
+					||
+					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
+				)
+			) {
+				verbraucher.heizstabbetrieb_ist_erlaubt = true;
+			} else if(
+				verbraucher.heizungs_temperatur_differenz >= cfg->heizstab_ausschalt_differenzwert
+				|| verbraucher.wohnraum_temperatur >= cfg->heizstab_ausschalt_temperatur
+			) {
+				verbraucher.heizstabbetrieb_ist_erlaubt = false;
+			}
+			if(
+				timestamp - Local::SemipersistentData::heizstab_relay_zustand_seit > heizstab_relay_maximale_wartezeit
+				|| verbraucher.heizstabbetrieb_ist_erlaubt != Local::SemipersistentData::heizstabbetrieb_letzter_zustand
+			) {
+				Local::SemipersistentData::heizstab_relay_zustand_seit = timestamp;
+				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
+				Local::SemipersistentData::heizstabbetrieb_letzter_zustand = verbraucher.heizstabbetrieb_ist_erlaubt;
 				return;
 			}
 
