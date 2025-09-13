@@ -19,7 +19,7 @@ namespace Local::Api {
 		const char* hourly_cache_filename_template = "wetter_stundenvorhersage_%04d.csv";
 		const char* dayly_filename_template = "wetter_tagesvorhersage_%04d.json";
 		const char* dayly_cache_filename_template = "wetter_tagesvorhersage_%04d.csv";
-		const char* request_uri = "/v1/forecast?latitude=%d&longitude=%d&daily=sunrise,sunset,shortwave_radiation_sum&hourly=global_tilted_irradiance_instant&timezone=Europe%2FBerlin&tilt=%d&azimuth=%d&timeformat=unixtime&forecast_hours=12";
+		const char* request_uri_template = "/v1/forecast?latitude=%0.2f&longitude=%0.2f&daily=sunrise,sunset,shortwave_radiation_sum&hourly=global_tilted_irradiance_instant&timezone=Europe/Berlin&tilt=%d&azimuth=%d&timeformat=unixtime&forecast_hours=12";
 		char request_uri_buffer[128];
 
 		int zeitpunkt_sonnenuntergang = 0;
@@ -40,7 +40,7 @@ namespace Local::Api {
 			Local::Service::FileReader& file_reader,
 			Local::Service::FileWriter& file_writer,
 			const char* filename, int now_timestamp,
-			const float neigung_in_grad, const float azimuth
+			const int neigung_in_grad, const int azimuth
 		) {
 			// geht der Abruf schief, wird die vorherige Datei zerstoehrt.
 			// Der entstehende Schaden ist nicht relevant genug, um sich darum zu kuemmern
@@ -50,19 +50,16 @@ namespace Local::Api {
 			}
 			sprintf(
 				request_uri_buffer,
-				request_uri,
+				request_uri_template,
 				cfg->wettervorhersage_lat,
 				cfg->wettervorhersage_lon,
 				neigung_in_grad,
 				azimuth
 			);
-			// TODO dach2: nur die Stundenwerte zusammenrechnen
-			// Test#1: prüfen, ob die Daten korrekt geschrieben werden
-
 			web_reader->send_http_get_request(
 				"api.open-meteo.com",
 				80,
-				request_uri
+				request_uri_buffer
 			);
 			while(web_reader->read_next_block_to_buffer()) {
 				file_writer.write(web_reader->buffer, strlen(web_reader->buffer));
@@ -263,8 +260,8 @@ namespace Local::Api {
 			sprintf(filename_buffer, roof2_filename_template, year(now_timestamp));
 			_daten_holen_und_persistieren(
 				file_reader, file_writer, filename_buffer, now_timestamp,
-				cfg->wettervorhersage_dach1_neigung_in_grad,
-				cfg->wettervorhersage_dach1_ausrichtung_azimuth
+				cfg->wettervorhersage_dach2_neigung_in_grad,
+				cfg->wettervorhersage_dach2_ausrichtung_azimuth
 			);
 		}
 
@@ -279,7 +276,7 @@ namespace Local::Api {
 			for(int i = 0; i < stunden_anzahl; i++) {
 				wetter.setze_stundenvorhersage_solarstrahlung(i, 0);
 			}
-
+// TODO #1 datei runterladen
 			_lese_stundencache_und_setze_ein(file_reader, now_timestamp);
 			_lese_stundendaten_und_setze_ein(file_reader, now_timestamp);
 			wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_stunden_liste[0];
