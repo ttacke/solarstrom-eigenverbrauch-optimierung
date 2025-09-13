@@ -72,7 +72,11 @@ namespace Local {
 		// UTC = MEZ - 1; -1 = ignorieren
 		int winterladen_zwangspausen_utc[12] = {10,11,12,-1,15,16,17,-1,-1,-1,-1,-1};
 
-		const char* accuweather_api_key = "[API-KEY VON developer.accuweather.com]";
-		const int accuweather_location_id = 1008813;// Ermittelt via https://developer.accuweather.com/accuweather-locations-api/apis/get/locations/v1/search
+		const float wettervorhersage_lat = 50.00;
+		const float wettervorhersage_lon = 7.95;
+		const int wettervorhersage_dach1_neigung_in_grad = 35;
+		const int wettervorhersage_dach1_ausrichtung_azimuth = 30;
+		const int wettervorhersage_dach2_neigung_in_grad = 35;
+		const int wettervorhersage_dach2_ausrichtung_azimuth = 150;
 	};
 }

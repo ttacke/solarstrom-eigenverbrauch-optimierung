@@ -187,29 +187,17 @@ namespace Local {
 
 			Local::Api::WettervorhersageAPI wettervorhersage_api(*cfg, web_reader);
 
-			if(!Local::SemipersistentData::stunden_wettervorhersage_letzter_abruf) {
-				Local::SemipersistentData::stunden_wettervorhersage_letzter_abruf = now_timestamp;
+			if(!Local::SemipersistentData::wettervorhersage_letzter_abruf) {
+				Local::SemipersistentData::wettervorhersage_letzter_abruf = now_timestamp;
 			}
 			if(
-				Local::SemipersistentData::stunden_wettervorhersage_letzter_abruf < now_timestamp - 60*45// max alle 45min
+				Local::SemipersistentData::wettervorhersage_letzter_abruf < now_timestamp - 60*45// max alle 45min
 				&& minute(now_timestamp) < 20
 				&& minute(now_timestamp) >= 10
 			) {// Insgesamt also 1x die Stunde ca 10 nach um
-				Serial.println("Schreibe Stunden-Wettervorhersage");
-				wettervorhersage_api.stundendaten_holen_und_persistieren(file_reader, file_writer, now_timestamp);
-				Local::SemipersistentData::stunden_wettervorhersage_letzter_abruf = now_timestamp;
-				yield();
-			}
-
-			if(!Local::SemipersistentData::tages_wettervorhersage_letzter_abruf) {
-				Local::SemipersistentData::tages_wettervorhersage_letzter_abruf = now_timestamp;
-			}
-			if(
-				Local::SemipersistentData::tages_wettervorhersage_letzter_abruf < now_timestamp - (3600*4)
-			) {// Insgesamt also 1x alle 4 Stunden
-				Serial.println("Schreibe Tages-Wettervorhersage");
-				wettervorhersage_api.tagesdaten_holen_und_persistieren(file_reader, file_writer, now_timestamp);
-				Local::SemipersistentData::tages_wettervorhersage_letzter_abruf = now_timestamp;
+				Serial.println("Schreibe Wettervorhersage-Daten");
+				wettervorhersage_api.daten_holen_und_persistieren(file_reader, file_writer, now_timestamp);
+				Local::SemipersistentData::wettervorhersage_letzter_abruf = now_timestamp;
 				yield();
 			}
 			wettervorhersage_api.persistierte_daten_einsetzen(file_reader, file_writer, wetter, now_timestamp);

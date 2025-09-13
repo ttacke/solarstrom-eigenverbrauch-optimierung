@@ -74,9 +74,10 @@ Zusätzliche Features:
   - Der genutzte Beta-Browser hat einige Eigenheiten, wewegen die UI auf anderen Geräte schräg aussieht
   - Auf dem Kindle wurde der Bildschirm dauerhaft eingeschaltet via "~ds" im Suchfeld eingeben
     - Quelle: <https://ebooks.stackexchange.com/questions/152/what-commands-can-be-given-in-the-kindles>
-- Ein kostenloser Dev-Zugang zum Dienst AccuWeather.com, um Vorhersagen zu Solareinstrahlung zu erhalten
-  - 50 Requests pro Tag sind erlaubt, das System benutzt 24 (Stündliche Vorhersage) + 4 (Tages-Vorhersage)
-  - Die LocationID muss dazu ermitteln werden via <https://developer.accuweather.com/accuweather-locations-api/apis/get/locations/v1/search>
+- Ein kostenloser Zugang zum Dienst api.open-meteo.com, um Vorhersagen zu Solareinstrahlung zu erhalten
+  - 10k Requests pro Tag sind erlaubt - hier werden nur 24, eine pro Stunde, verwendet
+  - Lon und Lat muss mit 2 Kommastellen ermittelt werden
+  - Neigung (in Grad) und Ausrichtung (S = 0°, O = -90°, W = 90°, N = -/+180°) der Dachflächen, 2x für die 2 Flächen, muss ermittelt werden
 - Wechselrichter "Fronius Symo Gen 24 8.0 Plus" an 8,25 kWp monokristallinen Solarpanelen
 - 7,65 kWh LiFePo4 Solarbatterie "BYD Battery-Box HVS 7,7" 
 - Leistungsmessung via "Fronius Smart Meter"

@@ -12,13 +12,15 @@ namespace Local::Api {
 	protected:
 		// SD Daten korrumpieren innerhalb weniger Jahre, daher 1x im Jahr autom. wechseln
 		char filename_buffer[40];
+		const char* roof1_filename_template = "dach1_wettervorhersage_%04d.json";
+		const char* roof2_filename_template = "dach2_wettervorhersage_%04d.json";
+		// TODO DEPRECATED
 		const char* hourly_filename_template = "wetter_stundenvorhersage_%04d.json";
 		const char* hourly_cache_filename_template = "wetter_stundenvorhersage_%04d.csv";
 		const char* dayly_filename_template = "wetter_tagesvorhersage_%04d.json";
 		const char* dayly_cache_filename_template = "wetter_tagesvorhersage_%04d.csv";
-		const char* hourly_request_uri = "/forecasts/v1/hourly/12hour/%d?apikey=%s&language=de-de&details=true&metric=true";
-		const char* dayly_request_uri = "/forecasts/v1/daily/5day/%d?apikey=%s&language=de-de&details=true&metric=true";
-		char request_uri[128];
+		const char* request_uri = "/v1/forecast?latitude=%d&longitude=%d&daily=sunrise,sunset,shortwave_radiation_sum&hourly=global_tilted_irradiance_instant&timezone=Europe%2FBerlin&tilt=%d&azimuth=%d&timeformat=unixtime&forecast_hours=12";
+		char request_uri_buffer[128];
 
 		int zeitpunkt_sonnenuntergang = 0;
 		int zeitpunkt_tage_liste[5];
@@ -37,7 +39,8 @@ namespace Local::Api {
 		void _daten_holen_und_persistieren(
 			Local::Service::FileReader& file_reader,
 			Local::Service::FileWriter& file_writer,
-			const char* filename, const char* uri, int now_timestamp
+			const char* filename, int now_timestamp,
+			const float neigung_in_grad, const float azimuth
 		) {
 			// geht der Abruf schief, wird die vorherige Datei zerstoehrt.
 			// Der entstehende Schaden ist nicht relevant genug, um sich darum zu kuemmern
@@ -45,9 +48,19 @@ namespace Local::Api {
 				Serial.println("Schreibfehler!");
 				return;
 			}
-			sprintf(request_uri, uri, cfg->accuweather_location_id, cfg->accuweather_api_key);
+			sprintf(
+				request_uri_buffer,
+				request_uri,
+				cfg->wettervorhersage_lat,
+				cfg->wettervorhersage_lon,
+				neigung_in_grad,
+				azimuth
+			);
+			// TODO dach2: nur die Stundenwerte zusammenrechnen
+			// Test#1: prüfen, ob die Daten korrekt geschrieben werden
+
 			web_reader->send_http_get_request(
-				"dataservice.accuweather.com",
+				"api.open-meteo.com",
 				80,
 				request_uri
 			);
@@ -235,22 +248,24 @@ namespace Local::Api {
 		}
 
 	public:
-		void stundendaten_holen_und_persistieren(
+		void daten_holen_und_persistieren(
 			Local::Service::FileReader& file_reader,
 			Local::Service::FileWriter& file_writer,
 			int now_timestamp
 		) {
-			sprintf(filename_buffer, hourly_filename_template, year(now_timestamp));
-			_daten_holen_und_persistieren(file_reader, file_writer, filename_buffer, hourly_request_uri, now_timestamp);
-		}
+			sprintf(filename_buffer, roof1_filename_template, year(now_timestamp));
+			_daten_holen_und_persistieren(
+				file_reader, file_writer, filename_buffer, now_timestamp,
+				cfg->wettervorhersage_dach1_neigung_in_grad,
+				cfg->wettervorhersage_dach1_ausrichtung_azimuth
+			);
 
-		void tagesdaten_holen_und_persistieren(
-			Local::Service::FileReader& file_reader,
-			Local::Service::FileWriter& file_writer,
-			int now_timestamp
-		) {
-			sprintf(filename_buffer, dayly_filename_template, year(now_timestamp));
-			_daten_holen_und_persistieren(file_reader, file_writer, filename_buffer, dayly_request_uri, now_timestamp);
+			sprintf(filename_buffer, roof2_filename_template, year(now_timestamp));
+			_daten_holen_und_persistieren(
+				file_reader, file_writer, filename_buffer, now_timestamp,
+				cfg->wettervorhersage_dach1_neigung_in_grad,
+				cfg->wettervorhersage_dach1_ausrichtung_azimuth
+			);
 		}
 
 		void persistierte_daten_einsetzen(
