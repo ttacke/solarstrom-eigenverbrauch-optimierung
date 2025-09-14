@@ -199,6 +199,7 @@ namespace Local {
 				wettervorhersage_api.daten_holen_und_persistieren(file_reader, file_writer, now_timestamp);
 				Local::SemipersistentData::wettervorhersage_letzter_abruf = now_timestamp;
 				yield();
+				return;
 			}
 			wettervorhersage_api.persistierte_daten_einsetzen(file_reader, file_writer, wetter, now_timestamp);
 
