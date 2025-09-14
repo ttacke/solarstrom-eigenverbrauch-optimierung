@@ -69,43 +69,70 @@ namespace Local::Api {
 		}
 
 		void _lese_stundendaten_und_setze_ein(Local::Service::FileReader& file_reader, int now_timestamp) {
-			sprintf(filename_buffer, hourly_filename_template, year(now_timestamp));
+			sprintf(filename_buffer, roof1_filename_template, year(now_timestamp));
 			if(!file_reader.open_file_to_read(filename_buffer)) {
+				Serial.println("FEHLER Beim Lesen");
 				return;
 			}
 
-			int i = -1;
-			std::uint8_t findings = 0b0000'0001;
-			int letzte_gefundene_zeit = 0;
-			while(file_reader.read_next_block_to_buffer() && i < stunden_anzahl) {
-				if(file_reader.find_in_buffer((char*) "\"EpochDateTime\":([0-9]+)[,}]")) {
-					int zeitpunkt = atoi(file_reader.finding_buffer);
-					if(
-						letzte_gefundene_zeit != zeitpunkt // nur 1x behandeln
-						&& now_timestamp < zeitpunkt + 1800 // Zu altes ueberspringen
-					) {
-						letzte_gefundene_zeit = zeitpunkt;
-						i++;
-						if(// das bezieht sich immer auf den Cache
-							zeitpunkt_stunden_liste[i] == 0
-							||
-							zeitpunkt_stunden_liste[i] == zeitpunkt
-						) {
-							zeitpunkt_stunden_liste[i] = zeitpunkt;
-							findings = 0b0000'0000;
+			int veraltete_datensaetze = 0;
+			bool searching_hourly_radiation = false;
+			bool searching_hourly_time = false;
+			while(file_reader.read_next_block_to_buffer()) {
+				if(file_reader.find_in_buffer((char*) "(\"hourly\":{)")) { // Ohne Klammern gehts nicht
+					searching_hourly_radiation = true;
+					searching_hourly_time = true;
+				}
+				if(searching_hourly_time) {
+					if(file_reader.find_in_buffer((char*) "\"time\":[^0-9]([0-9]+)[^0-9]")) {
+						searching_hourly_time = false;
+						veraltete_datensaetze = 0;// Hier kommt man ggf 2x vorbei, weil der SearchBuffer "zu gross" ist
+						int zeitpunkt = atoi(file_reader.finding_buffer);
+						for(int i = 0; i < stunden_anzahl; i++) {// Nur die erste Zeit finden, die anderen sind immer 1h weiter. Grund: das Finden ist unnoetig aufwendig
+							zeitpunkt_stunden_liste[i] = zeitpunkt + (i * 3600);
+							if(
+								now_timestamp > zeitpunkt_stunden_liste[i] + 1800 // Zu altes ueberspringen
+							) {
+								veraltete_datensaetze++;
+							}
 						}
 					}
 				}
-
-				if(
-					!(findings & 0b000'0001) // Nur das erste passend zur gefundenen Zeit ermitteln
-					// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
-					&& file_reader.find_in_buffer((char*) "\"SolarIrradiance\":{[^}]*\"Value\":([0-9.]+)[,}]")
-				) {
-					solarstrahlung_stunden_liste[i] = round(atof(file_reader.finding_buffer));
-					findings = 0b0000'0001;
+				if(searching_hourly_radiation) {
+// TODO die neuen Wetterdaten wurden nicht gelesen von der API. Wieso?
+//Serial.println(">> Line:");
+//Serial.println(file_reader.buffer);
+					if(
+						file_reader.find_in_buffer(// global_tilted_irradiance_instant -> verkuerzt, um den Buffer nicht zu ueberforrdern
+							(char*) "instant\":[^0-9]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]"
+						)
+					) {
+						searching_hourly_radiation = false;
+						// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
+						int i = 0;
+						solarstrahlung_stunden_liste[i] = round(atof(file_reader.finding_buffer));
+						while(file_reader.fetch_next_finding() && i < stunden_anzahl - 1) {
+							i++;
+							solarstrahlung_stunden_liste[i] = round(atoi(file_reader.finding_buffer));
+						}
+					}
 				}
 			}
+			while(veraltete_datensaetze > 0) {
+				veraltete_datensaetze--;
+				zeitpunkt_stunden_liste[stunden_anzahl - 1] = 0;
+				solarstrahlung_stunden_liste[stunden_anzahl - 1] = 0;
+				for(int i = 1; i < stunden_anzahl; i++) {
+					solarstrahlung_stunden_liste[i - 1] = solarstrahlung_stunden_liste[i];
+					zeitpunkt_stunden_liste[i - 1] = zeitpunkt_stunden_liste[i];
+				}
+			}
+Serial.println("API-Read-DEBUG");
+for(int i = 0; i < stunden_anzahl; i++) {
+	Serial.println(zeitpunkt_stunden_liste[i]);
+	Serial.println(solarstrahlung_stunden_liste[i]);
+}
+			Serial.println("---ENDeeE");
 			file_reader.close_file();
 		}
 
@@ -270,13 +297,14 @@ namespace Local::Api {
 			Local::Service::FileWriter& file_writer,
 			Local::Model::Wetter& wetter, int now_timestamp
 		) {
+			Serial.println("Lese Wetterdaten");
 			_reset(zeitpunkt_stunden_liste, stunden_anzahl);
 			_reset(solarstrahlung_stunden_liste, stunden_anzahl);
 			wetter.stundenvorhersage_startzeitpunkt = 0;
 			for(int i = 0; i < stunden_anzahl; i++) {
 				wetter.setze_stundenvorhersage_solarstrahlung(i, 0);
 			}
-// TODO #1 datei runterladen
+			// TODO #1 datei runterladen
 			_lese_stundencache_und_setze_ein(file_reader, now_timestamp);
 			_lese_stundendaten_und_setze_ein(file_reader, now_timestamp);
 			wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_stunden_liste[0];
