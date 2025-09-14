@@ -68,6 +68,7 @@ namespace Local {
 		const int maximaler_netzbezug_ausschaltgrenze_in_w = 4670;// 59kVA (Syna) / 12 * 0,95 (VDE-AR-N 4100)
 		const int einschaltreserve_in_w = 300;
 		const int ladestatus_force_dauer = 12 * 3600;//12h
+		const float solarmodul_flaeche = 50;// m²
 		// https://de.wikipedia.org/wiki/Spitzenlast
 		// UTC = MEZ - 1; -1 = ignorieren
 		int winterladen_zwangspausen_utc[12] = {10,11,12,-1,15,16,17,-1,-1,-1,-1,-1};
@@ -78,5 +79,7 @@ namespace Local {
 		const int wettervorhersage_dach1_ausrichtung_azimuth = 30;
 		const int wettervorhersage_dach2_neigung_in_grad = 35;
 		const int wettervorhersage_dach2_ausrichtung_azimuth = 150;
+		const float stundenwert_anpassung = solarmodul_flaeche / 100;
+		const float tageswert_anpassung = solarmodul_flaeche * 5;
 	};
 }
