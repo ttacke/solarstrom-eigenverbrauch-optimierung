@@ -66,7 +66,8 @@ namespace Local::Service {
 			_prepare_search_buffer();
 			content_length -= strlen(buffer);
 			if(content_length <= 0 && is_chunked) {
-				_handle_chunked_content_length();
+				content_length = 0; // Bei Weather wird beim Ende einfach gestoppt. Klappt das ueberall?
+				//_handle_chunked_content_length();
 			}
 		}
 
