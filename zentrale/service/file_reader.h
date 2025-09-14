@@ -10,8 +10,8 @@ namespace Local::Service {
 		File fh;
 		MatchState match_state;
 		int offset = 0;
-		char old_buffer[64];
-		char search_buffer[128];
+		char old_buffer[128];
+		char search_buffer[256];
 		int next_capture_group;
 
 		bool _init() {
@@ -49,8 +49,8 @@ namespace Local::Service {
 		}
 
 	public:
-		char finding_buffer[65];
-		char buffer[64];
+		char finding_buffer[129];
+		char buffer[128];
 
 		void close_file() {
 			fh.close();
