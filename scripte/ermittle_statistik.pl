@@ -130,7 +130,7 @@ foreach my $e (@$daten) {
     }
 }
 close($amp_file) or die $!;
-print "CSV-Datei $amp_filename wurde erstellt (seit 11/08/2025)\n";
+print "CSV-Datei $amp_filename wurde erstellt (seit 11.08.2025)\n";
 print "L1max: $l1max, L2max: $l2max, L3max: $l3max  (in mA)\n";
 
 foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
@@ -150,14 +150,14 @@ foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
 }
 
 {
-    print "Stromstaerken seit Begrenzung auf 2,99kVA (15.02.2024)\n";
+    print "Stromstaerken korrektem Umbau (11.08.2024)\n";
     my $strom = {};
     my $ueberlast_start = 0;
     my $ueberlast_anzahl = 0;
     my $ueberlast_dauer = 0;
     my $ueberlast_max_dauer = 0;
     foreach my $e (@$daten) {
-        if($e->{'zeitpunkt'} > 1707994800) {
+        if($e->{'zeitpunkt'} > 1754922044) { # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
             if($e->{'netzbezug_in_w'} > 4670) {
                 if(!$ueberlast_start) {
                     $ueberlast_start = $e->{'zeitpunkt'};
