@@ -28,6 +28,7 @@ sub _hole_daten {
     }
 
     my $fehler = 0;
+    my $last_error_line = '';
     foreach my $filename (sort(@files)) {
         my $fh;
         if(!open($fh, '<', "../sd-karteninhalt/$filename")) {
@@ -36,9 +37,10 @@ sub _hole_daten {
         $/ = "\n";
         while(my $line = <$fh>) {
             chomp($line);
-            my @e = $line =~ m/^(\d{10,}),(e[23]),([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),(\d+),(?:(\d+),|)(?:(\d+),(\d+),(\d+),|)/;
+            my @e = $line =~ m/^(\d{10,}),(e[234]),([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),(\d+),(?:(\d+),|)(?:(\d+),(\d+),(\d+),|)/;
             if(!scalar(@e)) {
                 # warn $line;
+                $last_error_line = $line;
                 $fehler++;
                 next;
             }
@@ -46,6 +48,7 @@ sub _hole_daten {
             my @w = $line =~ m/,w[2],(\d+),(\d+)/;
             if(!scalar(@w)) {
                 # warn $line;
+                $last_error_line = $line;
                 $fehler++;
                 next;
             }
@@ -69,9 +72,10 @@ sub _hole_daten {
                 gib_anteil_pv1_in_prozent       => $e[10],
                 ersatzstrom_ist_aktiv           => $e[11] ? 1 : 0,
                 gesamt_energiemenge_in_wh       => $e[1] eq 'e2' ? 0 : $e[12],
+
                 l1_solarstrom_ma       => ($e[1] eq 'e2' || $e[1] eq 'e3') ? 0 : $e[13],
-                l2_solarstrom_ma       => ($e[1] eq 'e2' || $e[1] eq 'e3') ? 0 : $e[13],
-                l3_solarstrom_ma       => ($e[1] eq 'e2' || $e[1] eq 'e3') ? 0 : $e[13],
+                l2_solarstrom_ma       => ($e[1] eq 'e2' || $e[1] eq 'e3') ? 0 : $e[14],
+                l3_solarstrom_ma       => ($e[1] eq 'e2' || $e[1] eq 'e3') ? 0 : $e[15],
 
                 stunden_solarstrahlung          => $w[0],
                 tages_solarstrahlung            => $w[1],
@@ -90,6 +94,8 @@ sub _hole_daten {
     }
     if($fehler) {
         warn "ACHTUNG: $fehler Fehler!\n";
+        #warn $last_error_line;
+
     }
     return $daten;
 }
@@ -330,7 +336,7 @@ foreach my $e (@$daten) {
     $year += 1900;
     my $key = sprintf("%02d/%04d", $mon, $year);
     if(!defined($energiemenge->{$key})) {
-        $gesamt_energiemenge_in_wh_startpunkt ||= $e->{'gesamt_energiemenge_in_wh'};
+        $gesamt_energiemenge_in_wh_startpunkt = $e->{'gesamt_energiemenge_in_wh'};
     }
     $energiemenge->{$key} = $e->{'gesamt_energiemenge_in_wh'} - $gesamt_energiemenge_in_wh_startpunkt;
 }

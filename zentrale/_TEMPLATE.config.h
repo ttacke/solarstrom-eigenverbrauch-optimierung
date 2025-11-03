@@ -45,18 +45,18 @@ namespace Local {
 		float heizstab_einschalt_temperatur = 19.9;
 		float heizstab_ausschalt_temperatur = 20.0;
 
-		int grundverbrauch_in_w_pro_h_sommer = 256;
-		int grundverbrauch_in_w_pro_h_winter = 522;
-		float solarstrahlungs_vorhersage_umrechnungsfaktor_sommer = 5.1;// 90% von 5.66
-		float solarstrahlungs_vorhersage_umrechnungsfaktor_winter = 6.6;// 90% von 7.34
+		int grundverbrauch_in_w_pro_h_sommer = 262;
+		int grundverbrauch_in_w_pro_h_winter = 521;
+		float solarstrahlungs_vorhersage_umrechnungsfaktor_sommer = 4.96;// 90% von 5.51
+		float solarstrahlungs_vorhersage_umrechnungsfaktor_winter = 6.0;// 90% von 6.67
 
 		int akku_groesse_in_wh = 7680;
-		int akku_zielladestand_in_promille = 800;// sollte <= maxSOC-Begrenzung sein
+		int akku_zielladestand_in_promille = 900;// sollte <= maxSOC-Begrenzung sein
 		int akku_zielladestand_fuer_ueberladen_in_promille = 980;// sollte ~ maxSOC-Begrenzung sein
 		int akku_ladestand_in_promille_fuer_erzwungenes_ueberladen = 780;
 		int akku_ladestand_in_promille_fuer_erzwungenes_laden = 760;
 		int nicht_laden_unter_akkuladestand_in_promille = 200;
-		int minimal_im_tagesgang_erreichbarer_akku_ladestand_in_promille = 300;
+		int minimal_im_tagesgang_erreichbarer_akku_ladestand_in_promille = 100;
 		int frueh_leeren_starte_in_stunde_utc = 4;
 
 		const int webserver_port = 80;
@@ -79,7 +79,7 @@ namespace Local {
 		const int wettervorhersage_dach1_ausrichtung_azimuth = 30;
 		const int wettervorhersage_dach2_neigung_in_grad = 35;
 		const int wettervorhersage_dach2_ausrichtung_azimuth = 150;
-		const float stundenwert_anpassung = solarmodul_flaeche / 100;
-		const float tageswert_anpassung = solarmodul_flaeche * 5;
+		const float stundenwert_anpassung = solarmodul_flaeche / 35; // 60=vorhersage:6h bis voll, real:4h bis voll; 40 = minimal zu niedrig ~1h daneben
+		const float tageswert_anpassung = solarmodul_flaeche * 9.5;// 10 war zu hoch, 7.5 zu niedrig, 8,5 zu niedrig
 	};
 }
