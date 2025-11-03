@@ -80,10 +80,10 @@ sub _hole_daten {
                 stunden_solarstrahlung          => $w[0],
                 tages_solarstrahlung            => $w[1],
 
-                erde_temperatur                 => $t[0],
-                erde_luftfeuchtigkeit           => $t[1],
-                luft_temperatur                 => $t[2],
-                luft_luftfeuchtigkeit           => $t[3],
+                wohnraum_temperatur                 => $t[0],
+                wohnraum_luftfeuchtigkeit           => $t[1],
+                bad_temperatur                 => $t[2],
+                bad_luftfeuchtigkeit           => $t[3],
 
                 heizungsunterstuetzung_an       => $t[4],
                 heizung_temperatur_differenz => $t[5],
@@ -112,8 +112,8 @@ my ($l1, $l2, $l3) = (0, 0, 0);
 my ($l1max, $l2max, $l3max) = (0, 0, 0);
 foreach my $e (@$daten) {
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
-    next if($year + 1900 < 2024);
-
+    #next if($year + 1900 < 2024);
+    next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
     $l1 = $e->{"l1_strom_ma"} if($l1 < $e->{"l1_strom_ma"});
     $l2 = $e->{"l2_strom_ma"} if($l2 < $e->{"l2_strom_ma"});
     $l3 = $e->{"l3_strom_ma"} if($l3 < $e->{"l3_strom_ma"});
@@ -130,7 +130,7 @@ foreach my $e (@$daten) {
     }
 }
 close($amp_file) or die $!;
-print "CSV-Datei $amp_filename wurde erstellt\n";
+print "CSV-Datei $amp_filename wurde erstellt (seit 11/08/2025)\n";
 print "L1max: $l1max, L2max: $l2max, L3max: $l3max  (in mA)\n";
 
 foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
@@ -274,56 +274,86 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
 }
 
 
-my $min_temp = 999;
-my $min_time = 0;
-my $max_temp = 0;
-my $max_time = 0;
-my $delta_temp = 0;
-my $delta_time = 0;
+# my $min_temp = 999;
+# my $min_time = 0;
+# my $max_temp = 0;
+# my $max_time = 0;
+# my $delta_temp = 0;
+# my $delta_time = 0;
+#
+# my $temp_filename = 'temperaturverlauf.csv';
+# open(my $temp_file, '>', $temp_filename) or die $!;
+# print $temp_file "Datum,Boden,Luft\n";
+# foreach my $e (@$daten) {
+#     if(
+#         $e->{"erde_temperatur"} && $e->{"erde_temperatur"} != 0
+#         && $e->{"luft_temperatur"} && $e->{"luft_temperatur"} != 0
+#     ) {
+#         my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
+#         if($min % 15 == 0) {
+#             print $temp_file sprintf(
+#                 "%4d-%02d-%02d %d:%02d,%.1f,%01f\n",
+#                 $year + 1900, $mon + 1, $mday, $hour, $min, $e->{erde_temperatur}, $e->{luft_temperatur}
+#             );
+#         }
+#         if($e->{'erde_temperatur'} < $max_temp) {
+#             if(
+#                 $max_temp
+#                 && $min_temp < $max_temp
+#                 && sprintf("%.1f", $max_temp - $min_temp) >= 0.4
+#             ) {
+#                 $delta_temp += $max_temp - $min_temp;
+#                 $delta_time += ($max_time - $min_time) / 3600;
+#                 # printf(
+#                 #     "Delta: %.1f K in %.2f h $min_temp -> $max_temp; %s\n",
+#                 #     $max_temp - $min_temp,
+#                 #     ($max_time - $min_time) / 3600,
+#                 #     '' . localtime($e->{'zeitpunkt'})
+#                 # );
+#             }
+#             $min_temp = $e->{'erde_temperatur'};
+#             $min_time = $e->{'zeitpunkt'};
+#             $max_temp = $e->{'erde_temperatur'};
+#             $max_time = $e->{'zeitpunkt'};
+#         } elsif($e->{'erde_temperatur'} > $max_temp) {
+#             $max_temp = $e->{'erde_temperatur'};
+#             $max_time = $e->{'zeitpunkt'};
+#         }
+#     }
+# }
+# close($temp_file) or die $!;
+# printf("\nTemperaturertrag: %.2f K/h\n", $delta_temp / $delta_time);
+# print "CSV-Datei $temp_filename wurde erstellt\n";
 
-my $temp_filename = 'temperaturverlauf.csv';
-open(my $temp_file, '>', $temp_filename) or die $!;
-print $temp_file "Datum,Boden,Luft\n";
+my $wait_till = 0;
+my $wday_name = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+my $feuchtligkeiten = [];
+print "\n\nFeuchtligkeits-Peaks:\n";
 foreach my $e (@$daten) {
+    next if(!$e->{"bad_luftfeuchtigkeit"});
+
+    push(@$feuchtligkeiten, $e->{"bad_luftfeuchtigkeit"});
+    shift(@$feuchtligkeiten) if(scalar(@$feuchtligkeiten) > 10);
+
+    next if($e->{'zeitpunkt'} < 1760948444);
+
+    my $summe = 0;
+    map { $summe += $_ } @$feuchtligkeiten;
+    my $schnitt = $summe / scalar(@$feuchtligkeiten);
+
     if(
-        $e->{"erde_temperatur"} && $e->{"erde_temperatur"} != 0
-        && $e->{"luft_temperatur"} && $e->{"luft_temperatur"} != 0
+        $e->{"bad_luftfeuchtigkeit"} >= $schnitt + 5
+        &&
+        (!$wait_till || $wait_till < $e->{'zeitpunkt'})
     ) {
         my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
-        if($min % 15 == 0) {
-            print $temp_file sprintf(
-                "%4d-%02d-%02d %d:%02d,%.1f,%01f\n",
-                $year + 1900, $mon + 1, $mday, $hour, $min, $e->{erde_temperatur}, $e->{luft_temperatur}
-            );
-        }
-        if($e->{'erde_temperatur'} < $max_temp) {
-            if(
-                $max_temp
-                && $min_temp < $max_temp
-                && sprintf("%.1f", $max_temp - $min_temp) >= 0.4
-            ) {
-                $delta_temp += $max_temp - $min_temp;
-                $delta_time += ($max_time - $min_time) / 3600;
-                # printf(
-                #     "Delta: %.1f K in %.2f h $min_temp -> $max_temp; %s\n",
-                #     $max_temp - $min_temp,
-                #     ($max_time - $min_time) / 3600,
-                #     '' . localtime($e->{'zeitpunkt'})
-                # );
-            }
-            $min_temp = $e->{'erde_temperatur'};
-            $min_time = $e->{'zeitpunkt'};
-            $max_temp = $e->{'erde_temperatur'};
-            $max_time = $e->{'zeitpunkt'};
-        } elsif($e->{'erde_temperatur'} > $max_temp) {
-            $max_temp = $e->{'erde_temperatur'};
-            $max_time = $e->{'zeitpunkt'};
-        }
+        print sprintf(
+            "%s %4d-%02d-%02d %d:%02d,%.1f,%.1f\n",
+            $wday_name->[$wday], $year + 1900, $mon + 1, $mday, $hour, $min, $schnitt, $e->{bad_luftfeuchtigkeit}
+        );
+        $wait_till = $e->{'zeitpunkt'} + 3600;
     }
 }
-close($temp_file) or die $!;
-printf("\nTemperaturertrag: %.2f K/h\n", $delta_temp / $delta_time);
-print "CSV-Datei $temp_filename wurde erstellt\n";
 
 my $energiemenge = {};
 print "\nErzeugte Energiemenge (Monatsweise):\n";

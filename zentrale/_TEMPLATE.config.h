@@ -65,7 +65,7 @@ namespace Local {
 		const char* wechselrichter_host = "192.168.0.14";
 		const int wechselrichter_port = 80;
 		const int maximale_wechselrichterleistung_in_w = 7000;
-		const int maximaler_netzbezug_ausschaltgrenze_in_w = 4670;// 59kVA (Syna) / 12 * 0,95 (VDE-AR-N 4100)
+		const int maximaler_netzbezug_ausschaltgrenze_in_w = 6500;// ((59kVA (Syna) / 12) + 4.6kVA (lasterhoehung)) * 0,95 (VDE-AR-N 4100) = 9000 W
 		const int einschaltreserve_in_w = 300;
 		const int ladestatus_force_dauer = 12 * 3600;//12h
 		const float solarmodul_flaeche = 50;// m²
