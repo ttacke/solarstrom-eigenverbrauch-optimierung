@@ -40,8 +40,8 @@ namespace Local {
 		int heizung_benoetigte_leistung_in_w = 420;
 		int heizung_min_schaltzeit_in_min = 60;
 		int heizstab_benoetigte_leistung_in_w = 1500;
-		int heizstab_einschalt_differenzwert = 540;
-		int heizstab_ausschalt_differenzwert = 543;
+		int heizstab_einschalt_differenzwert = 542;// 540 ist das Minimum
+		int heizstab_ausschalt_differenzwert = 545;// ca Minimum+3
 		float heizstab_einschalt_temperatur = 19.9;
 		float heizstab_ausschalt_temperatur = 20.0;
 
