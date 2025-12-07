@@ -109,9 +109,9 @@
 			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : (daten['heizung_lastschutz'] ? "schutz" : 'off');
 			document.getElementById('heizung_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_ueberladen'] ? "an" : (daten['heizung_lastschutz'] ? "schutz" : 'aus');
 			document.getElementById('roller_laden_an').className = daten['roller_lastschutz'] ? "schutz" : (daten['roller_laden_an'] ? 'on' : 'off');
-			document.getElementById('roller_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['roller_relay_an'] ? "an" : (daten['roller_lastschutz'] ? "schutz" : "aus");
+			document.getElementById('roller_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['roller_relay_an'] ? "erlaubt" : (daten['roller_lastschutz'] ? "schutz" : "aus");
 			document.getElementById('auto_laden_an').className = daten['auto_lastschutz'] ? "schutz" : (daten['auto_laden_an'] ? 'on' : 'off');
-			document.getElementById('auto_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['auto_relay_an'] ? "an" : (daten['auto_lastschutz'] ? "schutz" : "aus");
+			document.getElementById('auto_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['auto_relay_an'] ? "erlaubt" : (daten['auto_lastschutz'] ? "schutz" : "aus");
 			document.getElementById('solarerzeugung_ist_aktiv').className = daten['solarerzeugung_ist_aktiv'] ? 'on' : 'off';
 
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
@@ -122,7 +122,7 @@
 			document.getElementById('keller_temperatur').innerHTML = daten['keller_temperatur'];
 			document.getElementById('keller_luftfeuchtigkeit').innerHTML = daten['keller_luftfeuchtigkeit'];
 			
-			document.getElementById('heizung_temperatur_differenz').innerHTML = daten['heizung_temperatur_differenz'];
+			document.getElementById('heizung_temperatur_differenz').innerHTML = daten['heizung_temperatur_differenz'] * 1 - 540;
 			document.getElementById('heizstab_erlaubt').className = daten['heizstab_erlaubt'] ? 'off' : 'schutz';
 			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'erlaubt' : 'sperre';
 		}
@@ -630,7 +630,7 @@
 	</div>
 	<div>
 		Keller: <span id="keller_temperatur"></span> &#8451; / <span id="keller_luftfeuchtigkeit"></span> %
-		<small>Diff:<span id="heizung_temperatur_differenz"></span></small>
+		<span>HzDff:<span id="heizung_temperatur_differenz"></span></span>
 	</div>
 </div>
 

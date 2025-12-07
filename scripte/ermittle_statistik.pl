@@ -348,9 +348,13 @@ foreach my $e (@$daten) {
     ) {
         my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
         print sprintf(
-            "%s %4d-%02d-%02d %d:%02d,%.1f,%.1f\n",
-            $wday_name->[$wday], $year + 1900, $mon + 1, $mday, $hour, $min, $schnitt, $e->{bad_luftfeuchtigkeit}
+            "\"%4d-%02d-%02d %d:%02d\",\n",
+            $year + 1900, $mon + 1, $mday, $hour, $min
         );
+        # print sprintf(
+        #     "%s %4d-%02d-%02d %d:%02d,%.1f,%.1f\n",
+        #     $wday_name->[$wday], $year + 1900, $mon + 1, $mday, $hour, $min, $schnitt, $e->{bad_luftfeuchtigkeit}
+        # );
         $wait_till = $e->{'zeitpunkt'} + 3600;
     }
 }

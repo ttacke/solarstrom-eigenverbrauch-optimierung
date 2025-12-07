@@ -55,6 +55,29 @@ namespace Local::Api {
 			}
 		}
 
+// TODO Aufteilung Süd/Nord reparieren
+// https://api.open-meteo.com/v1/forecast?latitude=50.00&longitude=7.95&daily=sunrise,sunset,shortwave_radiation_sum&hourly=global_tilted_irradiance_instant&timezone=Europe%2FBerlin&tilt=35&azimuth=135&timeformat=unixtime&forecast_hours=12
+
+// TODO Vorhersage erneuern
+// curl http://192.168.0.14/solar_api/v1/GetInverterInfo.cgi
+// -> Device: 1
+// curl "http://192.168.0.14/solar_api/v1/GetActiveDeviceInfo.cgi?DeviceClass=System"
+// curl "http://192.168.0.14/solar_api/v1/GetMeterRealtimeData.cgi?Scope=System"
+/*
+	-> am "Meter" gemessene Ströhme
+	"Current_AC_Phase_1" : -1.236,
+	"Current_AC_Phase_2" : -0.94499999999999995,
+	"Current_AC_Phase_3" : -1.361,
+
+
+
+*/
+// curl "http://192.168.0.14/solar_api/v1/GetMeterRealtimeData.cgi?Scope=Device&DeviceId=1"
+// Das gleiche wie "System"
+// curl http://192.168.0.14/solar_api/v1/GetStorageRealtimeData.cgi
+// curl http://192.168.0.14/solar_api/v1/GetOhmPilotRealtimeData.cgi
+// curl http://192.168.0.14/solar_api/v1/GetPowerFlowRealtimeData.fcgi
+// curl http://192.168.0.14/solar_api/GetInverterRealtimeData.cgi
 		void _detaildaten_einsetzen(Local::Model::ElektroAnlage& elektroanlage) {
 			if(web_reader->find_in_buffer((char*) "\"PV_POWERACTIVE_MEAN_01_F32\" *: *([0-9.]+)[^0-9]")) {
 				elektroanlage.leistungsanteil_pv1 = round(atof(web_reader->finding_buffer) * 1000);
