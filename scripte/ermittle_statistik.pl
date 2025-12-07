@@ -53,7 +53,7 @@ sub _hole_daten {
                 next;
             }
 
-            my @t = $line =~ m/,kb?1([\-\d\.]+),([\d\.]+),kl?1([\-\d\.]+),([\d\.]+)(?:,hs(\d+),(\d+)|)/;
+            my @t = $line =~ m/,kb?1([\-\d\.]+),([\d\.]+),kl?1([\-\d\.]+),([\d\.]+)(?:,hs(\d),(\d+)|)/;
 
             my @d = gmtime($e[0]);
             my $neu = {
@@ -388,5 +388,53 @@ foreach my $key (sort(keys(%$energiemenge))) {
 #     my $time = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 #     print "$time  $e->{'heizung_temperatur_differenz'}\n";
 # }
+
+my $heizstab_an_zeitpunkt = 0;
+my $heizstab_tage = {};
+my $heizstab_jahre = {};
+foreach my $e (@$daten) {
+    next if(!exists($e->{'heizungsunterstuetzung_an'}));
+
+    if(
+        $e->{'heizungsunterstuetzung_an'}
+        && !$heizstab_an_zeitpunkt
+        && $e->{'l2_strom_ma'} > 6
+    ) {
+        $heizstab_an_zeitpunkt = $e->{'zeitpunkt'};
+    } elsif($heizstab_an_zeitpunkt > 0) {
+        my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
+        if($mon + 1 > 5 && $mon + 1 < 10) {# Da wird nicht geheizt, laesst sich leider nicht anders ermitteln
+            $heizstab_an_zeitpunkt = 0;
+            next;
+        }
+        my $day = sprintf("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
+        my $zeitraum_der_aktvierung = $e->{'zeitpunkt'} - $heizstab_an_zeitpunkt;
+        $heizstab_tage->{$day} += $zeitraum_der_aktvierung;
+        $heizstab_jahre->{$year + 1900} += $zeitraum_der_aktvierung;
+        $heizstab_an_zeitpunkt = 0;
+    }
+}
+print "\n\nDaten der Heizstab Nutzungsdauer pro Tag\n";
+foreach my $day (sort keys(%$heizstab_tage)) {
+    my $nutzung = 0;
+    my $kwh = 0;
+    my $kosten = 0;
+    if($heizstab_tage->{$day} > 0) {
+        $nutzung = $heizstab_tage->{$day} / 86400 * 100;
+        $kwh = $heizstab_tage->{$day} / 3600 * 1.5;
+        $kosten = $kwh * 0.33;
+    }
+    printf("%s: %2d %%, %2.1f kWh, %2.2f EUR\n", $day, $nutzung, $kwh, $kosten);
+}
+print "\n\nDaten der Heizstab Nutzungsdauer pro Jahr\n";
+foreach my $year (sort keys(%$heizstab_jahre)) {
+    my $kwh = 0;
+    my $kosten = 0;
+    if($heizstab_jahre->{$year} > 0) {
+        $kwh = $heizstab_jahre->{$year} / 3600 * 1.5;
+        $kosten = $kwh * 0.33;
+    }
+    printf("%s: %2.1f kWh, %2.2f EUR\n", $year, $kwh, $kosten);
+}
 
 print "\n";
