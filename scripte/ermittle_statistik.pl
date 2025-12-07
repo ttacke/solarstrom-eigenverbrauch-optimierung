@@ -392,25 +392,42 @@ foreach my $key (sort(keys(%$energiemenge))) {
 my $heizstab_an_zeitpunkt = 0;
 my $heizstab_tage = {};
 my $heizstab_jahre = {};
+my $heizstab_war_vermutlich_an = 0;
 foreach my $e (@$daten) {
     next if(!exists($e->{'heizungsunterstuetzung_an'}));
 
+    if($heizstab_an_zeitpunkt > 0 && !$heizstab_war_vermutlich_an && $e->{'l2_strom_ma'} > 6) {
+        $heizstab_war_vermutlich_an = 1;
+    }
     if(
         $e->{'heizungsunterstuetzung_an'}
         && !$heizstab_an_zeitpunkt
-        && $e->{'l2_strom_ma'} > 6
     ) {
         $heizstab_an_zeitpunkt = $e->{'zeitpunkt'};
-    } elsif($heizstab_an_zeitpunkt > 0) {
-        my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
-        if($mon + 1 > 5 && $mon + 1 < 10) {# Da wird nicht geheizt, laesst sich leider nicht anders ermitteln
-            $heizstab_an_zeitpunkt = 0;
-            next;
+        $heizstab_war_vermutlich_an = 0;
+    } elsif($heizstab_an_zeitpunkt > 0 && !$e->{'heizungsunterstuetzung_an'}) {
+        if($heizstab_war_vermutlich_an == 1) {
+            my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
+            if($mon + 1 > 5 && $mon + 1 < 10) {# Da wird nicht geheizt, laesst sich leider nicht anders ermitteln
+                $heizstab_an_zeitpunkt = 0;
+                next;
+            }
+
+            my $day = sprintf("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
+            my $zeitraum_der_aktivierung = $e->{'zeitpunkt'} - $heizstab_an_zeitpunkt;
+            $heizstab_tage->{$day} ||= [0, 0];
+            $heizstab_jahre->{$year + 1900} ||= [0, 0];
+            my $index = 0;
+            if(
+                ($mon + 1 == 3 && $mday > 15)
+                ||
+                ($mon + 1 > 3 && $mon + 1 < 10)
+            ) {# Da ist Solarueberschuss
+                $index = 1;
+            }
+            $heizstab_tage->{$day}[$index] += $zeitraum_der_aktivierung;
+            $heizstab_jahre->{$year + 1900}[$index] += $zeitraum_der_aktivierung;
         }
-        my $day = sprintf("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
-        my $zeitraum_der_aktvierung = $e->{'zeitpunkt'} - $heizstab_an_zeitpunkt;
-        $heizstab_tage->{$day} += $zeitraum_der_aktvierung;
-        $heizstab_jahre->{$year + 1900} += $zeitraum_der_aktvierung;
         $heizstab_an_zeitpunkt = 0;
     }
 }
@@ -419,22 +436,42 @@ foreach my $day (sort keys(%$heizstab_tage)) {
     my $nutzung = 0;
     my $kwh = 0;
     my $kosten = 0;
-    if($heizstab_tage->{$day} > 0) {
-        $nutzung = $heizstab_tage->{$day} / 86400 * 100;
-        $kwh = $heizstab_tage->{$day} / 3600 * 1.5;
+    if($heizstab_tage->{$day}[0] > 0) {
+        $nutzung = $heizstab_tage->{$day}[0] / 86400 * 100;
+        $kwh = $heizstab_tage->{$day}[0] / 3600 * 1.5;
         $kosten = $kwh * 0.33;
     }
-    printf("%s: %2d %%, %2.1f kWh, %2.2f EUR\n", $day, $nutzung, $kwh, $kosten);
+    my $nutzung_solar = 0;
+    my $kwh_solar = 0;
+    my $kosten_solar = 0;
+    if($heizstab_tage->{$day}[1] > 0) {
+        $nutzung_solar = $heizstab_tage->{$day}[1] / 86400 * 100;
+        $kwh_solar = $heizstab_tage->{$day}[1] / 3600 * 1.5;
+        $kosten_solar = $kwh_solar * 0.33;
+    }
+    printf(
+        "%s: %2d %%, %2.1f kWh, %2.2f EUR / Solar: %2d %%, %2.1f kWh, %2.2f EUR\n",
+        $day, $nutzung, $kwh, $kosten, $nutzung_solar, $kwh_solar, $kosten_solar
+    );
 }
 print "\n\nDaten der Heizstab Nutzungsdauer pro Jahr\n";
 foreach my $year (sort keys(%$heizstab_jahre)) {
     my $kwh = 0;
     my $kosten = 0;
-    if($heizstab_jahre->{$year} > 0) {
-        $kwh = $heizstab_jahre->{$year} / 3600 * 1.5;
+    if($heizstab_jahre->{$year}[0] > 0) {
+        $kwh = $heizstab_jahre->{$year}[0] / 3600 * 1.5;
         $kosten = $kwh * 0.33;
     }
-    printf("%s: %2.1f kWh, %2.2f EUR\n", $year, $kwh, $kosten);
+    my $kwh_solar = 0;
+    my $kosten_solar = 0;
+    if($heizstab_jahre->{$year}[1] > 0) {
+        $kwh_solar = $heizstab_jahre->{$year}[1] / 3600 * 1.5;
+        $kosten_solar = $kwh_solar * 0.33;
+    }
+    printf(
+        "%s: %2.1f kWh, %2.2f EUR / Solar: %2.1f kWh, %2.2f EUR\n",
+        $year, $kwh, $kosten, $kwh_solar, $kosten_solar
+    );
 }
 
 print "\n";
