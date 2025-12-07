@@ -450,7 +450,7 @@ foreach my $day (sort keys(%$heizstab_tage)) {
         $kosten_solar = $kwh_solar * 0.33;
     }
     printf(
-        "%s: %2d %%, %2.1f kWh, %2.2f EUR / Solar: %2d %%, %2.1f kWh, %2.2f EUR\n",
+        "%s: %2d %%, %4.1f kWh, %5.2f EUR / Solar: %2d %%, %4.1f kWh, %5.2f EUR\n",
         $day, $nutzung, $kwh, $kosten, $nutzung_solar, $kwh_solar, $kosten_solar
     );
 }
@@ -469,7 +469,7 @@ foreach my $year (sort keys(%$heizstab_jahre)) {
         $kosten_solar = $kwh_solar * 0.33;
     }
     printf(
-        "%s: %2.1f kWh, %2.2f EUR / Solar: %2.1f kWh, %2.2f EUR\n",
+        "%s: %4.1f kWh, %5.2f EUR / Solar: %4.1f kWh, %5.2f EUR\n",
         $year, $kwh, $kosten, $kwh_solar, $kosten_solar
     );
 }
