@@ -156,9 +156,11 @@ foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
     my $ueberlast_anzahl = 0;
     my $ueberlast_dauer = 0;
     my $ueberlast_max_dauer = 0;
+    my $maximal_zulaessige_last_in_w = 9000;# ((59kVA (Syna) / 12) + 4.6kVA (lasterhoehung)) * 0,95 (VDE-AR-N 4100) = 9000 W
+    my $maximale_leistung_pro_phase_in_ma = 30000;# eigentlich 32000 Haussicherung, aber wir wollen ja keinen Stress
     foreach my $e (@$daten) {
         if($e->{'zeitpunkt'} > 1754922044) { # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
-            if($e->{'netzbezug_in_w'} > 4670) {
+            if($e->{'netzbezug_in_w'} > $maximal_zulaessige_last_in_w) {
                 if(!$ueberlast_start) {
                     $ueberlast_start = $e->{'zeitpunkt'};
                     $ueberlast_anzahl++;
@@ -181,7 +183,7 @@ foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
                     ueberlast_dauer => 0, ueberlast_max_dauer => 0
                 };
                 my $i_in_ma = $e->{"l${phase}_strom_ma"};
-                if($i_in_ma > 16000) {
+                if($i_in_ma > $maximale_leistung_pro_phase_in_ma) {
                     if(!$strom->{$phase}->{'ueberlast_start'}) {
                         $strom->{$phase}->{'ueberlast_start'} = $e->{'zeitpunkt'};
                         $strom->{$phase}->{'ueberlast_anzahl'}++;
@@ -205,14 +207,14 @@ foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
             }
         }
     }
-    print "Ueberlast: Anzahl = $ueberlast_anzahl, Gesamtdauer = ${ueberlast_dauer}s, max Dauer = ${ueberlast_max_dauer}s\n";
+    print "Ueberlast(> $maximal_zulaessige_last_in_w W): Anzahl = $ueberlast_anzahl, Gesamtdauer = ${ueberlast_dauer}s, max Dauer = ${ueberlast_max_dauer}s\n";
     foreach my $phase (1..3) {
         print "  Phase $phase:\n";
         print "     Min " . sprintf("%.2f", $strom->{$phase}->{'min'} / 1000) . " A\n";
         print "     Max " . sprintf("%.2f", $strom->{$phase}->{'max'} / 1000) . " A\n";
-        print "     >16A Anzahl $strom->{$phase}->{'ueberlast_anzahl'}\n";
-        print "     >16A Dauer Gesamt $strom->{$phase}->{'ueberlast_dauer'}s\n";
-        print "     >16A max.Dauer $strom->{$phase}->{'ueberlast_max_dauer'}\n";
+        print "     >$maximale_leistung_pro_phase_in_ma mA Anzahl $strom->{$phase}->{'ueberlast_anzahl'}\n";
+        print "     >$maximale_leistung_pro_phase_in_ma mA Dauer Gesamt $strom->{$phase}->{'ueberlast_dauer'}s\n";
+        print "     >$maximale_leistung_pro_phase_in_ma mA max.Dauer $strom->{$phase}->{'ueberlast_max_dauer'}\n";
     }
 }
 
@@ -325,38 +327,42 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
 # printf("\nTemperaturertrag: %.2f K/h\n", $delta_temp / $delta_time);
 # print "CSV-Datei $temp_filename wurde erstellt\n";
 
-my $wait_till = 0;
-my $wday_name = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-my $feuchtligkeiten = [];
-print "\n\nFeuchtligkeits-Peaks:\n";
-foreach my $e (@$daten) {
-    next if(!$e->{"bad_luftfeuchtigkeit"});
+{
+    my $wait_till = 0;
+    # my $wday_name = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+    my $feuchtligkeiten = [];
+    print "\n\nFeuchtigkeits-Peaks: feuchtigkeits_peaks.csv\n";
+    open(my $fh, '>', 'feuchtigkeits_peaks.csv') or die $!;
+    foreach my $e (@$daten) {
+        next if(!$e->{"bad_luftfeuchtigkeit"});
 
-    push(@$feuchtligkeiten, $e->{"bad_luftfeuchtigkeit"});
-    shift(@$feuchtligkeiten) if(scalar(@$feuchtligkeiten) > 10);
+        push(@$feuchtligkeiten, $e->{"bad_luftfeuchtigkeit"});
+        shift(@$feuchtligkeiten) if(scalar(@$feuchtligkeiten) > 10);
 
-    next if($e->{'zeitpunkt'} < 1760948444);
+        next if($e->{'zeitpunkt'} < 1760948444);
 
-    my $summe = 0;
-    map { $summe += $_ } @$feuchtligkeiten;
-    my $schnitt = $summe / scalar(@$feuchtligkeiten);
+        my $summe = 0;
+        map { $summe += $_ } @$feuchtligkeiten;
+        my $schnitt = $summe / scalar(@$feuchtligkeiten);
 
-    if(
-        $e->{"bad_luftfeuchtigkeit"} >= $schnitt + 5
-        &&
-        (!$wait_till || $wait_till < $e->{'zeitpunkt'})
-    ) {
-        my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
-        print sprintf(
-            "\"%4d-%02d-%02d %d:%02d\",\n",
-            $year + 1900, $mon + 1, $mday, $hour, $min
-        );
-        # print sprintf(
-        #     "%s %4d-%02d-%02d %d:%02d,%.1f,%.1f\n",
-        #     $wday_name->[$wday], $year + 1900, $mon + 1, $mday, $hour, $min, $schnitt, $e->{bad_luftfeuchtigkeit}
-        # );
-        $wait_till = $e->{'zeitpunkt'} + 3600;
+        if(
+            $e->{"bad_luftfeuchtigkeit"} >= $schnitt + 5
+            &&
+            (!$wait_till || $wait_till < $e->{'zeitpunkt'})
+        ) {
+            my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
+            print $fh sprintf(
+                "%4d-%02d-%02d %d:%02d\n",
+                $year + 1900, $mon + 1, $mday, $hour, $min
+            );
+            # print sprintf(
+            #     "%s %4d-%02d-%02d %d:%02d,%.1f,%.1f\n",
+            #     $wday_name->[$wday], $year + 1900, $mon + 1, $mday, $hour, $min, $schnitt, $e->{bad_luftfeuchtigkeit}
+            # );
+            $wait_till = $e->{'zeitpunkt'} + 3600;
+        }
     }
+    close($fh);
 }
 
 my $energiemenge = {};
@@ -393,6 +399,7 @@ my $heizstab_an_zeitpunkt = 0;
 my $heizstab_tage = {};
 my $heizstab_jahre = {};
 my $heizstab_war_vermutlich_an = 0;
+my $haus_lief_mit_solar = 0;
 foreach my $e (@$daten) {
     next if(!exists($e->{'heizungsunterstuetzung_an'}));
 
@@ -400,11 +407,18 @@ foreach my $e (@$daten) {
         $heizstab_war_vermutlich_an = 1;
     }
     if(
+        $e->{'solarerzeugung_in_w'} > 1500
+        && $e->{'solarakku_ladestand_in_promille'} > 400
+    ) {
+        $haus_lief_mit_solar = 1;
+    }
+    if(
         $e->{'heizungsunterstuetzung_an'}
         && !$heizstab_an_zeitpunkt
     ) {
         $heizstab_an_zeitpunkt = $e->{'zeitpunkt'};
         $heizstab_war_vermutlich_an = 0;
+        $haus_lief_mit_solar = 0;
     } elsif($heizstab_an_zeitpunkt > 0 && !$e->{'heizungsunterstuetzung_an'}) {
         if($heizstab_war_vermutlich_an == 1) {
             my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
@@ -419,9 +433,10 @@ foreach my $e (@$daten) {
             $heizstab_jahre->{$year + 1900} ||= [0, 0];
             my $index = 0;
             if(
-                ($mon + 1 == 3 && $mday > 15)
-                ||
-                ($mon + 1 > 3 && $mon + 1 < 10)
+                $haus_lief_mit_solar == 1
+                # ($mon + 1 == 3 && $mday > 15)
+                # ||
+                # ($mon + 1 > 3 && $mon + 1 < 10)
             ) {# Da ist Solarueberschuss
                 $index = 1;
             }
