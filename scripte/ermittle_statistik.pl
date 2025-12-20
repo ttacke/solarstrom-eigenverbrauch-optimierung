@@ -333,13 +333,15 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
     my $feuchtligkeiten = [];
     print "\n\nFeuchtigkeits-Peaks: feuchtigkeits_peaks.csv\n";
     open(my $fh, '>', 'feuchtigkeits_peaks.csv') or die $!;
+    my $treffer = 0;
+    my $kein_treffer = 0;
     foreach my $e (@$daten) {
         next if(!$e->{"bad_luftfeuchtigkeit"});
 
         push(@$feuchtligkeiten, $e->{"bad_luftfeuchtigkeit"});
         shift(@$feuchtligkeiten) if(scalar(@$feuchtligkeiten) > 10);
 
-        next if($e->{'zeitpunkt'} < 1760948444);
+        next if($e->{'zeitpunkt'} < 1760948444);# ab 20.10.2025
 
         my $summe = 0;
         map { $summe += $_ } @$feuchtligkeiten;
@@ -351,6 +353,14 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
             (!$wait_till || $wait_till < $e->{'zeitpunkt'})
         ) {
             my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
+            if(
+                ($hour >= 19 || ($hour == 18 && $min > 30))
+                && ($hour <= 22 || ($hour == 23 && $min < 30))
+            ) {
+                $treffer++;
+            } else {
+                $kein_treffer++;
+            }
             print $fh sprintf(
                 "%4d-%02d-%02d %d:%02d\n",
                 $year + 1900, $mon + 1, $mday, $hour, $min
@@ -362,6 +372,7 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
             $wait_till = $e->{'zeitpunkt'} + 3600;
         }
     }
+    print "Anzahl in 18:30 - 23:30: $treffer, ausserhalb: $kein_treffer\n";
     close($fh);
 }
 
