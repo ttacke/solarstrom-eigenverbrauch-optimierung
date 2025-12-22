@@ -176,7 +176,7 @@ foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
     my $ueberlast_dauer = 0;
     my $ueberlast_max_dauer = 0;
     my $maximal_zulaessige_last_in_w = 9000;# ((59kVA (Syna) / 12) + 4.6kVA (lasterhoehung)) * 0,95 (VDE-AR-N 4100) = 9000 W
-    my $maximale_leistung_pro_phase_in_ma = 30000;# eigentlich 32000 Haussicherung, aber wir wollen ja keinen Stress
+    my $maximale_leistung_pro_phase_in_ma = 24000;# eigentlich 32000 Haussicherung, aber wir wollen ja keinen Stress
     foreach my $e (@$daten) {
         if($e->{'zeitpunkt'} > 1754922044) { # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
             if($e->{'netzbezug_in_w'} > $maximal_zulaessige_last_in_w) {
@@ -428,6 +428,7 @@ foreach my $key (sort(keys(%$energiemenge))) {
     my $heizstab_an_zeitpunkt = 0;
     my $wp_an_zeitpunkt = 0;
     my $wp_laufzeit = 0;
+    my $wp_taktung = 0;
     my $heizstab_tage = {};
     my $heizstab_jahre = {};
     my $heizstab_war_vermutlich_an = 0;
@@ -454,15 +455,18 @@ foreach my $key (sort(keys(%$energiemenge))) {
             && !$wp_an_zeitpunkt
         ) {
             $wp_an_zeitpunkt = $e->{'zeitpunkt'};
+            $wp_taktung++;
         } elsif($wp_an_zeitpunkt > 0 && $e->{'_heizung_waermepumpe_status'} == 0) {
             $wp_laufzeit += $e->{'zeitpunkt'} - $wp_an_zeitpunkt;
             $wp_an_zeitpunkt = 0;
         }
         if($last_day && $last_day ne $day) {
-            $heizstab_tage->{$day} ||= [0, 0, 0];
-            $heizstab_tage->{$day}[2] += $wp_laufzeit;
+            $heizstab_tage->{$day} ||= [0, 0, 0, 0];
+            $heizstab_tage->{$day}[2] = $wp_laufzeit;
+            $heizstab_tage->{$day}[3] = $wp_taktung;
             $wp_laufzeit = 0;
             $wp_an_zeitpunkt = 0;
+            $wp_taktung = 0;
         }
         $last_day = $day;
 
@@ -482,7 +486,7 @@ foreach my $key (sort(keys(%$energiemenge))) {
 
 
                 my $zeitraum_der_aktivierung = $e->{'zeitpunkt'} - $heizstab_an_zeitpunkt;
-                $heizstab_tage->{$day} ||= [0, 0, 0];
+                $heizstab_tage->{$day} ||= [0, 0, 0, 0];
                 $heizstab_jahre->{$year + 1900} ||= [0, 0];
                 my $index = 0;
                 if(
@@ -518,9 +522,9 @@ foreach my $key (sort(keys(%$energiemenge))) {
             $kosten_solar = $kwh_solar * 0.33;
         }
         printf(
-            "%s: %2d %%, %4.1f kWh, %5.2f EUR / Solar: %2d %%, %4.1f kWh, %5.2f EUR, WP-Laufzeit: %2d %%\n",
+            "%s: %2d %%, %4.1f kWh, %5.2f EUR / Solar: %2d %%, %4.1f kWh, %5.2f EUR, WP-Laufzeit: %2d %%, WP-Taktung:%2d\n",
             $day, $nutzung, $kwh, $kosten, $nutzung_solar, $kwh_solar, $kosten_solar,
-            ($heizstab_tage->{$day}[2] / 86400 * 100)
+            ($heizstab_tage->{$day}[2] / 86400 * 100), $heizstab_tage->{$day}[3]
         );
     }
     print "\n\nDaten der Heizstab Nutzungsdauer pro Jahr\n";
