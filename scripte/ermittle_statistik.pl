@@ -107,16 +107,18 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
 
 my $amp_filename = '3phasiger_lastverlauf.csv';
 open(my $amp_file, '>', $amp_filename) or die $!;
-print $amp_file "Datum,L1,L2,L3\n";
+print $amp_file "Datum,L1,L2,L3,WPan\n";
 my ($l1, $l2, $l3) = (0, 0, 0);
 my ($l1max, $l2max, $l3max) = (0, 0, 0);
 my $wp_an = 0;
 my $l2_letzter_wert = 0;
 my $wp_schaltschwelle_min = 1000;
 my $wp_schaltschwelle_max = 1600;
+my $wp_an_letzter_wert = 0;
 foreach my $e (@$daten) {
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
     next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
+
     $l1 = $e->{"l1_strom_ma"} if($l1 < $e->{"l1_strom_ma"});
     $l2 = $e->{"l2_strom_ma"} if($l2 < $e->{"l2_strom_ma"});
     $l3 = $e->{"l3_strom_ma"} if($l3 < $e->{"l3_strom_ma"});
@@ -139,14 +141,15 @@ foreach my $e (@$daten) {
         $wp_an = 1;
     }
     $e->{'_heizung_waermepumpe_status'} = $wp_an;
-    if($min == 0) {
+    if($min == 0 || $wp_an_letzter_wert != $wp_an) {
         print $amp_file sprintf(
-            "%4d-%02d-%02d %d:%02d,%d,%d,%d\n",
-            $year + 1900, $mon + 1, $mday, $hour, $min, $l1, $l2, $l3
+            "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d\n",
+            $year + 1900, $mon + 1, $mday, $hour, $min, $l1, $l2, $l3, $wp_an*5000
         );
         ($l1, $l2, $l3) = (0, 0, 0);
     }
     $l2_letzter_wert = $e->{"l2_strom_ma"};
+    $wp_an_letzter_wert = $wp_an;
 }
 close($amp_file) or die $!;
 print "CSV-Datei $amp_filename wurde erstellt (seit 11.08.2025)\n";
@@ -434,6 +437,7 @@ foreach my $key (sort(keys(%$energiemenge))) {
     my $heizstab_war_vermutlich_an = 0;
     my $haus_lief_mit_solar = 0;
     my $last_day = 0;
+    my $last_timestamp = $daten->[$#$daten]->{'zeitpunkt'};
     foreach my $e (@$daten) {
         next if(!exists($e->{'heizungsunterstuetzung_an'}));
         next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
@@ -460,15 +464,17 @@ foreach my $key (sort(keys(%$energiemenge))) {
             $wp_laufzeit += $e->{'zeitpunkt'} - $wp_an_zeitpunkt;
             $wp_an_zeitpunkt = 0;
         }
-        if($last_day && $last_day ne $day) {
-            $heizstab_tage->{$day} ||= [0, 0, 0, 0];
-            $heizstab_tage->{$day}[2] = $wp_laufzeit;
-            $heizstab_tage->{$day}[3] = $wp_taktung;
+        if(
+            $last_day && $last_day ne $day
+            || $last_timestamp == $e->{'zeitpunkt'}
+        ) {
+            $heizstab_tage->{$last_day} ||= [0, 0, 0, 0];
+            $heizstab_tage->{$last_day}[2] = $wp_laufzeit;
+            $heizstab_tage->{$last_day}[3] = $wp_taktung;
             $wp_laufzeit = 0;
             $wp_an_zeitpunkt = 0;
             $wp_taktung = 0;
         }
-        $last_day = $day;
 
         if(
             $e->{'heizungsunterstuetzung_an'}
@@ -480,29 +486,29 @@ foreach my $key (sort(keys(%$energiemenge))) {
         } elsif($heizstab_an_zeitpunkt > 0 && !$e->{'heizungsunterstuetzung_an'}) {
             if($heizstab_war_vermutlich_an == 1) {
                 if($mon + 1 > 5 && $mon + 1 < 10) {# Da wird nicht geheizt, laesst sich leider nicht anders ermitteln
-                    $heizstab_an_zeitpunkt = 0;
-                    next;
+                    # DoNothing
+                } else {
+                    my $zeitraum_der_aktivierung = $e->{'zeitpunkt'} - $heizstab_an_zeitpunkt;
+                    $heizstab_tage->{$day} ||= [0, 0, 0, 0];
+                    $heizstab_jahre->{$year + 1900} ||= [0, 0];
+                    my $index = 0;
+                    if(
+                        $haus_lief_mit_solar == 1
+                        # ($mon + 1 == 3 && $mday > 15)
+                        # ||
+                        # ($mon + 1 > 3 && $mon + 1 < 10)
+                    ) {# Da ist Solarueberschuss
+                        $index = 1;
+                    }
+                    $heizstab_tage->{$day}[$index] += $zeitraum_der_aktivierung;
+                    $heizstab_jahre->{$year + 1900}[$index] += $zeitraum_der_aktivierung;
                 }
-
-
-                my $zeitraum_der_aktivierung = $e->{'zeitpunkt'} - $heizstab_an_zeitpunkt;
-                $heizstab_tage->{$day} ||= [0, 0, 0, 0];
-                $heizstab_jahre->{$year + 1900} ||= [0, 0];
-                my $index = 0;
-                if(
-                    $haus_lief_mit_solar == 1
-                    # ($mon + 1 == 3 && $mday > 15)
-                    # ||
-                    # ($mon + 1 > 3 && $mon + 1 < 10)
-                ) {# Da ist Solarueberschuss
-                    $index = 1;
-                }
-                $heizstab_tage->{$day}[$index] += $zeitraum_der_aktivierung;
-                $heizstab_jahre->{$year + 1900}[$index] += $zeitraum_der_aktivierung;
             }
             $heizstab_an_zeitpunkt = 0;
         }
+        $last_day = $day;
     }
+
     print "\n\nDaten der Heizstab Nutzungsdauer pro Tag\n";
     foreach my $day (sort keys(%$heizstab_tage)) {
         my $nutzung = 0;
