@@ -439,7 +439,6 @@ foreach my $key (sort(keys(%$energiemenge))) {
     my $last_day = 0;
     my $last_timestamp = $daten->[$#$daten]->{'zeitpunkt'};
     foreach my $e (@$daten) {
-        next if(!exists($e->{'heizungsunterstuetzung_an'}));
         next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
 
         my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
@@ -460,15 +459,23 @@ foreach my $key (sort(keys(%$energiemenge))) {
         ) {
             $wp_an_zeitpunkt = $e->{'zeitpunkt'};
             $wp_taktung++;
-        } elsif($wp_an_zeitpunkt > 0 && $e->{'_heizung_waermepumpe_status'} == 0) {
+        } elsif(
+            $wp_an_zeitpunkt > 0
+            && (
+                $e->{'_heizung_waermepumpe_status'} == 0
+                || $last_timestamp == $e->{'zeitpunkt'}
+            )
+        ) {
             $wp_laufzeit += $e->{'zeitpunkt'} - $wp_an_zeitpunkt;
             $wp_an_zeitpunkt = 0;
         }
+
+        $heizstab_tage->{$day} ||= [0, 0, 0, 0];
+        $heizstab_jahre->{$year + 1900} ||= [0, 0];
         if(
             $last_day && $last_day ne $day
             || $last_timestamp == $e->{'zeitpunkt'}
         ) {
-            $heizstab_tage->{$last_day} ||= [0, 0, 0, 0];
             $heizstab_tage->{$last_day}[2] = $wp_laufzeit;
             $heizstab_tage->{$last_day}[3] = $wp_taktung;
             $wp_laufzeit = 0;
@@ -476,35 +483,35 @@ foreach my $key (sort(keys(%$energiemenge))) {
             $wp_taktung = 0;
         }
 
-        if(
-            $e->{'heizungsunterstuetzung_an'}
-            && !$heizstab_an_zeitpunkt
-        ) {
-            $heizstab_an_zeitpunkt = $e->{'zeitpunkt'};
-            $heizstab_war_vermutlich_an = 0;
-            $haus_lief_mit_solar = 0;
-        } elsif($heizstab_an_zeitpunkt > 0 && !$e->{'heizungsunterstuetzung_an'}) {
-            if($heizstab_war_vermutlich_an == 1) {
-                if($mon + 1 > 5 && $mon + 1 < 10) {# Da wird nicht geheizt, laesst sich leider nicht anders ermitteln
-                    # DoNothing
-                } else {
-                    my $zeitraum_der_aktivierung = $e->{'zeitpunkt'} - $heizstab_an_zeitpunkt;
-                    $heizstab_tage->{$day} ||= [0, 0, 0, 0];
-                    $heizstab_jahre->{$year + 1900} ||= [0, 0];
-                    my $index = 0;
-                    if(
-                        $haus_lief_mit_solar == 1
-                        # ($mon + 1 == 3 && $mday > 15)
-                        # ||
-                        # ($mon + 1 > 3 && $mon + 1 < 10)
-                    ) {# Da ist Solarueberschuss
-                        $index = 1;
+        if(exists($e->{'heizungsunterstuetzung_an'})) {
+            if(
+                $e->{'heizungsunterstuetzung_an'}
+                && !$heizstab_an_zeitpunkt
+            ) {
+                $heizstab_an_zeitpunkt = $e->{'zeitpunkt'};
+                $heizstab_war_vermutlich_an = 0;
+                $haus_lief_mit_solar = 0;
+            } elsif($heizstab_an_zeitpunkt > 0 && !$e->{'heizungsunterstuetzung_an'}) {
+                if($heizstab_war_vermutlich_an == 1) {
+                    if($mon + 1 > 5 && $mon + 1 < 10) {# Da wird nicht geheizt, laesst sich leider nicht anders ermitteln
+                        # DoNothing
+                    } else {
+                        my $zeitraum_der_aktivierung = $e->{'zeitpunkt'} - $heizstab_an_zeitpunkt;
+                        my $index = 0;
+                        if(
+                            $haus_lief_mit_solar == 1
+                            # ($mon + 1 == 3 && $mday > 15)
+                            # ||
+                            # ($mon + 1 > 3 && $mon + 1 < 10)
+                        ) {# Da ist Solarueberschuss
+                            $index = 1;
+                        }
+                        $heizstab_tage->{$day}[$index] += $zeitraum_der_aktivierung;
+                        $heizstab_jahre->{$year + 1900}[$index] += $zeitraum_der_aktivierung;
                     }
-                    $heizstab_tage->{$day}[$index] += $zeitraum_der_aktivierung;
-                    $heizstab_jahre->{$year + 1900}[$index] += $zeitraum_der_aktivierung;
                 }
+                $heizstab_an_zeitpunkt = 0;
             }
-            $heizstab_an_zeitpunkt = 0;
         }
         $last_day = $day;
     }
