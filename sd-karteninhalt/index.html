@@ -104,14 +104,14 @@
 				+ (daten['roller_ladeort_ist_keller'] ? "Keller" : "Au&szlig;en")
 			;
 
-			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : (daten['wasser_lastschutz'] ? "schutz" : 'off');
-			document.getElementById('wasser_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_ueberladen'] ? "an" : (daten['wasser_lastschutz'] ? "schutz" : 'aus');
-			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : (daten['heizung_lastschutz'] ? "schutz" : 'off');
-			document.getElementById('heizung_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_ueberladen'] ? "an" : (daten['heizung_lastschutz'] ? "schutz" : 'aus');
-			document.getElementById('roller_laden_an').className = daten['roller_lastschutz'] ? "schutz" : (daten['roller_laden_an'] ? 'on' : 'off');
-			document.getElementById('roller_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['roller_relay_an'] ? "erl" : (daten['roller_lastschutz'] ? "schutz" : "aus");
-			document.getElementById('auto_laden_an').className = daten['auto_lastschutz'] ? "schutz" : (daten['auto_laden_an'] ? 'on' : 'off');
-			document.getElementById('auto_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['auto_relay_an'] ? "erl" : (daten['auto_lastschutz'] ? "schutz" : "aus");
+			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : (daten['wasser_lastschutz'] ? "sperr" : 'off');
+			document.getElementById('wasser_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_ueberladen'] ? "an" : (daten['wasser_lastschutz'] ? "sperr" : 'aus');
+			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : (daten['heizung_lastschutz'] ? "sperr" : 'off');
+			document.getElementById('heizung_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_ueberladen'] ? "an" : (daten['heizung_lastschutz'] ? "sperr" : 'aus');
+			document.getElementById('roller_laden_an').className = daten['roller_lastschutz'] ? "sperr" : (daten['roller_laden_an'] ? 'on' : 'off');
+			document.getElementById('roller_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['roller_relay_an'] ? "frei" : (daten['roller_lastschutz'] ? "sperr" : "aus");
+			document.getElementById('auto_laden_an').className = daten['auto_lastschutz'] ? "sperr" : (daten['auto_laden_an'] ? 'on' : 'off');
+			document.getElementById('auto_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['auto_relay_an'] ? "frei" : (daten['auto_lastschutz'] ? "sperr" : "aus");
 			document.getElementById('solarerzeugung_ist_aktiv').className = daten['solarerzeugung_ist_aktiv'] ? 'on' : 'off';
 
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
@@ -125,13 +125,13 @@
 			document.getElementById('heizung_temperatur_differenz').innerHTML = daten['heizung_temperatur_differenz'] * 1 - 540;
 			
 			document.getElementById('heizstab_erlaubt').className = daten['heizstab_erlaubt'] ? 'on' : 'off';
-			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'an' : 'sperre';
+			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'an' : 'sperr';
 			
-			document.getElementById('heizung_luftvorwaermer').className = daten['heizung_luftvorwaermer_lastschutz'] ? "schutz" : (daten['heizung_luftvorwaermer_an'] ? 'on' : 'off');
-			document.getElementById('heizung_luftvorwaermer').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_luftvorwaermer_an'] ? "erl" : (daten['heizung_luftvorwaermer_lastschutz'] ? "schutz" : "aus");
+			document.getElementById('heizung_luftvorwaermer').className = daten['heizung_luftvorwaermer_lastschutz'] ? "sperr" : (daten['heizung_luftvorwaermer_an'] ? 'on' : 'off');
+			document.getElementById('heizung_luftvorwaermer').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_luftvorwaermer_an'] ? "frei" : (daten['heizung_luftvorwaermer_lastschutz'] ? "sperr" : "aus");
 			
-			document.getElementById('wasser_begleitheizung').className = daten['wasser_begleitheizung_lastschutz'] ? "schutz" : (daten['wasser_begleitheizung_an'] ? 'on' : 'off');
-			document.getElementById('wasser_begleitheizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_begleitheizung_an'] ? "erl" : (daten['wasser_begleitheizung_lastschutz'] ? "schutz" : "aus");
+			document.getElementById('wasser_begleitheizung').className = daten['wasser_begleitheizung_lastschutz'] ? "sperr" : (daten['wasser_begleitheizung_an'] ? 'on' : 'off');
+			document.getElementById('wasser_begleitheizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_begleitheizung_an'] ? "frei" : (daten['wasser_begleitheizung_lastschutz'] ? "sperr" : "aus");
 		}
 		function _setze_ladewunsch(id, typ, timestamp) {
 			var el = document.getElementById(id).getElementsByTagName("button")[0];

@@ -1,5 +1,6 @@
 #pragma once
 #include "base_api.h"
+#include "../model/shelly.h"
 
 namespace Local::Api {
 	class VerbraucherAPI: public BaseAPI {
@@ -252,6 +253,27 @@ namespace Local::Api {
 			verbraucher.roller_relay_ist_an = shelly_roller_cache_ison;
 			verbraucher.roller_relay_zustand_seit = Local::SemipersistentData::roller_relay_zustand_seit;
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+
+			Local::Model::Shelly shelly_daten;
+			if(_read_shelly_content(
+				(char*) cfg->heizung_luftvorwaermer_relay_host,
+				cfg->heizung_luftvorwaermer_relay_port,
+				shelly_daten
+			)) {
+//				verbraucher.heizung_luftvorwaermer_relay_ist_an = shelly_daten.ison;
+//				verbraucher.heizung_luftvorwaermer_aktuelle_leistung_in_w
+//				verbraucher.heizung_luftvorwaermer_benoetigte_leistung_in_w
+			}
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+			if(_read_shelly_content(
+				(char*) cfg->wasser_begleitheizung_relay_host,
+				cfg->wasser_begleitheizung_relay_port,
+				shelly_daten
+			)) {
+				//TODO
+			}
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+			//TODO
 		}
 
 		bool _shelly_plug_ist_an(const char* host, int port) {
@@ -468,43 +490,47 @@ namespace Local::Api {
 				aussen_und_gering = true;
 			}
 
+			Local::Model::Shelly shelly_daten;
 			if(aussen_und_gering) {
-				erfolgreich = web_reader->send_http_get_request(
-					cfg->roller_aussen_relay_host,
+				if(_read_shelly_content(
+					(char*) cfg->roller_aussen_relay_host,
 					cfg->roller_aussen_relay_port,
-					"/status"
-				);
-				if(erfolgreich && _read_shelly_roller_content()) {
+					shelly_daten
+				)) {
+					erfolgreich = true;
 					_schalte_roller_ladeort_und_leistung_auf_aussen(true);
 				}
 			}
 			if(!erfolgreich) {// Innen immer abfragen, damit min. ein Datensatz da ist
-				web_reader->send_http_get_request(
-					cfg->roller_relay_host,
+				_read_shelly_content(
+					(char*) cfg->roller_relay_host,
 					cfg->roller_relay_port,
-					"/status"
+					shelly_daten
 				);
-				_read_shelly_roller_content();
 				_schalte_roller_ladeort_und_leistung_auf_aussen(false);
 			}
+			shelly_roller_cache_timestamp = shelly_daten.timestamp;
+			shelly_roller_cache_ison = shelly_daten.ison;
+			shelly_roller_cache_power = shelly_daten.power;
 		}
 
-		bool _read_shelly_roller_content() {
-			shelly_roller_cache_timestamp = 0;
-			shelly_roller_cache_ison = false;
-			shelly_roller_cache_power = 0;
+		bool _read_shelly_content(char* host, int port, Local::Model::Shelly& shelly) {
+			if(!web_reader->send_http_get_request(host, port, "/status")) {
+				return false;
+			}
+			shelly.timestamp = 0;
 			while(web_reader->read_next_block_to_buffer()) {
 				if(web_reader->find_in_buffer((char*) "\"unixtime\":([0-9]+)[^0-9]")) {
-					shelly_roller_cache_timestamp = atoi(web_reader->finding_buffer);
+					shelly.timestamp = atoi(web_reader->finding_buffer);
 				}
 				if(web_reader->find_in_buffer((char*) "\"ison\":true")) {
-					shelly_roller_cache_ison = true;
+					shelly.ison = true;
 				}
 				if(web_reader->find_in_buffer((char*) "\"power\":([0-9]+)[^0-9]")) {
-					shelly_roller_cache_power = atoi(web_reader->finding_buffer);
+					shelly.power = atoi(web_reader->finding_buffer);
 				}
 			}
-			if(shelly_roller_cache_timestamp != 0) {
+			if(shelly.timestamp != 0) {
 				return true;
 			}
 			return false;
