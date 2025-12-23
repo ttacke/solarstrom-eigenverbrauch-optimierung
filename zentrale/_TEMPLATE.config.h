@@ -42,8 +42,8 @@ namespace Local {
 		int heizstab_benoetigte_leistung_in_w = 1500;
 		int heizstab_einschalt_differenzwert = 542;// 540 ist das Minimum
 		int heizstab_ausschalt_differenzwert = 545;// ca Minimum+3
-		float heizstab_einschalt_temperatur = 21.4;
-		float heizstab_ausschalt_temperatur = 21.5;
+		int heizung_luftvorwaermer_einschalttemperatur = 14.0;
+		int heizung_luftvorwaermer_ausschalttemperatur = 15.0;
 
 		int grundverbrauch_in_w_pro_h_sommer = 262;
 		int grundverbrauch_in_w_pro_h_winter = 521;

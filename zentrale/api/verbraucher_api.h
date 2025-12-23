@@ -807,10 +807,7 @@ namespace Local::Api {
 					verbraucher, cfg->heizstab_benoetigte_leistung_in_w
 				)
 				&& (
-					(
-						verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
-						&& verbraucher.wohnraum_temperatur <= cfg->heizstab_einschalt_temperatur
-					)
+					verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
 					||
 					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
 				)
@@ -818,7 +815,6 @@ namespace Local::Api {
 				verbraucher.heizstabbetrieb_ist_erlaubt = true;
 			} else if(
 				verbraucher.heizungs_temperatur_differenz >= cfg->heizstab_ausschalt_differenzwert
-				|| verbraucher.wohnraum_temperatur >= cfg->heizstab_ausschalt_temperatur
 			) {
 				verbraucher.heizstabbetrieb_ist_erlaubt = false;
 			}
