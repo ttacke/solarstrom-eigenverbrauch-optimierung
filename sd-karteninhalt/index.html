@@ -109,9 +109,9 @@
 			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : (daten['heizung_lastschutz'] ? "schutz" : 'off');
 			document.getElementById('heizung_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_ueberladen'] ? "an" : (daten['heizung_lastschutz'] ? "schutz" : 'aus');
 			document.getElementById('roller_laden_an').className = daten['roller_lastschutz'] ? "schutz" : (daten['roller_laden_an'] ? 'on' : 'off');
-			document.getElementById('roller_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['roller_relay_an'] ? "erlaubt" : (daten['roller_lastschutz'] ? "schutz" : "aus");
+			document.getElementById('roller_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['roller_relay_an'] ? "erl" : (daten['roller_lastschutz'] ? "schutz" : "aus");
 			document.getElementById('auto_laden_an').className = daten['auto_lastschutz'] ? "schutz" : (daten['auto_laden_an'] ? 'on' : 'off');
-			document.getElementById('auto_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['auto_relay_an'] ? "erlaubt" : (daten['auto_lastschutz'] ? "schutz" : "aus");
+			document.getElementById('auto_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['auto_relay_an'] ? "erl" : (daten['auto_lastschutz'] ? "schutz" : "aus");
 			document.getElementById('solarerzeugung_ist_aktiv').className = daten['solarerzeugung_ist_aktiv'] ? 'on' : 'off';
 
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
@@ -128,10 +128,10 @@
 			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'an' : 'sperre';
 			
 			document.getElementById('heizung_luftvorwaermer').className = daten['heizung_luftvorwaermer_lastschutz'] ? "schutz" : (daten['heizung_luftvorwaermer_an'] ? 'on' : 'off');
-			document.getElementById('heizung_luftvorwaermer').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_luftvorwaermer_an'] ? "erlaubt" : (daten['heizung_luftvorwaermer_lastschutz'] ? "schutz" : "aus");
+			document.getElementById('heizung_luftvorwaermer').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_luftvorwaermer_an'] ? "erl" : (daten['heizung_luftvorwaermer_lastschutz'] ? "schutz" : "aus");
 			
 			document.getElementById('wasser_begleitheizung').className = daten['wasser_begleitheizung_lastschutz'] ? "schutz" : (daten['wasser_begleitheizung_an'] ? 'on' : 'off');
-			document.getElementById('wasser_begleitheizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_begleitheizung_an'] ? "erlaubt" : (daten['wasser_begleitheizung_lastschutz'] ? "schutz" : "aus");
+			document.getElementById('wasser_begleitheizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_begleitheizung_an'] ? "erl" : (daten['wasser_begleitheizung_lastschutz'] ? "schutz" : "aus");
 		}
 		function _setze_ladewunsch(id, typ, timestamp) {
 			var el = document.getElementById(id).getElementsByTagName("button")[0];
@@ -590,19 +590,19 @@
 
 <div class="zusatzinfo">
 	<span id="auto_laden_an">
-		AUTO
+		AUT
 		<br><span class="ladestatus">-</span>
 	</span>
 	<span id="roller_laden_an">
-		ROLLER
+		ROL
 		<br><span class="ladestatus">-</span>
 	</span>
 	<span id="wasser_ueberladen">
-		WASS
+		W
 		<br><span class="ladestatus">-</span>
 	</span>
 	<span id="wasser_begleitheizung">
-		WASS-HZ
+		W-HZ
 		<br><span class="ladestatus">-</span>
 	</span>
 
@@ -611,11 +611,11 @@
 		<br><span class="ladestatus">-</span>
 	</span>
 	<span id="heizstab_erlaubt">
-		HZ-STAB
+		HZ-STB
 		<br><span class="ladestatus">-</span>
 	</span>
 	<span id="heizung_luftvorwaermer">
-		HZ-LUFT
+		HZ-LFT
 		<br><span class="ladestatus">-</span>
 	</span>
 </div>
@@ -641,11 +641,11 @@
 
 <div class="weitere_info">
 	<div>
-		<small>Heizung Vorwärmer</small>: <span id="heizung_luftvorwaermer_temperatur"></span> &#8451; / <span id="heizung_luftvorwaermer_luftfeuchtigkeit"></span> %
-		<span><small>Vor/Rücklauf-Diff</small>:<span id="heizung_temperatur_differenz"></span></span>
+		<small>Hz-Luft: <span id="heizung_luftvorwaermer_temperatur"></span> &#8451; / <span id="heizung_luftvorwaermer_luftfeuchtigkeit"></span> %</small>
+		<small><span>HZ-Stab-Diff:<span id="heizung_temperatur_differenz"></span></span></small>
 	</div>
 	<div>
-		Bad: <span id="bad_temperatur"></span> &#8451; / <span id="bad_luftfeuchte"></span> %
+		<small>Bad: <span id="bad_temperatur"></span> &#8451; / <span id="bad_luftfeuchte"></span> %</small>
 		<small>Solar:<span id="solarerzeugung_ist_aktiv">N<span id="solaranteil_in_prozent_string1"></span>%/S<span id="solaranteil_in_prozent_string2"></span>%</span></small>
 	</div>
 </div>
