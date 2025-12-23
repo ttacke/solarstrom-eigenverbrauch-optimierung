@@ -34,10 +34,10 @@ namespace Local {
 		const char* anlagen_log_filename_template = "anlage_log-%4d-%02d.csv";
 		const char* ui_filename = "index.html";
 		char log_buffer[64];
-		float temperature = 0;
-		float humidity = 0;
-		float cellar_temperature = 0;
-		float cellar_humidity = 0;
+		float heizung_luftvorwaermer_temperatur = 0;
+		float heizung_luftvorwaermer_luftfeuchte = 0;
+		float bad_temperatur = 0;
+		float bad_luftfeuchte = 0;
 		int heat_difference = 0;
 
 		void _write_log_data(int now_timestamp, bool heizstabbetrieb_ist_erlaubt) {
@@ -53,8 +53,8 @@ namespace Local {
 				file_writer.write_formated(",");
 				verbraucher.write_log_data(file_writer);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-				file_writer.write_formated(",kb1%.1f,%.1f", temperature, humidity);
-				file_writer.write_formated(",kl1%.1f,%.1f", cellar_temperature, cellar_humidity);
+				file_writer.write_formated(",kb1%.1f,%.1f", heizung_luftvorwaermer_temperatur, heizung_luftvorwaermer_luftfeuchte);
+				file_writer.write_formated(",kl1%.1f,%.1f", bad_temperatur, bad_luftfeuchte);
 				file_writer.write_formated(",hs%d,%d", (heizstabbetrieb_ist_erlaubt ? 1 : 0), heat_difference);
 				file_writer.write_formated("\n");
 				file_writer.close_file();
@@ -99,15 +99,15 @@ namespace Local {
 			}
 		}
 
-		void set_temperature_and_humidity(float temp, float hum) {
-		    temperature = temp;
-		    humidity = hum;
+		void set_heizung_luftvorwaermer_temperatur_und_luftfeuchte(float temp, float hum) {
+		    heizung_luftvorwaermer_temperatur = temp;
+		    heizung_luftvorwaermer_luftfeuchte = hum;
 		    webserver.server.send(200, "text/plain", "ok");
 		}
 
-		void set_cellar_temperature_and_humidity(float temp, float hum) {
-		    cellar_temperature = temp;
-		    cellar_humidity = hum;
+		void set_bad_temperatur_und_luftfeuchte(float temp, float hum) {
+		    bad_temperatur = temp;
+		    bad_luftfeuchte = hum;
 		    webserver.server.send(200, "text/plain", "ok");
 		}
 
@@ -206,7 +206,7 @@ namespace Local {
 			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			verbraucher.wohnraum_temperatur = temperature;
+			verbraucher.wohnraum_temperatur = heizung_luftvorwaermer_temperatur;
 			verbraucher.heizungs_temperatur_differenz = heat_difference;
 			verbraucher_api.fuehre_schaltautomat_aus(verbraucher);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
@@ -360,17 +360,17 @@ namespace Local {
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
-					"\"wohnraum_temperatur\":%.1f,\"wohnraum_luftfeuchtigkeit\":%.1f,",
-					temperature,
-					humidity
+					"\"heizung_luftvorwaermer_temperatur\":%.1f,\"heizung_luftvorwaermer_luftfeuchtigkeit\":%.1f,",
+					heizung_luftvorwaermer_temperatur,
+					heizung_luftvorwaermer_luftfeuchte
 				);
 				file_writer.write_formated(
-					"\"keller_temperatur\":%.1f,",
-					cellar_temperature
+					"\"bad_temperatur\":%.1f,",
+					bad_temperatur
 				);
 				file_writer.write_formated(
-					"\"keller_luftfeuchtigkeit\":%.1f,",
-					cellar_humidity
+					"\"bad_luftfeuchte\":%.1f,",
+					bad_luftfeuchte
 				);
 				file_writer.write_formated(
 					"\"heizung_temperatur_differenz\":%d,",

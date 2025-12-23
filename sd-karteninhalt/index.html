@@ -117,10 +117,10 @@
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
 
-			document.getElementById('wohnraum_temperatur').innerHTML = daten['wohnraum_temperatur'];
-			document.getElementById('wohnraum_luftfeuchtigkeit').innerHTML = daten['wohnraum_luftfeuchtigkeit'];
-			document.getElementById('keller_temperatur').innerHTML = daten['keller_temperatur'];
-			document.getElementById('keller_luftfeuchtigkeit').innerHTML = daten['keller_luftfeuchtigkeit'];
+			document.getElementById('heizung_luftvorwaermer_temperatur').innerHTML = daten['heizung_luftvorwaermer_temperatur'];
+			document.getElementById('heizung_luftvorwaermer_luftfeuchtigkeit').innerHTML = daten['heizung_luftvorwaermer_luftfeuchtigkeit'];
+			document.getElementById('bad_temperatur').innerHTML = daten['bad_temperatur'];
+			document.getElementById('bad_luftfeuchte').innerHTML = daten['bad_luftfeuchte'];
 			
 			document.getElementById('heizung_temperatur_differenz').innerHTML = daten['heizung_temperatur_differenz'] * 1 - 540;
 			document.getElementById('heizstab_erlaubt').className = daten['heizstab_erlaubt'] ? 'off' : 'schutz';
@@ -625,12 +625,12 @@
 
 <div class="weitere_info">
 	<div>
-		Wohnraum: <span id="wohnraum_temperatur"></span> &#8451; / <span id="wohnraum_luftfeuchtigkeit"></span> %
-		<small><span id="solarerzeugung_ist_aktiv">N<span id="solaranteil_in_prozent_string1"></span>%/S<span id="solaranteil_in_prozent_string2"></span>%</span></small>
+		<small>Heizung Vorwärmer</small>: <span id="heizung_luftvorwaermer_temperatur"></span> &#8451; / <span id="heizung_luftvorwaermer_luftfeuchtigkeit"></span> %
+		<span><small>Vor/Rücklauf-Diff</small>:<span id="heizung_temperatur_differenz"></span></span>
 	</div>
 	<div>
-		Keller: <span id="keller_temperatur"></span> &#8451; / <span id="keller_luftfeuchtigkeit"></span> %
-		<span>HzDff:<span id="heizung_temperatur_differenz"></span></span>
+		Bad: <span id="bad_temperatur"></span> &#8451; / <span id="bad_luftfeuchte"></span> %
+		<small>Solar:<span id="solarerzeugung_ist_aktiv">N<span id="solaranteil_in_prozent_string1"></span>%/S<span id="solaranteil_in_prozent_string2"></span>%</span></small>
 	</div>
 </div>
 
