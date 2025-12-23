@@ -123,8 +123,15 @@
 			document.getElementById('bad_luftfeuchte').innerHTML = daten['bad_luftfeuchte'];
 			
 			document.getElementById('heizung_temperatur_differenz').innerHTML = daten['heizung_temperatur_differenz'] * 1 - 540;
-			document.getElementById('heizstab_erlaubt').className = daten['heizstab_erlaubt'] ? 'off' : 'schutz';
-			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'erlaubt' : 'sperre';
+			
+			document.getElementById('heizstab_erlaubt').className = daten['heizstab_erlaubt'] ? 'on' : 'off';
+			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'an' : 'sperre';
+			
+			document.getElementById('heizung_luftvorwaermer').className = daten['heizung_luftvorwaermer_lastschutz'] ? "schutz" : (daten['heizung_luftvorwaermer_an'] ? 'on' : 'off');
+			document.getElementById('heizung_luftvorwaermer').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_luftvorwaermer_an'] ? "erlaubt" : (daten['heizung_luftvorwaermer_lastschutz'] ? "schutz" : "aus");
+			
+			document.getElementById('wasser_begleitheizung').className = daten['wasser_begleitheizung_lastschutz'] ? "schutz" : (daten['wasser_begleitheizung_an'] ? 'on' : 'off');
+			document.getElementById('wasser_begleitheizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_begleitheizung_an'] ? "erlaubt" : (daten['wasser_begleitheizung_lastschutz'] ? "schutz" : "aus");
 		}
 		function _setze_ladewunsch(id, typ, timestamp) {
 			var el = document.getElementById(id).getElementsByTagName("button")[0];
@@ -590,16 +597,25 @@
 		ROLLER
 		<br><span class="ladestatus">-</span>
 	</span>
-	<span id="heizstab_erlaubt">
-		HEIZSTAB
-		<br><span class="ladestatus">-</span>
-	</span>
 	<span id="wasser_ueberladen">
-		WASSER
+		WASS
 		<br><span class="ladestatus">-</span>
 	</span>
+	<span id="wasser_begleitheizung">
+		WASS-HZ
+		<br><span class="ladestatus">-</span>
+	</span>
+
 	<span id="heizung_ueberladen">
-		HEIZUNG
+		HZ
+		<br><span class="ladestatus">-</span>
+	</span>
+	<span id="heizstab_erlaubt">
+		HZ-STAB
+		<br><span class="ladestatus">-</span>
+	</span>
+	<span id="heizung_luftvorwaermer">
+		HZ-LUFT
 		<br><span class="ladestatus">-</span>
 	</span>
 </div>

@@ -289,6 +289,7 @@ namespace Local {
 					"\"auto_lastschutz\":%s,",
 					verbraucher.auto_lastschutz ? "true" : "false"
 				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"roller_laden_an\":%s,",
 					verbraucher.roller_laden_ist_an() ? "true" : "false"
@@ -309,6 +310,7 @@ namespace Local {
 					"\"wasser_lastschutz\":%s,",
 					verbraucher.wasser_lastschutz ? "true" : "false"
 				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"heizung_ueberladen\":%s,",
 					verbraucher.heizung_relay_ist_an ? "true" : "false"
@@ -350,6 +352,7 @@ namespace Local {
 					"\"ladeverhalten_wintermodus\":%s,",
 					verbraucher.ladeverhalten_wintermodus ? "true" : "false"
 				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"solarerzeugung_ist_aktiv\":%s,",
 					verbraucher.solarerzeugung_ist_aktiv() ? "true" : "false"
@@ -360,8 +363,11 @@ namespace Local {
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
-					"\"heizung_luftvorwaermer_temperatur\":%.1f,\"heizung_luftvorwaermer_luftfeuchtigkeit\":%.1f,",
-					heizung_luftvorwaermer_temperatur,
+					"\"heizung_luftvorwaermer_temperatur\":%.1f,",
+					heizung_luftvorwaermer_temperatur
+				);
+				file_writer.write_formated(
+					"\"heizung_luftvorwaermer_luftfeuchtigkeit\":%.1f,",
 					heizung_luftvorwaermer_luftfeuchte
 				);
 				file_writer.write_formated(
@@ -372,6 +378,7 @@ namespace Local {
 					"\"bad_luftfeuchte\":%.1f,",
 					bad_luftfeuchte
 				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"heizung_temperatur_differenz\":%d,",
 					heat_difference
@@ -380,6 +387,29 @@ namespace Local {
 					"\"heizstab_erlaubt\":%s,",
 					(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
 				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+				// TODO umsetzen
+				file_writer.write_formated(
+					"\"heizung_luftvorwaermer_lastschutz\":%s,",
+					"false"//(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
+				);
+				// TODO umsetzen
+				file_writer.write_formated(
+					"\"heizung_luftvorwaermer_an\":%s,",
+					"true"//(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
+				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+				// TODO umsetzen
+				file_writer.write_formated(
+					"\"wasser_begleitheizung_lastschutz\":%s,",
+					"false"//(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
+				);
+				// TODO umsetzen
+				file_writer.write_formated(
+					"\"wasser_begleitheizung_an\":%s,",
+					"false"//(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
+				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"timestamp\":%i}",
 					now_timestamp
