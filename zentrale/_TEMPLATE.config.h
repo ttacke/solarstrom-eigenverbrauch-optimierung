@@ -48,6 +48,8 @@ namespace Local {
 		int heizstab_ausschalt_differenzwert = 545;// ca Minimum+3
 		int heizung_luftvorwaermer_einschalttemperatur = 14.0;
 		int heizung_luftvorwaermer_ausschalttemperatur = 15.0;
+		int heizung_luftvorwaermer_benoetigte_leistung_in_w = 850;
+		int wasser_begleitheizung_benoetigte_leistung_in_w = 500;// Einschaltwert, sinkt rapide auf ~120
 
 		int grundverbrauch_in_w_pro_h_sommer = 262;
 		int grundverbrauch_in_w_pro_h_winter = 521;

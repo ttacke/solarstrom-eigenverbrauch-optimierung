@@ -260,9 +260,8 @@ namespace Local::Api {
 				cfg->heizung_luftvorwaermer_relay_port,
 				shelly_daten
 			)) {
-//				verbraucher.heizung_luftvorwaermer_relay_ist_an = shelly_daten.ison;
-//				verbraucher.heizung_luftvorwaermer_aktuelle_leistung_in_w
-//				verbraucher.heizung_luftvorwaermer_benoetigte_leistung_in_w
+				verbraucher.heizung_luftvorwaermer_relay_ist_an = shelly_daten.ison;
+				verbraucher.heizung_luftvorwaermer_aktuelle_leistung_in_w = shelly_daten.power;
 			}
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 			if(_read_shelly_content(
@@ -270,10 +269,10 @@ namespace Local::Api {
 				cfg->wasser_begleitheizung_relay_port,
 				shelly_daten
 			)) {
-				//TODO
+				verbraucher.wasser_begleitheizung_relay_is_an = shelly_daten.ison;
+				verbraucher.wasser_begleitheizung_aktuelle_leistung_in_w = shelly_daten.power;
 			}
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-			//TODO
 		}
 
 		bool _shelly_plug_ist_an(const char* host, int port) {
