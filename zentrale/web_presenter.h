@@ -393,8 +393,13 @@ namespace Local {
 					(verbraucher.heizung_luftvorwaermer_lastschutz ? "true" : "false")
 				);
 				file_writer.write_formated(
-					"\"heizung_luftvorwaermer_an\":%s,",
+					"\"heizung_luftvorwaermer_relay_an\":%s,",
 					(verbraucher.heizung_luftvorwaermer_relay_ist_an ? "true" : "false")
+				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+				file_writer.write_formated(
+					"\"heizung_luftvorwaermer_an\":%s,",
+					(verbraucher.heizung_luftvorwaermer_aktuelle_leistung_in_w > 0 ? "true" : "false")
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
@@ -402,8 +407,13 @@ namespace Local {
 					(verbraucher.wasser_begleitheizung_lastschutz ? "true" : "false")
 				);
 				file_writer.write_formated(
-					"\"wasser_begleitheizung_an\":%s,",
+					"\"wasser_begleitheizung_relay_an\":%s,",
 					(verbraucher.wasser_begleitheizung_relay_is_an ? "true" : "false")
+				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+				file_writer.write_formated(
+					"\"wasser_begleitheizung_an\":%s,",
+					(verbraucher.wasser_begleitheizung_aktuelle_leistung_in_w > 0 ? "true" : "false")
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(

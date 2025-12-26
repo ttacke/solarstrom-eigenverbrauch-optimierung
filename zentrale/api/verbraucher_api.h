@@ -518,6 +518,8 @@ namespace Local::Api {
 				return false;
 			}
 			shelly.timestamp = 0;
+			shelly.ison = false;
+			shelly.power = 0;
 			while(web_reader->read_next_block_to_buffer()) {
 				if(web_reader->find_in_buffer((char*) "\"unixtime\":([0-9]+)[^0-9]")) {
 					shelly.timestamp = atoi(web_reader->finding_buffer);

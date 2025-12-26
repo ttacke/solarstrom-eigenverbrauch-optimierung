@@ -128,10 +128,10 @@
 			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'an' : 'sperr';
 			
 			document.getElementById('heizung_luftvorwaermer').className = daten['heizung_luftvorwaermer_lastschutz'] ? "sperr" : (daten['heizung_luftvorwaermer_an'] ? 'on' : 'off');
-			document.getElementById('heizung_luftvorwaermer').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_luftvorwaermer_an'] ? "frei" : (daten['heizung_luftvorwaermer_lastschutz'] ? "sperr" : "aus");
+			document.getElementById('heizung_luftvorwaermer').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_luftvorwaermer_relay_an'] ? "frei" : (daten['heizung_luftvorwaermer_lastschutz'] ? "sperr" : "aus");
 			
 			document.getElementById('wasser_begleitheizung').className = daten['wasser_begleitheizung_lastschutz'] ? "sperr" : (daten['wasser_begleitheizung_an'] ? 'on' : 'off');
-			document.getElementById('wasser_begleitheizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_begleitheizung_an'] ? "frei" : (daten['wasser_begleitheizung_lastschutz'] ? "sperr" : "aus");
+			document.getElementById('wasser_begleitheizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_begleitheizung_relay_an'] ? "frei" : (daten['wasser_begleitheizung_lastschutz'] ? "sperr" : "aus");
 		}
 		function _setze_ladewunsch(id, typ, timestamp) {
 			var el = document.getElementById(id).getElementsByTagName("button")[0];
