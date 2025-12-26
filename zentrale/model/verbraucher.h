@@ -24,6 +24,14 @@ namespace Local::Model {
 	public:
 		enum class Ladestatus {force, solar};
 
+		bool heizung_luftvorwaermer_relay_ist_an = false;
+		bool heizung_luftvorwaermer_lastschutz = false;
+		int heizung_luftvorwaermer_aktuelle_leistung_in_w = 0;
+
+		bool wasser_begleitheizung_relay_is_an = false;
+		bool wasser_begleitheizung_lastschutz = false;
+		int wasser_begleitheizung_aktuelle_leistung_in_w = 0;
+
 		bool wasser_relay_ist_an = false;
 		bool wasser_lastschutz = false;
 		int wasser_relay_zustand_seit = 0;
@@ -184,6 +192,14 @@ namespace Local::Model {
 				heizung_relay_ist_an ? "on" : "off",
 				heizung_lastschutz ? "on" : "off",
 				ladeverhalten_wintermodus ? "on" : "off"
+			);
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+			file_writer.write_formated(
+				",vc1,%s,%d,%s,%d",
+				heizung_luftvorwaermer_relay_ist_an ? "on" : "off",
+				heizung_luftvorwaermer_aktuelle_leistung_in_w,
+				wasser_begleitheizung_relay_is_an ? "on" : "off",
+				wasser_begleitheizung_aktuelle_leistung_in_w
 			);
 		}
 	};

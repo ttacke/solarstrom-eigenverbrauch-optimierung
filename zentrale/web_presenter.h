@@ -388,26 +388,22 @@ namespace Local {
 					(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-				// TODO umsetzen
 				file_writer.write_formated(
 					"\"heizung_luftvorwaermer_lastschutz\":%s,",
-					"false"//(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
+					(verbraucher.heizung_luftvorwaermer_lastschutz ? "true" : "false")
 				);
-				// TODO umsetzen
 				file_writer.write_formated(
 					"\"heizung_luftvorwaermer_an\":%s,",
-					"true"//(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
+					(verbraucher.heizung_luftvorwaermer_relay_ist_an ? "true" : "false")
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-				// TODO umsetzen
 				file_writer.write_formated(
 					"\"wasser_begleitheizung_lastschutz\":%s,",
-					"false"//(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
+					(verbraucher.wasser_begleitheizung_lastschutz ? "true" : "false")
 				);
-				// TODO umsetzen
 				file_writer.write_formated(
 					"\"wasser_begleitheizung_an\":%s,",
-					"false"//(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
+					(verbraucher.wasser_begleitheizung_relay_is_an ? "true" : "false")
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
