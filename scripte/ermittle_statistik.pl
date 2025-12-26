@@ -80,8 +80,8 @@ sub _hole_daten {
                 stunden_solarstrahlung          => $w[0],
                 tages_solarstrahlung            => $w[1],
 
-                wohnraum_temperatur                 => $t[0],
-                wohnraum_luftfeuchtigkeit           => $t[1],
+                waermepumpen_zuluft_temperatur                 => $t[0],
+                waermepumpen_zuluft_luftfeuchtigkeit           => $t[1],
                 bad_temperatur                 => $t[2],
                 bad_luftfeuchtigkeit           => $t[3],
 
