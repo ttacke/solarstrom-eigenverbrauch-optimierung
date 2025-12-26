@@ -15,7 +15,6 @@ namespace Local::Api {
 		int shelly_roller_cache_power = 0;
 		int roller_benoetigte_ladeleistung_in_w_cache = 0;
 		bool ladeverhalten_wintermodus = false;
-		int heizstab_relay_maximale_wartezeit = 3600;
 
 		const char* roller_ladestatus_filename = "roller.ladestatus";
 		const char* roller_leistung_filename = "roller_leistung.status";
@@ -346,6 +345,22 @@ namespace Local::Api {
 			_log((char*) "schalte heizstab: ", (char*) (ein ? "erlaubt" : "aus"));
 			_schalte_shellyplug(
 				ein, cfg->heizstab_relay_host, cfg->heizstab_relay_port,
+				web_reader->default_timeout_in_hundertstel_s
+			);
+		}
+
+		void _schalte_wasser_begleitheizung_relay(bool ein) {
+			_log((char*) "schalte wasser begleitheizung: ", (char*) (ein ? "erlaubt" : "aus"));
+			_schalte_shellyplug(
+				ein, cfg->wasser_begleitheizung_relay_host, cfg->wasser_begleitheizung_relay_port,
+				web_reader->default_timeout_in_hundertstel_s
+			);
+		}
+
+		void _schalte_heizung_luftvorwaermer_relay(bool ein) {
+			_log((char*) "schalte heizung luftvorwaermer: ", (char*) (ein ? "erlaubt" : "aus"));
+			_schalte_shellyplug(
+				ein, cfg->heizung_luftvorwaermer_relay_host, cfg->heizung_luftvorwaermer_relay_port,
 				web_reader->default_timeout_in_hundertstel_s
 			);
 		}
@@ -812,20 +827,16 @@ namespace Local::Api {
 					verbraucher.heizstabbetrieb_ist_erlaubt = false;
 					_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
 				}
-				return;
-			}
-
-			int karenzzeit = (5 * 60);
-			if(
-				verbraucher.auto_relay_zustand_seit >= timestamp - karenzzeit
-				|| verbraucher.roller_relay_zustand_seit >= timestamp - karenzzeit
-				|| verbraucher.wasser_relay_zustand_seit >= timestamp - karenzzeit
-				|| verbraucher.heizung_relay_zustand_seit >= timestamp - karenzzeit
-				|| Local::SemipersistentData::heizstab_relay_zustand_seit >= timestamp - karenzzeit
-			) {
-				// Von Einschalten bis voller Verbrauch vergeht Zeit
-				// ohne dies wird ggf mehr zugeschaltet als sinnvoll ist
-				_log((char*) "SchaltKarenzzeit");
+				if(verbraucher.heizung_luftvorwaermer_relay_ist_an) {
+					_log((char*) "HeizungLuftvorwaermerLastgrenze");
+					verbraucher.heizung_luftvorwaermer_relay_ist_an = false;
+					_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
+				}
+				if(verbraucher.wasser_begleitheizung_relay_is_an) {
+					_log((char*) "WasserBegleitheizungLastgrenze");
+					verbraucher.wasser_begleitheizung_relay_is_an = false;
+					_schalte_wasser_begleitheizung_relay(verbraucher.wasser_begleitheizung_relay_is_an);
+				}
 				return;
 			}
 
@@ -846,12 +857,23 @@ namespace Local::Api {
 				verbraucher.heizstabbetrieb_ist_erlaubt = false;
 			}
 			if(
-				timestamp - Local::SemipersistentData::heizstab_relay_zustand_seit > heizstab_relay_maximale_wartezeit
-				|| verbraucher.heizstabbetrieb_ist_erlaubt != Local::SemipersistentData::heizstabbetrieb_letzter_zustand
+				verbraucher.heizstabbetrieb_ist_erlaubt != Local::SemipersistentData::heizstabbetrieb_letzter_zustand
 			) {
-				Local::SemipersistentData::heizstab_relay_zustand_seit = timestamp;
 				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
 				Local::SemipersistentData::heizstabbetrieb_letzter_zustand = verbraucher.heizstabbetrieb_ist_erlaubt;
+				return;
+			}
+
+			int karenzzeit = (5 * 60);
+			if(
+				verbraucher.auto_relay_zustand_seit >= timestamp - karenzzeit
+				|| verbraucher.roller_relay_zustand_seit >= timestamp - karenzzeit
+				|| verbraucher.wasser_relay_zustand_seit >= timestamp - karenzzeit
+				|| verbraucher.heizung_relay_zustand_seit >= timestamp - karenzzeit
+			) {
+				// Von Einschalten bis voller Verbrauch vergeht Zeit
+				// ohne dies wird ggf mehr zugeschaltet als sinnvoll ist
+				_log((char*) "SchaltKarenzzeit");
 				return;
 			}
 
