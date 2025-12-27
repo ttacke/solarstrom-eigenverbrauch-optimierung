@@ -55,6 +55,10 @@ sub _hole_daten {
 
             my @t = $line =~ m/,kb?1([\-\d\.]+),([\d\.]+),kl?1([\-\d\.]+),([\d\.]+)(?:,hs(\d),(\d+)|)/;
 
+            # my @auto = $line =~ m/,va[4],([a-z]+),([a-z]+),([a-z]+),([\d\.]+),([\d\.]+),([\d\.]+),([a-z]+),([a-z]+)/;
+            # my @roller = $line =~ m/,vb[8],([a-z]+),([a-z]+),([a-z]+),([\d\.]+),([\d\.]+),([\d\.]+),([a-z]+),([a-z]+),([a-z]+)/;
+            my @luftheiz_und_begleitheiz = $line =~ m/,vc[1],([a-z]+),([\d]+),([a-z]+),([\d]+)/;
+
             my @d = gmtime($e[0]);
             my $neu = {
                 zeitpunkt                       => $e[0],
@@ -87,6 +91,13 @@ sub _hole_daten {
 
                 heizungsunterstuetzung_an       => $t[4],
                 heizung_temperatur_differenz => $t[5],
+            };
+            if(scalar(@luftheiz_und_begleitheiz)) {
+                $neu->{'heiz_luftvorwaermer_an'} = ($luftheiz_und_begleitheiz[0] eq 'on' ? 1 : 0);
+                $neu->{'heiz_luftvorwaermer_leistung'} = $luftheiz_und_begleitheiz[1];
+
+                $neu->{'begleitheizung_an'} = ($luftheiz_und_begleitheiz[2] eq 'on' ? 1 : 0);
+                $neu->{'begleitheizung_leistung'} = $luftheiz_und_begleitheiz[3];
             };
             push(@$daten, $neu);
         }
@@ -444,6 +455,32 @@ foreach my $key (sort(keys(%$energiemenge))) {
         my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
         my $day = sprintf("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
 
+        $heizstab_tage->{$day} ||= [0, 0, 0, 0, 0];
+        $heizstab_jahre->{$year + 1900} ||= [0, 0];
+
+        if(
+            $wp_an_zeitpunkt > 0
+            && (
+                $e->{'_heizung_waermepumpe_status'} == 0
+                || $last_timestamp == $e->{'zeitpunkt'}
+                || ($last_day && $last_day ne $day)
+            )
+        ) {
+            $wp_laufzeit += $e->{'zeitpunkt'} - $wp_an_zeitpunkt;
+            $wp_an_zeitpunkt = 0;
+        }
+
+        if(
+            $last_day && $last_day ne $day
+            || $last_timestamp == $e->{'zeitpunkt'}
+        ) {
+            $heizstab_tage->{$last_day}->[2] = $wp_laufzeit;
+            $heizstab_tage->{$last_day}->[3] = $wp_taktung;
+            $wp_laufzeit = 0;
+            $wp_an_zeitpunkt = 0;
+            $wp_taktung = 0;
+        }
+
         if($heizstab_an_zeitpunkt > 0 && !$heizstab_war_vermutlich_an && $e->{'l2_strom_ma'} > 6) {
             $heizstab_war_vermutlich_an = 1;
         }
@@ -455,32 +492,20 @@ foreach my $key (sort(keys(%$energiemenge))) {
         }
         if(
             $e->{'_heizung_waermepumpe_status'} == 1
-            && !$wp_an_zeitpunkt
+            && (
+                !$wp_an_zeitpunkt
+                || ($last_day && $last_day ne $day)
+            )
         ) {
             $wp_an_zeitpunkt = $e->{'zeitpunkt'};
             $wp_taktung++;
-        } elsif(
-            $wp_an_zeitpunkt > 0
-            && (
-                $e->{'_heizung_waermepumpe_status'} == 0
-                || $last_timestamp == $e->{'zeitpunkt'}
-            )
-        ) {
-            $wp_laufzeit += $e->{'zeitpunkt'} - $wp_an_zeitpunkt;
-            $wp_an_zeitpunkt = 0;
         }
 
-        $heizstab_tage->{$day} ||= [0, 0, 0, 0];
-        $heizstab_jahre->{$year + 1900} ||= [0, 0];
         if(
-            $last_day && $last_day ne $day
-            || $last_timestamp == $e->{'zeitpunkt'}
+            exists($e->{'heiz_luftvorwaermer_leistung'})
+            && $e->{'heiz_luftvorwaermer_leistung'} > 0
         ) {
-            $heizstab_tage->{$last_day}[2] = $wp_laufzeit;
-            $heizstab_tage->{$last_day}[3] = $wp_taktung;
-            $wp_laufzeit = 0;
-            $wp_an_zeitpunkt = 0;
-            $wp_taktung = 0;
+            $heizstab_tage->{$day}->[4] += $e->{'heiz_luftvorwaermer_leistung'} / (1000 * 60); # 1min bei 0,85 kw
         }
 
         if(exists($e->{'heizungsunterstuetzung_an'})) {
@@ -506,8 +531,8 @@ foreach my $key (sort(keys(%$energiemenge))) {
                         ) {# Da ist Solarueberschuss
                             $index = 1;
                         }
-                        $heizstab_tage->{$day}[$index] += $zeitraum_der_aktivierung;
-                        $heizstab_jahre->{$year + 1900}[$index] += $zeitraum_der_aktivierung;
+                        $heizstab_tage->{$day}->[$index] += $zeitraum_der_aktivierung;
+                        $heizstab_jahre->{$year + 1900}->[$index] += $zeitraum_der_aktivierung;
                     }
                 }
                 $heizstab_an_zeitpunkt = 0;
@@ -521,37 +546,44 @@ foreach my $key (sort(keys(%$energiemenge))) {
         my $nutzung = 0;
         my $kwh = 0;
         my $kosten = 0;
-        if($heizstab_tage->{$day}[0] > 0) {
-            $nutzung = $heizstab_tage->{$day}[0] / 86400 * 100;
-            $kwh = $heizstab_tage->{$day}[0] / 3600 * 1.5;
+        if($heizstab_tage->{$day}->[0] > 0) {
+            $nutzung = $heizstab_tage->{$day}->[0] / 86400 * 100;
+            $kwh = $heizstab_tage->{$day}->[0] / 3600 * 1.5;
             $kosten = $kwh * 0.33;
         }
         my $nutzung_solar = 0;
         my $kwh_solar = 0;
         my $kosten_solar = 0;
         if($heizstab_tage->{$day}[1] > 0) {
-            $nutzung_solar = $heizstab_tage->{$day}[1] / 86400 * 100;
-            $kwh_solar = $heizstab_tage->{$day}[1] / 3600 * 1.5;
+            $nutzung_solar = $heizstab_tage->{$day}->[1] / 86400 * 100;
+            $kwh_solar = $heizstab_tage->{$day}->[1] / 3600 * 1.5;
             $kosten_solar = $kwh_solar * 0.33;
         }
+        my $luftvorwaermer_kwh = 0;
+        my $kosten_luftvorwaermer = 0;
+        if($heizstab_tage->{$day}->[4] > 0) {
+            $luftvorwaermer_kwh = $heizstab_tage->{$day}->[4];
+            $kosten_luftvorwaermer = $luftvorwaermer_kwh * 0.33;
+        }
         printf(
-            "%s: %2d %%, %4.1f kWh, %5.2f EUR / Solar: %2d %%, %4.1f kWh, %5.2f EUR, WP-Laufzeit: %2d %%, WP-Taktung:%2d\n",
+            "%s: %2d %%, %4.1f kWh, %5.2f EUR / Solar: %2d %%, %4.1f kWh, %5.2f EUR, WP-Zeit: %2d %%, WP-Takt:%2d, Luft %3.1f kWh = %3.2f EUR\n",
             $day, $nutzung, $kwh, $kosten, $nutzung_solar, $kwh_solar, $kosten_solar,
-            ($heizstab_tage->{$day}[2] / 86400 * 100), $heizstab_tage->{$day}[3]
+            ($heizstab_tage->{$day}->[2] / 86400 * 100), $heizstab_tage->{$day}->[3],
+            $luftvorwaermer_kwh, $kosten_luftvorwaermer
         );
     }
     print "\n\nDaten der Heizstab Nutzungsdauer pro Jahr\n";
     foreach my $year (sort keys(%$heizstab_jahre)) {
         my $kwh = 0;
         my $kosten = 0;
-        if($heizstab_jahre->{$year}[0] > 0) {
-            $kwh = $heizstab_jahre->{$year}[0] / 3600 * 1.5;
+        if($heizstab_jahre->{$year}->[0] > 0) {
+            $kwh = $heizstab_jahre->{$year}->[0] / 3600 * 1.5;
             $kosten = $kwh * 0.33;
         }
         my $kwh_solar = 0;
         my $kosten_solar = 0;
-        if($heizstab_jahre->{$year}[1] > 0) {
-            $kwh_solar = $heizstab_jahre->{$year}[1] / 3600 * 1.5;
+        if($heizstab_jahre->{$year}->[1] > 0) {
+            $kwh_solar = $heizstab_jahre->{$year}->[1] / 3600 * 1.5;
             $kosten_solar = $kwh_solar * 0.33;
         }
         printf(
