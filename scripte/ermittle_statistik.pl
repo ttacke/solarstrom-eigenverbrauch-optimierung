@@ -455,7 +455,7 @@ foreach my $key (sort(keys(%$energiemenge))) {
         my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
         my $day = sprintf("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
 
-        $heizstab_tage->{$day} ||= [0, 0, 0, 0, 0];
+        $heizstab_tage->{$day} ||= [0, 0, 0, 0, -1];
         $heizstab_jahre->{$year + 1900} ||= [0, 0];
 
         if(
@@ -505,6 +505,7 @@ foreach my $key (sort(keys(%$energiemenge))) {
             exists($e->{'heiz_luftvorwaermer_leistung'})
             && $e->{'heiz_luftvorwaermer_leistung'} > 0
         ) {
+            $heizstab_tage->{$day}->[4] = 0 if($heizstab_tage->{$day}->[4] < 0);
             $heizstab_tage->{$day}->[4] += $e->{'heiz_luftvorwaermer_leistung'} / (1000 * 60); # 1min bei 0,85 kw
         }
 
@@ -559,18 +560,19 @@ foreach my $key (sort(keys(%$energiemenge))) {
             $kwh_solar = $heizstab_tage->{$day}->[1] / 3600 * 1.5;
             $kosten_solar = $kwh_solar * 0.33;
         }
-        my $luftvorwaermer_kwh = 0;
-        my $kosten_luftvorwaermer = 0;
-        if($heizstab_tage->{$day}->[4] > 0) {
-            $luftvorwaermer_kwh = $heizstab_tage->{$day}->[4];
-            $kosten_luftvorwaermer = $luftvorwaermer_kwh * 0.33;
-        }
         printf(
-            "%s: %2d %%, %4.1f kWh, %5.2f EUR / Solar: %2d %%, %4.1f kWh, %5.2f EUR, WP-Zeit: %2d %%, WP-Takt:%2d, Luft %3.1f kWh = %3.2f EUR\n",
+            "%s: %2d %%, %4.1f kWh, %5.2f EUR / Solar: %2d %%, %4.1f kWh, %5.2f EUR, WP-Zeit: %2d %%, WP-Takt:%2d",
             $day, $nutzung, $kwh, $kosten, $nutzung_solar, $kwh_solar, $kosten_solar,
-            ($heizstab_tage->{$day}->[2] / 86400 * 100), $heizstab_tage->{$day}->[3],
-            $luftvorwaermer_kwh, $kosten_luftvorwaermer
+            ($heizstab_tage->{$day}->[2] / 86400 * 100), $heizstab_tage->{$day}->[3]
         );
+        if($heizstab_tage->{$day}->[4] > 0) {
+            printf(
+                ", Luft %3.1f kWh = %3.2f EUR",
+                $heizstab_tage->{$day}->[4],
+                $heizstab_tage->{$day}->[4] * 0.33
+            );
+        }
+        print "\n";
     }
     print "\n\nDaten der Heizstab Nutzungsdauer pro Jahr\n";
     foreach my $year (sort keys(%$heizstab_jahre)) {
