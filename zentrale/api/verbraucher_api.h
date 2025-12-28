@@ -854,7 +854,7 @@ namespace Local::Api {
 			} else if(
 				verbraucher.heizungs_temperatur_differenz >= cfg->heizstab_ausschalt_differenzwert
 				&&
-				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - ueberladen_hysterese_in_promille
+				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
 			) {
 				verbraucher.heizstabbetrieb_ist_erlaubt = false;
 			}
@@ -881,7 +881,7 @@ namespace Local::Api {
 			} else if(
 				verbraucher.waermepumpen_zuluft_temperatur >= cfg->heizung_luftvorwaermer_ausschalttemperatur
 				&&
-				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - ueberladen_hysterese_in_promille
+				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
 			) {
 				verbraucher.heizung_luftvorwaermer_relay_ist_an = false;
 				_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
