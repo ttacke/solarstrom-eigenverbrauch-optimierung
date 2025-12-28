@@ -37,6 +37,12 @@ sub _hole_daten {
         $/ = "\n";
         while(my $line = <$fh>) {
             chomp($line);
+            if($line =~ /\.\./ || $line !~ /^\d{10}/) {
+                # warn $line;
+                $last_error_line = $line;
+                $fehler++;
+                next;
+            }
             my @e = $line =~ m/^(\d{10,}),(e[234]),([\-\d]+),([\-\d]+),(\d+),(\d+),(\d+),([\-\d]+),([\-\d]+),([\-\d]+),(\d+),(\d+),(?:(\d+),|)(?:(\d+),(\d+),(\d+),|)/;
             if(!scalar(@e)) {
                 # warn $line;
@@ -63,8 +69,12 @@ sub _hole_daten {
             my $neu = {
                 zeitpunkt                       => $e[0],
                 datum                           => sprintf("%04d-%02d-%02d", $d[5] + 1900, $d[4] + 1, $d[3]),
-                stunde                          => $d[2],
-                monat                           => $d[4] + 1,
+                minute => sprintf('%02d', $d[1]),
+                stunde => sprintf('%02d', $d[2]),
+                tag => sprintf('%02d', $d[3]),
+                monat => sprintf('%02d', $d[4] + 1),
+                jahr => sprintf('%02d', $d[5] + 1900),
+
                 netzbezug_in_w                  => $e[2],
                 solarakku_zuschuss_in_w         => $e[3],
                 solarerzeugung_in_w             => $e[4],
@@ -102,6 +112,7 @@ sub _hole_daten {
             push(@$daten, $neu);
         }
         close($fh);
+        $daten = [sort { $a->{zeitpunkt} <=> $b->{zeitpunkt} } @$daten];
     }
     if($fehler) {
         warn "ACHTUNG: $fehler Fehler!\n";
@@ -111,7 +122,6 @@ sub _hole_daten {
     return $daten;
 }
 my $daten = _hole_daten();
-$daten = [sort { $a->{zeitpunkt} <=> $b->{zeitpunkt} } @$daten];
 print "\nAnzahl der Log-Datensaetze: " . scalar(@$daten) . "\n";
 my $logdaten_in_tagen = ($daten->[$#$daten]->{'zeitpunkt'} - $daten->[0]->{'zeitpunkt'}) / 86400;
 print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n";
@@ -127,7 +137,6 @@ my $wp_schaltschwelle_min = 1000;
 my $wp_schaltschwelle_max = 1600;
 my $wp_an_letzter_wert = 0;
 foreach my $e (@$daten) {
-    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
     next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
 
     $l1 = $e->{"l1_strom_ma"} if($l1 < $e->{"l1_strom_ma"});
@@ -152,10 +161,10 @@ foreach my $e (@$daten) {
         $wp_an = 1;
     }
     $e->{'_heizung_waermepumpe_status'} = $wp_an;
-    if($min == 0 || $wp_an_letzter_wert != $wp_an) {
+    if($e->{'minute'} == 0 || $wp_an_letzter_wert != $wp_an) {
         print $amp_file sprintf(
             "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d\n",
-            $year + 1900, $mon + 1, $mday, $hour, $min, $l1, $l2, $l3, $wp_an*5000
+            $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'}, $l1, $l2, $l3, $wp_an*5000
         );
         ($l1, $l2, $l3) = (0, 0, 0);
     }
@@ -324,11 +333,10 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
 #         $e->{"erde_temperatur"} && $e->{"erde_temperatur"} != 0
 #         && $e->{"luft_temperatur"} && $e->{"luft_temperatur"} != 0
 #     ) {
-#         my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
-#         if($min % 15 == 0) {
+#         if($e->{'minute'} % 15 == 0) {
 #             print $temp_file sprintf(
 #                 "%4d-%02d-%02d %d:%02d,%.1f,%01f\n",
-#                 $year + 1900, $mon + 1, $mday, $hour, $min, $e->{erde_temperatur}, $e->{luft_temperatur}
+#                 $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'}, $e->{erde_temperatur}, $e->{luft_temperatur}
 #             );
 #         }
 #         if($e->{'erde_temperatur'} < $max_temp) {
@@ -362,7 +370,6 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
 
 {
     my $wait_till = 0;
-    # my $wday_name = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
     my $feuchtligkeiten = [];
     print "\n\nFeuchtigkeits-Peaks: feuchtigkeits_peaks.csv\n";
     open(my $fh, '>', 'feuchtigkeits_peaks.csv') or die $!;
@@ -385,10 +392,9 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
             &&
             (!$wait_till || $wait_till < $e->{'zeitpunkt'})
         ) {
-            my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
             if(
-                ($hour >= 19 || ($hour == 18 && $min > 30))
-                && ($hour <= 22 || ($hour == 23 && $min < 30))
+                ($e->{'stunde'} >= 19 || ($e->{'stunde'} == 18 && $e->{'minute'} > 30))
+                && ($e->{'stunde'} <= 22 || ($e->{'stunde'} == 23 && $e->{'minute'} < 30))
             ) {
                 $treffer++;
             } else {
@@ -396,48 +402,67 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
             }
             print $fh sprintf(
                 "%4d-%02d-%02d %d:%02d\n",
-                $year + 1900, $mon + 1, $mday, $hour, $min
+                $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'}
             );
-            # print sprintf(
-            #     "%s %4d-%02d-%02d %d:%02d,%.1f,%.1f\n",
-            #     $wday_name->[$wday], $year + 1900, $mon + 1, $mday, $hour, $min, $schnitt, $e->{bad_luftfeuchtigkeit}
-            # );
             $wait_till = $e->{'zeitpunkt'} + 3600;
         }
     }
     print "Anzahl in 18:30 - 23:30: $treffer, ausserhalb: $kein_treffer\n";
     close($fh);
 }
+{
+    my $energiemenge = {};
+    print "\nErzeugte Energiemenge (Monatsweise):\n";
+    my $gesamt_energiemenge_in_wh_startpunkt = 0;
+    my $netzbezug = 0;
+    my $einspeisung = 0;
+    my $letzter_zeitpunkt = 0;
+    my $letzter_key = 0;
+    my $letzter_zeitpunkt_der_daten = $daten->[$#$daten]->{'zeitpunkt'};
+    foreach my $e (@$daten) {
+        next if(!$e->{'gesamt_energiemenge_in_wh'} || $e->{'zeitpunkt'} < 1736857686);# 14.1.2025
 
-my $energiemenge = {};
-print "\nErzeugte Energiemenge (Monatsweise):\n";
-my $gesamt_energiemenge_in_wh_startpunkt = 0;
-foreach my $e (@$daten) {
-    next if(!$e->{'gesamt_energiemenge_in_wh'} || $e->{'zeitpunkt'} < 1736857686);# 14.1.2025
-
-    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
-    $mon += 1;
-    $year += 1900;
-    my $key = sprintf("%02d/%04d", $mon, $year);
-    if(!defined($energiemenge->{$key})) {
-        $gesamt_energiemenge_in_wh_startpunkt = $e->{'gesamt_energiemenge_in_wh'};
+        my $key = sprintf("%02d/%04d", $e->{'monat'}, $e->{'jahr'});
+        if($letzter_zeitpunkt) {
+            my $veranderung = $e->{'netzbezug_in_w'} / 3600 * ($e->{'zeitpunkt'} - $letzter_zeitpunkt);
+            if($veranderung > 0) {
+                $netzbezug += $veranderung;
+            } else {
+                $einspeisung += $veranderung;
+            }
+        }
+        if(
+            ($letzter_key && $letzter_key ne $key)
+            || $e->{'zeitpunkt'} == $letzter_zeitpunkt_der_daten
+        ) {
+            $energiemenge->{$letzter_key} = [
+                $e->{'gesamt_energiemenge_in_wh'} - $gesamt_energiemenge_in_wh_startpunkt,
+                $netzbezug,
+                $einspeisung
+            ];
+        }
+        if(!defined($energiemenge->{$key})) {
+            $gesamt_energiemenge_in_wh_startpunkt = $e->{'gesamt_energiemenge_in_wh'};
+            $netzbezug = 0;
+            $einspeisung = 0;
+            $energiemenge->{$key} = [0, 0, 0];
+        }
+        $letzter_key = $key;
+        $letzter_zeitpunkt = $e->{'zeitpunkt'};
     }
-    $energiemenge->{$key} = $e->{'gesamt_energiemenge_in_wh'} - $gesamt_energiemenge_in_wh_startpunkt;
+    my $erster_monat = 1;
+    foreach my $key (sort(keys(%$energiemenge))) {
+        printf(
+            "%s: erzeugt %5.0f kWh, netzbezug %5.0f kWh, einspeisung %5.0f kWh %s\n",
+            $key,
+            $energiemenge->{$key}->[0] / 1000,
+            $energiemenge->{$key}->[1] / 1000,
+            $energiemenge->{$key}->[2] / 1000,
+            ($erster_monat ? ' (nur teilweise!)' : '')
+        );
+        $erster_monat = 0;
+    }
 }
-my $erster_monat = 1;
-foreach my $key (sort(keys(%$energiemenge))) {
-    printf("%s: %.0f kWh %s\n", $key, $energiemenge->{$key} / 1000, ($erster_monat ? ' (nur teilweise!)' : ''));
-    $erster_monat = 0;
-}
-
-# print "Daten der Heizungs-Temperatur-Differenz\n";
-# foreach my $e (@$daten) {
-#     next if(!$e->{'heizung_temperatur_differenz'} || $e->{'zeitpunkt'} < "1740222177");
-#
-#     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
-#     my $time = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
-#     print "$time  $e->{'heizung_temperatur_differenz'}\n";
-# }
 {
     my $heizstab_an_zeitpunkt = 0;
     my $wp_an_zeitpunkt = 0;
@@ -453,11 +478,10 @@ foreach my $key (sort(keys(%$energiemenge))) {
     foreach my $e (@$daten) {
         next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
 
-        my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($e->{'zeitpunkt'});
-        next if($mon + 1 > 5 && $mon + 1 < 10);# Da wird nicht geheizt, laesst sich leider nicht anders ermitteln
+        next if($e->{'monat'} > 5 && $e->{'monat'} < 10);# Da wird nicht geheizt, laesst sich leider nicht anders ermitteln
 
-        my $day = sprintf("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
-        my $month = sprintf("%04d-%02d", $year + 1900, $mon + 1);
+        my $day = sprintf("%04d-%02d-%02d", $e->{'jahr'}, $e->{'monat'}, $e->{'tag'});
+        my $month = sprintf("%04d-%02d", $e->{'jahr'}, $e->{'monat'});
 
         $heizstab_tage->{$day} ||= [0, 0, 0, 0, -1];
         $heizstab_monate->{$month} ||= [0, 0, 0, 0, 0];
@@ -531,10 +555,7 @@ foreach my $key (sort(keys(%$energiemenge))) {
                     my $index = 0;
                     if(
                         $haus_lief_mit_solar == 1
-                        # ($mon + 1 == 3 && $mday > 15)
-                        # ||
-                        # ($mon + 1 > 3 && $mon + 1 < 10)
-                    ) {# Da ist Solarueberschuss
+                    ) {
                         $index = 1;
                     }
                     $heizstab_tage->{$day}->[$index] += $zeitraum_der_aktivierung;
