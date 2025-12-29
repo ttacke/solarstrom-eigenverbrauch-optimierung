@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+$| = 1;
 
 sub _gib_duchschnitt {
     my ($liste) = @_;
@@ -16,6 +17,7 @@ sub _gib_duchschnitt {
 sub _hole_daten {
     my $daten = [];
     my @files = ();
+    print "Hole Daten...\n";
     opendir(my $dh, '../sd-karteninhalt') or die $!;
     while(my $filename = readdir($dh)) {
         next if($filename !~ m/^anlage_log\-\d{4}\-\d{2}\.csv$/);
@@ -29,6 +31,7 @@ sub _hole_daten {
 
     my $fehler = 0;
     my $last_error_line = '';
+    my $i = 0;
     foreach my $filename (sort(@files)) {
         my $fh;
         if(!open($fh, '<', "../sd-karteninhalt/$filename")) {
@@ -36,6 +39,8 @@ sub _hole_daten {
         }
         $/ = "\n";
         while(my $line = <$fh>) {
+            $i++;
+            printf("\r%08d zeilen", $i) if($i % 10000 == 0);
             chomp($line);
             if($line =~ /\.\./ || $line !~ /^\d{10}/) {
                 # warn $line;
@@ -112,8 +117,11 @@ sub _hole_daten {
             push(@$daten, $neu);
         }
         close($fh);
-        $daten = [sort { $a->{zeitpunkt} <=> $b->{zeitpunkt} } @$daten];
     }
+    printf("\r%08d zeilen\n", $i);
+    print "Sortiere...\n";
+    $daten = [sort { $a->{zeitpunkt} <=> $b->{zeitpunkt} } @$daten];
+    print "...Fertig\n";
     if($fehler) {
         warn "ACHTUNG: $fehler Fehler!\n";
         #warn $last_error_line;
