@@ -842,6 +842,33 @@ namespace Local::Api {
 
 			if(
 				!_einschalten_wegen_lastgrenzen_verboten(
+					verbraucher, cfg->heizung_luftvorwaermer_benoetigte_leistung_in_w
+				)
+				&& (
+					verbraucher.waermepumpen_zuluft_temperatur <= cfg->heizung_luftvorwaermer_zuluft_einschalttemperatur
+					||
+					verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_luftvorwaermer_abluft_einschalttemperatur
+					||
+					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
+				)
+			) {
+				verbraucher.heizung_luftvorwaermer_relay_ist_an = true;
+				_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
+				return;
+			} else if(
+				verbraucher.waermepumpen_zuluft_temperatur >= cfg->heizung_luftvorwaermer_zuluft_ausschalttemperatur
+				&&
+				verbraucher.waermepumpen_abluft_temperatur >= cfg->heizung_luftvorwaermer_abluft_ausschalttemperatur
+				&&
+				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
+			) {
+				verbraucher.heizung_luftvorwaermer_relay_ist_an = false;
+				_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
+				return;
+			}
+
+			if(
+				!_einschalten_wegen_lastgrenzen_verboten(
 					verbraucher, cfg->heizstab_benoetigte_leistung_in_w
 				)
 				&& (
@@ -868,31 +895,6 @@ namespace Local::Api {
 
 			if(
 				!_einschalten_wegen_lastgrenzen_verboten(
-					verbraucher, cfg->heizung_luftvorwaermer_benoetigte_leistung_in_w
-				)
-				&& (
-					verbraucher.waermepumpen_zuluft_temperatur <= cfg->heizung_luftvorwaermer_zuluft_einschalttemperatur
-					||
-					verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_luftvorwaermer_abluft_einschalttemperatur
-					||
-					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
-				)
-			) {
-				verbraucher.heizung_luftvorwaermer_relay_ist_an = true;
-				_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
-			} else if(
-				verbraucher.waermepumpen_zuluft_temperatur >= cfg->heizung_luftvorwaermer_zuluft_ausschalttemperatur
-				&&
-				verbraucher.waermepumpen_abluft_temperatur >= cfg->heizung_luftvorwaermer_abluft_ausschalttemperatur
-				&&
-				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
-			) {
-				verbraucher.heizung_luftvorwaermer_relay_ist_an = false;
-				_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
-			}
-
-			if(
-				!_einschalten_wegen_lastgrenzen_verboten(
 					verbraucher, cfg->wasser_begleitheizung_benoetigte_leistung_in_w
 				)
 				&&
@@ -902,6 +904,7 @@ namespace Local::Api {
 			) {// das Relay geht innerhalb von 4h von alleine aus
 				verbraucher.wasser_begleitheizung_relay_is_an = true;
 				_schalte_wasser_begleitheizung_relay(verbraucher.wasser_begleitheizung_relay_is_an);
+				return;
 			}
 
 			int karenzzeit = (5 * 60);
