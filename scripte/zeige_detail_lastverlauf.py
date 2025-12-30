@@ -9,7 +9,7 @@ def erstelle_interaktives_diagramm(csv_datei):
 
     # Diagramm erstellen (Interaktivität ist hier Standard)
     # Wir schmelzen das DataFrame, damit Plotly alle 3 Spalten einfach erkennt
-    fig = px.line(df, x='Datum', y=['L1', 'L2', 'L3', 'WPan', 'Temp'],
+    fig = px.line(df, x='Datum', y=['L1', 'L2', 'L3', 'WPan', 'Abluft', 'Zuluft'],
                   title='Interaktive Zeitreihe (Nutze die Maus zum Zoomen)',
                   labels={'value': 'Messwert', 'variable': 'Spalte'})
 

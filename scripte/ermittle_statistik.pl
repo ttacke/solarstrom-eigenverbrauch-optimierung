@@ -139,17 +139,16 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
     open(my $amp_file, '>', $amp_filename) or die $!;
     open(my $amp_detail_file, '>', $amp_detail_filename) or die $!;
     print $amp_file "Datum,L1,L2,L3,WPan\n";
-    print $amp_detail_file "Datum,L1,L2,L3,WPan,Temp\n";
+    print $amp_detail_file "Datum,L1,L2,L3,WPan,Abluft,Zuluft\n";
     my ($l1, $l2, $l3) = (0, 0, 0);
     my ($l1max, $l2max, $l3max) = (0, 0, 0);
     my $wp_an = 0;
-    my $l2_letzter_wert = 0;
-    my $wp_schaltschwelle_min = 1000;
-    my $wp_schaltschwelle_max = 1600;
+    my $abluft_letzter_wert = 0;
     my $wp_an_letzter_wert = 0;
     my $letzter_log_zeitpunkt = $daten->[$#$daten]->{'zeitpunkt'};
     foreach my $e (@$daten) {
-        next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
+        #next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
+        next if($e->{'zeitpunkt'} < 1766962800); # 29/12/2025 -> wp zu/abluft korrekt vermessen
 
         $l1 = $e->{"l1_strom_ma"} if($l1 < $e->{"l1_strom_ma"});
         $l2 = $e->{"l2_strom_ma"} if($l2 < $e->{"l2_strom_ma"});
@@ -160,25 +159,31 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
         $l3max = $e->{"l3_strom_ma"} if($l3max < $e->{"l3_strom_ma"});
         if(
             $wp_an
-            && $l2_letzter_wert - $e->{"l2_strom_ma"} >= $wp_schaltschwelle_min
-            && $l2_letzter_wert - $e->{"l2_strom_ma"} <= $wp_schaltschwelle_max
+            && $abluft_letzter_wert > 0
+            && $e->{'waermepumpen_abluft_temperatur'} > 0
+            && (
+                $abluft_letzter_wert - $e->{'waermepumpen_abluft_temperatur'} <= -2.0
+            )
         ) {
             $wp_an = 0;
-        }
-        if(
+        } elsif(
             !$wp_an
-            &&$e->{"l2_strom_ma"} - $l2_letzter_wert >= $wp_schaltschwelle_min
-            && $e->{"l2_strom_ma"} - $l2_letzter_wert <= $wp_schaltschwelle_max
+            && $abluft_letzter_wert > 0
+            && $e->{'waermepumpen_abluft_temperatur'} > 0
+            && (
+                $abluft_letzter_wert - $e->{'waermepumpen_abluft_temperatur'} >= 2.0
+            )
         ) {
             $wp_an = 1;
         }
         $e->{'_heizung_waermepumpe_status'} = $wp_an;
         if($e->{'zeitpunkt'} > $letzter_log_zeitpunkt - 86400 * 2) {
             print $amp_detail_file sprintf(
-                "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d,%d\n",
+                "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d,%d,%d\n",
                 $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'},
                 $l1, $l2, $l3, $wp_an*5000,
-                $e->{'waermepumpen_abluft_temperatur'} * 1000
+                $e->{'waermepumpen_abluft_temperatur'} * 1000,
+                $e->{'waermepumpen_zuluft_temperatur'} * 1000
             );
         }
         if($e->{'minute'} == 0 || $wp_an_letzter_wert != $wp_an) {
@@ -188,8 +193,10 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
             );
             ($l1, $l2, $l3) = (0, 0, 0);
         }
-        $l2_letzter_wert = $e->{"l2_strom_ma"};
         $wp_an_letzter_wert = $wp_an;
+        if($e->{'waermepumpen_abluft_temperatur'} > 0) {
+            $abluft_letzter_wert = $e->{'waermepumpen_abluft_temperatur'};
+        }
     }
     close($amp_file) or die $!;
     close($amp_detail_file) or die $!;
@@ -448,7 +455,8 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
             $haus_lief_mit_solar = 1;
         }
         if(
-            $e->{'_heizung_waermepumpe_status'} == 1
+            exists($e->{'_heizung_waermepumpe_status'})
+            && $e->{'_heizung_waermepumpe_status'} == 1
             && (
                 !$wp_an_zeitpunkt
                 || ($last_day && $last_day ne $day)

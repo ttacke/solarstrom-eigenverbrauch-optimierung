@@ -123,11 +123,7 @@ anderen Endgerät im gleichen Netzwerk könnte also problemlos Schaden anrichten
 die Geräte nicht.
 
 # TODO Anstehende Aufgaben
-- Download: alles Dateien auf Zeitpunkt prüfen + Monate, die nicht NACH ihrem Ende runtergeladen wurden nochmal runterladen
-  - Via Parameter "alles" oder so dieses Verhalten steuern
-- Wallbox-Umschaltung auf 1,5kW nutzen
-  - Ziel: möglichst wenig Akku-Hub verursachen, also am besten direktverbrauch
-  - Abwarten bis Lastbegrenzungs-Option geklärt ist. Wenn die schrittweise drosseln kann, dann
-    muss die Autoabschaltung hier entfernt werden. Für den Sommer ist die Drosselung weiter interessant
-    zur Akkuschonung wegen Direktverbrauch 
+- Luftwärmer: temp anpassen und schauen, was passiert 
+-- 30.12 9:40 -> 14-14.5 zuluft
+-  30.12 12:56-> 6.8-7.3 abluft
 
