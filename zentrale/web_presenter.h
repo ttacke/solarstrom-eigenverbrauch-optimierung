@@ -34,10 +34,10 @@ namespace Local {
 		const char* anlagen_log_filename_template = "anlage_log-%4d-%02d.csv";
 		const char* ui_filename = "index.html";
 		char log_buffer[64];
-		float heizung_luftvorwaermer_temperatur = 0;
-		float heizung_luftvorwaermer_luftfeuchte = 0;
-		float bad_temperatur = 0;
-		float bad_luftfeuchte = 0;
+		float waermepumpen_zuluft_temperatur = 0;
+		float waermepumpen_zuluft_luftfeuchte = 0;
+		float waermepumpen_abluft_temperatur = 0;
+		float waermepumpen_abluft_luftfeuchte = 0;
 		int heat_difference = 0;
 
 		void _write_log_data(int now_timestamp, bool heizstabbetrieb_ist_erlaubt) {
@@ -53,8 +53,8 @@ namespace Local {
 				file_writer.write_formated(",");
 				verbraucher.write_log_data(file_writer);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-				file_writer.write_formated(",kb1%.1f,%.1f", heizung_luftvorwaermer_temperatur, heizung_luftvorwaermer_luftfeuchte);
-				file_writer.write_formated(",kl1%.1f,%.1f", bad_temperatur, bad_luftfeuchte);
+				file_writer.write_formated(",kb1%.1f,%.1f", waermepumpen_zuluft_temperatur, waermepumpen_zuluft_luftfeuchte);
+				file_writer.write_formated(",kl1%.1f,%.1f", waermepumpen_abluft_temperatur, waermepumpen_abluft_luftfeuchte);
 				file_writer.write_formated(",hs%d,%d", (heizstabbetrieb_ist_erlaubt ? 1 : 0), heat_difference);
 				file_writer.write_formated("\n");
 				file_writer.close_file();
@@ -99,15 +99,15 @@ namespace Local {
 			}
 		}
 
-		void set_heizung_luftvorwaermer_temperatur_und_luftfeuchte(float temp, float hum) {
-		    heizung_luftvorwaermer_temperatur = temp;
-		    heizung_luftvorwaermer_luftfeuchte = hum;
+		void set_waermepumpen_zuluft_temperatur_und_luftfeuchte(float temp, float hum) {
+		    waermepumpen_zuluft_temperatur = temp;
+		    waermepumpen_zuluft_luftfeuchte = hum;
 		    webserver.server.send(200, "text/plain", "ok");
 		}
 
-		void set_bad_temperatur_und_luftfeuchte(float temp, float hum) {
-		    bad_temperatur = temp;
-		    bad_luftfeuchte = hum;
+		void set_waermepumpen_abluft_temperatur_und_luftfeuchte(float temp, float hum) {
+		    waermepumpen_abluft_temperatur = temp;
+		    waermepumpen_abluft_luftfeuchte = hum;
 		    webserver.server.send(200, "text/plain", "ok");
 		}
 
@@ -206,7 +206,8 @@ namespace Local {
 			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			verbraucher.waermepumpen_zuluft_temperatur = heizung_luftvorwaermer_temperatur;
+			verbraucher.waermepumpen_zuluft_temperatur = waermepumpen_zuluft_temperatur;
+			verbraucher.waermepumpen_abluft_temperatur = waermepumpen_abluft_temperatur;
 			verbraucher.heizungs_temperatur_differenz = heat_difference;
 			verbraucher_api.fuehre_schaltautomat_aus(verbraucher);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
@@ -363,20 +364,20 @@ namespace Local {
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
-					"\"heizung_luftvorwaermer_temperatur\":%.1f,",
-					heizung_luftvorwaermer_temperatur
+					"\"waermepumpen_zuluft_temperatur\":%.1f,",
+					waermepumpen_zuluft_temperatur
 				);
 				file_writer.write_formated(
-					"\"heizung_luftvorwaermer_luftfeuchtigkeit\":%.1f,",
-					heizung_luftvorwaermer_luftfeuchte
+					"\"waermepumpen_zuluft_luftfeuchtigkeit\":%.1f,",
+					waermepumpen_zuluft_luftfeuchte
 				);
 				file_writer.write_formated(
-					"\"bad_temperatur\":%.1f,",
-					bad_temperatur
+					"\"waermepumpen_abluft_temperatur\":%.1f,",
+					waermepumpen_abluft_temperatur
 				);
 				file_writer.write_formated(
-					"\"bad_luftfeuchte\":%.1f,",
-					bad_luftfeuchte
+					"\"waermepumpen_abluft_luftfeuchte\":%.1f,",
+					waermepumpen_abluft_luftfeuchte
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(

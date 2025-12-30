@@ -67,6 +67,7 @@ namespace Local::Model {
 		int netzbezug_in_w = 0;
 
 		float waermepumpen_zuluft_temperatur = 0;
+		float waermepumpen_abluft_temperatur = 0;
 		int heizungs_temperatur_differenz = 0;
 		bool heizstabbetrieb_ist_erlaubt = false;
 

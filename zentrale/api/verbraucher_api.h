@@ -871,7 +871,9 @@ namespace Local::Api {
 					verbraucher, cfg->heizung_luftvorwaermer_benoetigte_leistung_in_w
 				)
 				&& (
-					verbraucher.waermepumpen_zuluft_temperatur <= cfg->heizung_luftvorwaermer_einschalttemperatur
+					verbraucher.waermepumpen_zuluft_temperatur <= cfg->heizung_luftvorwaermer_zuluft_einschalttemperatur
+					||
+					verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_luftvorwaermer_abluft_einschalttemperatur
 					||
 					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
 				)
@@ -879,7 +881,9 @@ namespace Local::Api {
 				verbraucher.heizung_luftvorwaermer_relay_ist_an = true;
 				_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
 			} else if(
-				verbraucher.waermepumpen_zuluft_temperatur >= cfg->heizung_luftvorwaermer_ausschalttemperatur
+				verbraucher.waermepumpen_zuluft_temperatur >= cfg->heizung_luftvorwaermer_zuluft_ausschalttemperatur
+				&&
+				verbraucher.waermepumpen_abluft_temperatur >= cfg->heizung_luftvorwaermer_abluft_ausschalttemperatur
 				&&
 				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
 			) {

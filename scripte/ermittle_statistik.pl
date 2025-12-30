@@ -101,8 +101,8 @@ sub _hole_daten {
 
                 waermepumpen_zuluft_temperatur                 => $t[0],
                 waermepumpen_zuluft_luftfeuchtigkeit           => $t[1],
-                bad_temperatur                 => $t[2],
-                bad_luftfeuchtigkeit           => $t[3],
+                waermepumpen_abluft_temperatur                 => $t[2],
+                waermepumpen_abluft_luftfeuchtigkeit           => $t[3],
 
                 heizungsunterstuetzung_an       => $t[4],
                 heizung_temperatur_differenz => $t[5],
@@ -133,56 +133,69 @@ my $daten = _hole_daten();
 print "\nAnzahl der Log-Datensaetze: " . scalar(@$daten) . "\n";
 my $logdaten_in_tagen = ($daten->[$#$daten]->{'zeitpunkt'} - $daten->[0]->{'zeitpunkt'}) / 86400;
 print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n";
+{
+    my $amp_filename = '3phasiger_lastverlauf.csv';
+    my $amp_detail_filename = '3phasiger_lastverlauf_detail.csv';
+    open(my $amp_file, '>', $amp_filename) or die $!;
+    open(my $amp_detail_file, '>', $amp_detail_filename) or die $!;
+    print $amp_file "Datum,L1,L2,L3,WPan\n";
+    print $amp_detail_file "Datum,L1,L2,L3,WPan,Temp\n";
+    my ($l1, $l2, $l3) = (0, 0, 0);
+    my ($l1max, $l2max, $l3max) = (0, 0, 0);
+    my $wp_an = 0;
+    my $l2_letzter_wert = 0;
+    my $wp_schaltschwelle_min = 1000;
+    my $wp_schaltschwelle_max = 1600;
+    my $wp_an_letzter_wert = 0;
+    my $letzter_log_zeitpunkt = $daten->[$#$daten]->{'zeitpunkt'};
+    foreach my $e (@$daten) {
+        next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
 
-my $amp_filename = '3phasiger_lastverlauf.csv';
-open(my $amp_file, '>', $amp_filename) or die $!;
-print $amp_file "Datum,L1,L2,L3,WPan\n";
-my ($l1, $l2, $l3) = (0, 0, 0);
-my ($l1max, $l2max, $l3max) = (0, 0, 0);
-my $wp_an = 0;
-my $l2_letzter_wert = 0;
-my $wp_schaltschwelle_min = 1000;
-my $wp_schaltschwelle_max = 1600;
-my $wp_an_letzter_wert = 0;
-foreach my $e (@$daten) {
-    next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
+        $l1 = $e->{"l1_strom_ma"} if($l1 < $e->{"l1_strom_ma"});
+        $l2 = $e->{"l2_strom_ma"} if($l2 < $e->{"l2_strom_ma"});
+        $l3 = $e->{"l3_strom_ma"} if($l3 < $e->{"l3_strom_ma"});
 
-    $l1 = $e->{"l1_strom_ma"} if($l1 < $e->{"l1_strom_ma"});
-    $l2 = $e->{"l2_strom_ma"} if($l2 < $e->{"l2_strom_ma"});
-    $l3 = $e->{"l3_strom_ma"} if($l3 < $e->{"l3_strom_ma"});
-
-    $l1max = $e->{"l1_strom_ma"} if($l1max < $e->{"l1_strom_ma"});
-    $l2max = $e->{"l2_strom_ma"} if($l2max < $e->{"l2_strom_ma"});
-    $l3max = $e->{"l3_strom_ma"} if($l3max < $e->{"l3_strom_ma"});
-    if(
-        $wp_an
-        && $l2_letzter_wert - $e->{"l2_strom_ma"} >= $wp_schaltschwelle_min
-        && $l2_letzter_wert - $e->{"l2_strom_ma"} <= $wp_schaltschwelle_max
-    ) {
-        $wp_an = 0;
+        $l1max = $e->{"l1_strom_ma"} if($l1max < $e->{"l1_strom_ma"});
+        $l2max = $e->{"l2_strom_ma"} if($l2max < $e->{"l2_strom_ma"});
+        $l3max = $e->{"l3_strom_ma"} if($l3max < $e->{"l3_strom_ma"});
+        if(
+            $wp_an
+            && $l2_letzter_wert - $e->{"l2_strom_ma"} >= $wp_schaltschwelle_min
+            && $l2_letzter_wert - $e->{"l2_strom_ma"} <= $wp_schaltschwelle_max
+        ) {
+            $wp_an = 0;
+        }
+        if(
+            !$wp_an
+            &&$e->{"l2_strom_ma"} - $l2_letzter_wert >= $wp_schaltschwelle_min
+            && $e->{"l2_strom_ma"} - $l2_letzter_wert <= $wp_schaltschwelle_max
+        ) {
+            $wp_an = 1;
+        }
+        $e->{'_heizung_waermepumpe_status'} = $wp_an;
+        if($e->{'zeitpunkt'} > $letzter_log_zeitpunkt - 86400 * 2) {
+            print $amp_detail_file sprintf(
+                "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d,%d\n",
+                $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'},
+                $l1, $l2, $l3, $wp_an*5000,
+                $e->{'waermepumpen_abluft_temperatur'} * 1000
+            );
+        }
+        if($e->{'minute'} == 0 || $wp_an_letzter_wert != $wp_an) {
+            print $amp_file sprintf(
+                "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d\n",
+                $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'}, $l1, $l2, $l3, $wp_an*5000
+            );
+            ($l1, $l2, $l3) = (0, 0, 0);
+        }
+        $l2_letzter_wert = $e->{"l2_strom_ma"};
+        $wp_an_letzter_wert = $wp_an;
     }
-    if(
-        !$wp_an
-        &&$e->{"l2_strom_ma"} - $l2_letzter_wert >= $wp_schaltschwelle_min
-        && $e->{"l2_strom_ma"} - $l2_letzter_wert <= $wp_schaltschwelle_max
-    ) {
-        $wp_an = 1;
-    }
-    $e->{'_heizung_waermepumpe_status'} = $wp_an;
-    if($e->{'minute'} == 0 || $wp_an_letzter_wert != $wp_an) {
-        print $amp_file sprintf(
-            "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d\n",
-            $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'}, $l1, $l2, $l3, $wp_an*5000
-        );
-        ($l1, $l2, $l3) = (0, 0, 0);
-    }
-    $l2_letzter_wert = $e->{"l2_strom_ma"};
-    $wp_an_letzter_wert = $wp_an;
+    close($amp_file) or die $!;
+    close($amp_detail_file) or die $!;
+    print "CSV-Datei $amp_filename (seit 11.08.2025) + $amp_detail_filename (letzte 24h) wurde erstellt\n";
+    print "L1max: $l1max, L2max: $l2max, L3max: $l3max  (in mA)\n";
 }
-close($amp_file) or die $!;
-print "CSV-Datei $amp_filename wurde erstellt (seit 11.08.2025)\n";
-print "L1max: $l1max, L2max: $l2max, L3max: $l3max  (in mA)\n";
-
 foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
     my $name = $e->[0];
     my $monate = $e->[1];
@@ -323,100 +336,6 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
         my $faktor = $erzeugung_in_w / $stunden_solarstrahlung;
         printf("solarstrahlungs_vorhersage_umrechnungsfaktor_$name: %.2f\n", $faktor * 0.85);
     }
-}
-
-
-# my $min_temp = 999;
-# my $min_time = 0;
-# my $max_temp = 0;
-# my $max_time = 0;
-# my $delta_temp = 0;
-# my $delta_time = 0;
-#
-# my $temp_filename = 'temperaturverlauf.csv';
-# open(my $temp_file, '>', $temp_filename) or die $!;
-# print $temp_file "Datum,Boden,Luft\n";
-# foreach my $e (@$daten) {
-#     if(
-#         $e->{"erde_temperatur"} && $e->{"erde_temperatur"} != 0
-#         && $e->{"luft_temperatur"} && $e->{"luft_temperatur"} != 0
-#     ) {
-#         if($e->{'minute'} % 15 == 0) {
-#             print $temp_file sprintf(
-#                 "%4d-%02d-%02d %d:%02d,%.1f,%01f\n",
-#                 $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'}, $e->{erde_temperatur}, $e->{luft_temperatur}
-#             );
-#         }
-#         if($e->{'erde_temperatur'} < $max_temp) {
-#             if(
-#                 $max_temp
-#                 && $min_temp < $max_temp
-#                 && sprintf("%.1f", $max_temp - $min_temp) >= 0.4
-#             ) {
-#                 $delta_temp += $max_temp - $min_temp;
-#                 $delta_time += ($max_time - $min_time) / 3600;
-#                 # printf(
-#                 #     "Delta: %.1f K in %.2f h $min_temp -> $max_temp; %s\n",
-#                 #     $max_temp - $min_temp,
-#                 #     ($max_time - $min_time) / 3600,
-#                 #     '' . localtime($e->{'zeitpunkt'})
-#                 # );
-#             }
-#             $min_temp = $e->{'erde_temperatur'};
-#             $min_time = $e->{'zeitpunkt'};
-#             $max_temp = $e->{'erde_temperatur'};
-#             $max_time = $e->{'zeitpunkt'};
-#         } elsif($e->{'erde_temperatur'} > $max_temp) {
-#             $max_temp = $e->{'erde_temperatur'};
-#             $max_time = $e->{'zeitpunkt'};
-#         }
-#     }
-# }
-# close($temp_file) or die $!;
-# printf("\nTemperaturertrag: %.2f K/h\n", $delta_temp / $delta_time);
-# print "CSV-Datei $temp_filename wurde erstellt\n";
-
-{
-    my $wait_till = 0;
-    my $feuchtligkeiten = [];
-    print "\n\nFeuchtigkeits-Peaks: feuchtigkeits_peaks.csv\n";
-    open(my $fh, '>', 'feuchtigkeits_peaks.csv') or die $!;
-    my $treffer = 0;
-    my $kein_treffer = 0;
-    foreach my $e (@$daten) {
-        next if(!$e->{"bad_luftfeuchtigkeit"});
-
-        push(@$feuchtligkeiten, $e->{"bad_luftfeuchtigkeit"});
-        shift(@$feuchtligkeiten) if(scalar(@$feuchtligkeiten) > 10);
-
-        next if($e->{'zeitpunkt'} < 1760948444);# ab 20.10.2025
-
-        my $summe = 0;
-        map { $summe += $_ } @$feuchtligkeiten;
-        my $schnitt = $summe / scalar(@$feuchtligkeiten);
-
-        if(
-            $e->{"bad_luftfeuchtigkeit"} >= $schnitt + 5
-            &&
-            (!$wait_till || $wait_till < $e->{'zeitpunkt'})
-        ) {
-            if(
-                ($e->{'stunde'} >= 19 || ($e->{'stunde'} == 18 && $e->{'minute'} > 30))
-                && ($e->{'stunde'} <= 22 || ($e->{'stunde'} == 23 && $e->{'minute'} < 30))
-            ) {
-                $treffer++;
-            } else {
-                $kein_treffer++;
-            }
-            print $fh sprintf(
-                "%4d-%02d-%02d %d:%02d\n",
-                $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'}
-            );
-            $wait_till = $e->{'zeitpunkt'} + 3600;
-        }
-    }
-    print "Anzahl in 18:30 - 23:30: $treffer, ausserhalb: $kein_treffer\n";
-    close($fh);
 }
 {
     my $energiemenge = {};

@@ -117,10 +117,10 @@
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
 
-			document.getElementById('heizung_luftvorwaermer_temperatur').innerHTML = daten['heizung_luftvorwaermer_temperatur'];
-			document.getElementById('heizung_luftvorwaermer_luftfeuchtigkeit').innerHTML = daten['heizung_luftvorwaermer_luftfeuchtigkeit'];
-			document.getElementById('bad_temperatur').innerHTML = daten['bad_temperatur'];
-			document.getElementById('bad_luftfeuchte').innerHTML = daten['bad_luftfeuchte'];
+			document.getElementById('waermepumpen_zuluft_temperatur').innerHTML = daten['waermepumpen_zuluft_temperatur'];
+			document.getElementById('waermepumpen_zuluft_luftfeuchtigkeit').innerHTML = daten['waermepumpen_zuluft_luftfeuchtigkeit'];
+			document.getElementById('waermepumpen_abluft_temperatur').innerHTML = daten['waermepumpen_abluft_temperatur'];
+			document.getElementById('waermepumpen_abluft_luftfeuchte').innerHTML = daten['waermepumpen_abluft_luftfeuchte'];
 			
 			document.getElementById('heizung_temperatur_differenz').innerHTML = daten['heizung_temperatur_differenz'] * 1 - 540;
 			
@@ -641,11 +641,11 @@
 
 <div class="weitere_info">
 	<div>
-		<small>Hz-Luft: <span id="heizung_luftvorwaermer_temperatur"></span> &#8451; / <span id="heizung_luftvorwaermer_luftfeuchtigkeit"></span> %</small>
+		<small>WP-Zuluft: <span id="waermepumpen_zuluft_temperatur"></span> &#8451; / <span id="waermepumpen_zuluft_luftfeuchtigkeit"></span> %</small>
 		<small><span>HZ-Stab-Diff:<span id="heizung_temperatur_differenz"></span></span></small>
 	</div>
 	<div>
-		<small>Bad: <span id="bad_temperatur"></span> &#8451; / <span id="bad_luftfeuchte"></span> %</small>
+		<small>WP-Abluft: <span id="waermepumpen_abluft_temperatur"></span> &#8451; / <span id="waermepumpen_abluft_luftfeuchte"></span> %</small>
 		<small>Solar:<span id="solarerzeugung_ist_aktiv">N<span id="solaranteil_in_prozent_string1"></span>%/S<span id="solaranteil_in_prozent_string2"></span>%</span></small>
 	</div>
 </div>
