@@ -841,7 +841,8 @@ namespace Local::Api {
 			}
 
 			if(
-				!_einschalten_wegen_lastgrenzen_verboten(
+				!verbraucher.heizung_luftvorwaermer_relay_ist_an
+				&& !_einschalten_wegen_lastgrenzen_verboten(
 					verbraucher, cfg->heizung_luftvorwaermer_benoetigte_leistung_in_w
 				)
 				&& (
@@ -856,6 +857,8 @@ namespace Local::Api {
 				_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
 				return;
 			} else if(
+				verbraucher.heizung_luftvorwaermer_relay_ist_an
+				&&
 				verbraucher.waermepumpen_zuluft_temperatur >= cfg->heizung_luftvorwaermer_zuluft_ausschalttemperatur
 				&&
 				verbraucher.waermepumpen_abluft_temperatur >= cfg->heizung_luftvorwaermer_abluft_ausschalttemperatur
@@ -868,7 +871,8 @@ namespace Local::Api {
 			}
 
 			if(
-				!_einschalten_wegen_lastgrenzen_verboten(
+				!verbraucher.heizstabbetrieb_ist_erlaubt
+				&& !_einschalten_wegen_lastgrenzen_verboten(
 					verbraucher, cfg->heizstab_benoetigte_leistung_in_w
 				)
 				&& (
@@ -879,6 +883,8 @@ namespace Local::Api {
 			) {
 				verbraucher.heizstabbetrieb_ist_erlaubt = true;
 			} else if(
+				verbraucher.heizstabbetrieb_ist_erlaubt
+				&&
 				verbraucher.heizungs_temperatur_differenz >= cfg->heizstab_ausschalt_differenzwert
 				&&
 				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
@@ -894,13 +900,12 @@ namespace Local::Api {
 			}
 
 			if(
-				!_einschalten_wegen_lastgrenzen_verboten(
+				!verbraucher.wasser_begleitheizung_relay_is_an
+				&& !_einschalten_wegen_lastgrenzen_verboten(
 					verbraucher, cfg->wasser_begleitheizung_benoetigte_leistung_in_w
 				)
 				&&
 				verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
-				&&
-				!verbraucher.wasser_begleitheizung_relay_is_an
 			) {// das Relay geht innerhalb von 4h von alleine aus
 				verbraucher.wasser_begleitheizung_relay_is_an = true;
 				_schalte_wasser_begleitheizung_relay(verbraucher.wasser_begleitheizung_relay_is_an);

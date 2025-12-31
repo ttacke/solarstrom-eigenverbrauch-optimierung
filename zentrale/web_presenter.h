@@ -187,13 +187,13 @@ namespace Local {
 
 			Local::Api::WettervorhersageAPI wettervorhersage_api(*cfg, web_reader);
 
-			if(!Local::SemipersistentData::wettervorhersage_letzter_abruf) {
-				Local::SemipersistentData::wettervorhersage_letzter_abruf = now_timestamp;
-			}
 			if(
-				Local::SemipersistentData::wettervorhersage_letzter_abruf < now_timestamp - 60*45// max alle 45min
-				&& minute(now_timestamp) < 20
-				&& minute(now_timestamp) >= 10
+				!Local::SemipersistentData::wettervorhersage_letzter_abruf
+				|| (
+					Local::SemipersistentData::wettervorhersage_letzter_abruf < now_timestamp - 60*45// max alle 45min
+					&& minute(now_timestamp) < 20
+					&& minute(now_timestamp) >= 10
+				)
 			) {// Insgesamt also 1x die Stunde ca 10 nach um
 				Serial.println("Schreibe Wettervorhersage-Daten");
 				wettervorhersage_api.daten_holen_und_persistieren(file_reader, file_writer, now_timestamp);

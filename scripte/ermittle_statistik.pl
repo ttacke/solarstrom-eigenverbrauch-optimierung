@@ -40,7 +40,7 @@ sub _hole_daten {
         $/ = "\n";
         while(my $line = <$fh>) {
             $i++;
-            printf("\r%08d zeilen", $i) if($i % 10000 == 0);
+            printf("\r%3.2f Mio zeilen", $i / 1000000) if($i % 10000 == 0);
             chomp($line);
             if($line =~ /\.\./ || $line !~ /^\d{10}/) {
                 # warn $line;
@@ -118,7 +118,7 @@ sub _hole_daten {
         }
         close($fh);
     }
-    printf("\r%08d zeilen\n", $i);
+    printf("\r%3.2f Mio zeilen\n", $i / 1000000);
     print "Sortiere...\n";
     $daten = [sort { $a->{zeitpunkt} <=> $b->{zeitpunkt} } @$daten];
     print "...Fertig\n";
@@ -139,7 +139,7 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
     open(my $amp_file, '>', $amp_filename) or die $!;
     open(my $amp_detail_file, '>', $amp_detail_filename) or die $!;
     print $amp_file "Datum,L1,L2,L3,WPan\n";
-    print $amp_detail_file "Datum,L1,L2,L3,WPan,Abluft,Zuluft\n";
+    print $amp_detail_file "Datum,L1,L2,L3,WPan,Abluft,Zuluft,LuftHeizAn,LuftHeiz\n";
     my ($l1, $l2, $l3) = (0, 0, 0);
     my ($l1max, $l2max, $l3max) = (0, 0, 0);
     my $wp_an = 0;
@@ -179,11 +179,13 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
         $e->{'_heizung_waermepumpe_status'} = $wp_an;
         if($e->{'zeitpunkt'} > $letzter_log_zeitpunkt - 86400 * 2) {
             print $amp_detail_file sprintf(
-                "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d,%d,%d\n",
+                "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d,%d,%d,%d,%d\n",
                 $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'},
                 $l1, $l2, $l3, $wp_an*5000,
                 $e->{'waermepumpen_abluft_temperatur'} * 1000,
-                $e->{'waermepumpen_zuluft_temperatur'} * 1000
+                $e->{'waermepumpen_zuluft_temperatur'} * 1000,
+                $e->{'heiz_luftvorwaermer_an'} * 6000,
+                $e->{'heiz_luftvorwaermer_leistung'}
             );
         }
         if($e->{'minute'} == 0 || $wp_an_letzter_wert != $wp_an) {
@@ -563,7 +565,7 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
         my $kwh_gesamt = $kwh + $kwh_solar + $wp_kwh + $luft_kwh;
         my $kosten_gesamt = ($kwh_gesamt - $kwh_solar) * $strom_kosten;
         printf(
-            "%s | %5.1f  %5.2f | %5.1f  %5.2f | %5.1f  %5.2f  %2d | %5.1f  %5.2f | %5.1f  %6.2f\n",
+            "%s | %5.1f  %5.2f | %5.1f  %5.2f | %5.1f  %5.2f   %2d | %5.1f  %5.2f | %5.1f  %6.2f\n",
             $month,
             $kwh, $kosten,
             $kwh_solar, $kosten_solar,

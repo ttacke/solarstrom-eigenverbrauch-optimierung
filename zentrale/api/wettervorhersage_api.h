@@ -12,10 +12,10 @@ namespace Local::Api {
 	protected:
 		// SD Daten korrumpieren innerhalb weniger Jahre, daher 1x im Jahr autom. wechseln
 		char filename_buffer[40];
-		const char* roof1_filename_template = "dach1_wettervorhersage_%04d.json";
-		const char* roof2_filename_template = "dach2_wettervorhersage_%04d.json";
-		const char* hourly_cache_filename_template = "wetter_stundenvorhersage_%04d.csv";
-		const char* dayly_cache_filename_template = "wetter_tagesvorhersage_%04d.csv";
+		const char* roof1_filename_template = "dach1_wettervorhersage_%04d-%02d.json";
+		const char* roof2_filename_template = "dach2_wettervorhersage_%04d-%02d.json";
+		const char* hourly_cache_filename_template = "wetter_stundenvorhersage_%04d-%02d.csv";
+		const char* dayly_cache_filename_template = "wetter_tagesvorhersage_%04d-%02d.csv";
 		const char* request_uri_template = "/v1/forecast?latitude=%0.2f&longitude=%0.2f&daily=sunrise,sunset,shortwave_radiation_sum&hourly=global_tilted_irradiance_instant&timezone=Europe/Berlin&tilt=%d&azimuth=%d&timeformat=unixtime&forecast_hours=12";
 		char request_uri_buffer[128];
 
@@ -65,9 +65,10 @@ namespace Local::Api {
 		}
 
 		void _lese_daten_und_setze_ein(Local::Service::FileReader& file_reader, const char* filename, int now_timestamp) {
-			sprintf(filename_buffer, filename, year(now_timestamp));
+			sprintf(filename_buffer, filename, year(now_timestamp), month(now_timestamp));
 			if(!file_reader.open_file_to_read(filename_buffer)) {
 				Serial.println("FEHLER Beim Lesen");
+				Serial.println(filename_buffer);
 				return;
 			}
 
@@ -199,7 +200,7 @@ namespace Local::Api {
 		}
 
 		void _lese_stundencache_und_setze_ein(Local::Service::FileReader& file_reader, int now_timestamp) {
-			sprintf(filename_buffer, hourly_cache_filename_template, year(now_timestamp));
+			sprintf(filename_buffer, hourly_cache_filename_template, year(now_timestamp), month(now_timestamp));
 			if(!file_reader.open_file_to_read(filename_buffer)) {
 				return;
 			}
@@ -220,7 +221,7 @@ namespace Local::Api {
 		}
 
 		void _lese_tagescache_und_setze_ein(Local::Service::FileReader& file_reader, int now_timestamp) {
-			sprintf(filename_buffer, dayly_cache_filename_template, year(now_timestamp));
+			sprintf(filename_buffer, dayly_cache_filename_template, year(now_timestamp), month(now_timestamp));
 			if(!file_reader.open_file_to_read(filename_buffer)) {
 				return;
 			}
@@ -242,7 +243,7 @@ namespace Local::Api {
 		}
 
 		void _schreibe_stundencache(Local::Service::FileWriter& file_writer, int now_timestamp) {
-			sprintf(filename_buffer, hourly_cache_filename_template, year(now_timestamp));
+			sprintf(filename_buffer, hourly_cache_filename_template, year(now_timestamp), month(now_timestamp));
 			if(!file_writer.open_file_to_overwrite(filename_buffer)) {
 				return;
 			}
@@ -257,7 +258,7 @@ namespace Local::Api {
 		}
 
 		void _schreibe_tagescache(Local::Service::FileWriter& file_writer, int now_timestamp) {
-			sprintf(filename_buffer, dayly_cache_filename_template, year(now_timestamp));
+			sprintf(filename_buffer, dayly_cache_filename_template, year(now_timestamp), month(now_timestamp));
 			if(!file_writer.open_file_to_overwrite(filename_buffer)) {
 				return;
 			}
@@ -277,14 +278,14 @@ namespace Local::Api {
 			Local::Service::FileWriter& file_writer,
 			int now_timestamp
 		) {
-			sprintf(filename_buffer, roof1_filename_template, year(now_timestamp));
+			sprintf(filename_buffer, roof1_filename_template, year(now_timestamp), month(now_timestamp));
 			_daten_holen_und_persistieren(
 				file_reader, file_writer, filename_buffer, now_timestamp,
 				cfg->wettervorhersage_dach1_neigung_in_grad,
 				cfg->wettervorhersage_dach1_ausrichtung_azimuth
 			);
 
-			sprintf(filename_buffer, roof2_filename_template, year(now_timestamp));
+			sprintf(filename_buffer, roof2_filename_template, year(now_timestamp), month(now_timestamp));
 			_daten_holen_und_persistieren(
 				file_reader, file_writer, filename_buffer, now_timestamp,
 				cfg->wettervorhersage_dach2_neigung_in_grad,
