@@ -413,8 +413,8 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
     my $last_month = 0;
     my $last_timestamp = $daten->[$#$daten]->{'zeitpunkt'};
     foreach my $e (@$daten) {
-        next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
-
+        # next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
+        next if($e->{'jahr'} < 2026);# Vorher waren nicht alle Datenpunkte vorhanden
         next if($e->{'monat'} > 5 && $e->{'monat'} < 10);# Da wird nicht geheizt, laesst sich leider nicht anders ermitteln
 
         my $day = sprintf("%04d-%02d-%02d", $e->{'jahr'}, $e->{'monat'}, $e->{'tag'});
@@ -513,7 +513,7 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
     my $strom_kosten = 0.33; # EUR
     my $heizstab_leistung = 1.5;
     my $wp_leistung = 0.5;
-    foreach my $day (@heizstab_tage[-14..-1]) {
+    foreach my $day (scalar(@heizstab_tage) >= 14 ? @heizstab_tage[-14..-1] : @heizstab_tage) {
         my $nutzung = 0;
         my $kwh = 0;
         my $kosten = 0;
