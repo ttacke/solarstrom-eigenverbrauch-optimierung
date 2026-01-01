@@ -181,7 +181,7 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
             print $amp_detail_file sprintf(
                 "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d,%d,%d,%d,%d\n",
                 $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'},
-                $l1, $l2, $l3, $wp_an*5000,
+                $e->{"l1_strom_ma"}, $e->{"l2_strom_ma"}, $e->{"l3_strom_ma"}, $wp_an*5000,
                 $e->{'waermepumpen_abluft_temperatur'} * 1000,
                 $e->{'waermepumpen_zuluft_temperatur'} * 1000,
                 $e->{'heiz_luftvorwaermer_an'} * 6000,
@@ -191,7 +191,8 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
         if($e->{'minute'} == 0 || $wp_an_letzter_wert != $wp_an) {
             print $amp_file sprintf(
                 "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d\n",
-                $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'}, $l1, $l2, $l3, $wp_an*5000
+                $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'},
+                $l1, $l2, $l3, $wp_an*5000
             );
             ($l1, $l2, $l3) = (0, 0, 0);
         }
