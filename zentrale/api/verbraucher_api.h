@@ -1066,14 +1066,5 @@ namespace Local::Api {
 				Local::SemipersistentData::auto_ladeleistung_log_in_w[i] = 0;
 			}
 		}
-
-//		void starte_router_neu() {
-//			_log((char*) "starte_router_neu");
-//			_schalte_shellyplug(
-//				false, cfg->router_neustart_relay_host, cfg->router_neustart_relay_port,
-//				web_reader->default_timeout_in_hundertstel_s
-//			);
-//			// Schaltet allein wieder ein (killt ja das netz, was ein Einschalten unmöglich macht)
-//		}
 	};
 }

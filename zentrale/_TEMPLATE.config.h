@@ -24,8 +24,6 @@ namespace Local {
 		int auto_relay_port = 80;
 		const char* heizung_relay_host = "192.168.0.33";
 		const int heizung_relay_port = 80;
-//		const char* router_neustart_relay_host = "192.168.0.36";
-//		const int router_neustart_relay_port = 80;
 		const char* heizstab_relay_host = "192.168.0.38";
 		const int heizstab_relay_port = 80;
 		const char* heizung_luftvorwaermer_relay_host = "192.168.0.35";
@@ -47,16 +45,16 @@ namespace Local {
 		int heizstab_einschalt_differenzwert = 542;// 540 ist das Minimum
 		int heizstab_ausschalt_differenzwert = 545;// ca Minimum+3
 		float heizung_luftvorwaermer_zuluft_einschalttemperatur = 14.3;
-		float heizung_luftvorwaermer_zuluft_ausschalttemperatur = 14.8;
+		float heizung_luftvorwaermer_zuluft_ausschalttemperatur = 14.5;
 		float heizung_luftvorwaermer_abluft_einschalttemperatur = 6.4;
 		float heizung_luftvorwaermer_abluft_ausschalttemperatur = 6.6;
 		int heizung_luftvorwaermer_benoetigte_leistung_in_w = 850;
 		int wasser_begleitheizung_benoetigte_leistung_in_w = 500;// Einschaltwert, sinkt rapide auf ~120
 
 		int grundverbrauch_in_w_pro_h_sommer = 262;
-		int grundverbrauch_in_w_pro_h_winter = 521;
+		int grundverbrauch_in_w_pro_h_winter = 532;
 		float solarstrahlungs_vorhersage_umrechnungsfaktor_sommer = 4.96;// 90% von 5.51
-		float solarstrahlungs_vorhersage_umrechnungsfaktor_winter = 6.0;// 90% von 6.67
+		float solarstrahlungs_vorhersage_umrechnungsfaktor_winter = 5.63;// 90% von 6.25
 
 		int akku_groesse_in_wh = 7680;
 		int akku_zielladestand_in_promille = 900;// sollte <= maxSOC-Begrenzung sein
