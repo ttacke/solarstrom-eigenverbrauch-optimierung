@@ -209,6 +209,10 @@ namespace Local {
 			verbraucher.waermepumpen_zuluft_temperatur = waermepumpen_zuluft_temperatur;
 			verbraucher.waermepumpen_abluft_temperatur = waermepumpen_abluft_temperatur;
 			verbraucher.heizungs_temperatur_differenz = heat_difference;
+
+			verbraucher.heizung_ist_an =
+				verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_max_ablufttemperatur_wenn_aktiv
+				? true : false;
 			verbraucher_api.fuehre_schaltautomat_aus(verbraucher);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
@@ -319,6 +323,10 @@ namespace Local {
 				file_writer.write_formated(
 					"\"heizung_lastschutz\":%s,",
 					verbraucher.heizung_lastschutz ? "true" : "false"
+				);
+				file_writer.write_formated(
+					"\"heizung_aktiv\":%s,",
+					verbraucher.heizung_ist_an ? "true" : "false"
 				);
 				file_writer.write_formated(
 					"\"auto_laden\":%s,\"roller_laden\":%s,",

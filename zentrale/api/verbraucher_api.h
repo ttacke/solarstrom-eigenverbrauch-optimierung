@@ -841,11 +841,40 @@ namespace Local::Api {
 			}
 
 			if(
+				!verbraucher.heizstabbetrieb_ist_erlaubt
+				&& !_einschalten_wegen_lastgrenzen_verboten(
+					verbraucher, cfg->heizstab_benoetigte_leistung_in_w
+				)
+				&& (
+					verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
+					||
+					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
+				)
+			) {
+				verbraucher.heizstabbetrieb_ist_erlaubt = true;
+			} else if(
+				verbraucher.heizstabbetrieb_ist_erlaubt
+				&&
+				verbraucher.heizungs_temperatur_differenz >= cfg->heizstab_ausschalt_differenzwert
+				&&
+				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
+			) {
+				verbraucher.heizstabbetrieb_ist_erlaubt = false;
+			} // Schalter ist weiter unten
+
+
+			if(
 				!verbraucher.heizung_luftvorwaermer_relay_ist_an
 				&& !_einschalten_wegen_lastgrenzen_verboten(
 					verbraucher, cfg->heizung_luftvorwaermer_benoetigte_leistung_in_w
 				)
 				&& (
+					(
+						verbraucher.heizstabbetrieb_ist_erlaubt
+						&& verbraucher.heizungs_temperatur_differenz > 0
+						&& verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_ausschalt_differenzwert
+					)
+					||
 					verbraucher.waermepumpen_zuluft_temperatur <= cfg->heizung_luftvorwaermer_zuluft_einschalttemperatur
 					||
 					verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_luftvorwaermer_abluft_einschalttemperatur
@@ -870,27 +899,6 @@ namespace Local::Api {
 				return;
 			}
 
-			if(
-				!verbraucher.heizstabbetrieb_ist_erlaubt
-				&& !_einschalten_wegen_lastgrenzen_verboten(
-					verbraucher, cfg->heizstab_benoetigte_leistung_in_w
-				)
-				&& (
-					verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
-					||
-					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
-				)
-			) {
-				verbraucher.heizstabbetrieb_ist_erlaubt = true;
-			} else if(
-				verbraucher.heizstabbetrieb_ist_erlaubt
-				&&
-				verbraucher.heizungs_temperatur_differenz >= cfg->heizstab_ausschalt_differenzwert
-				&&
-				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
-			) {
-				verbraucher.heizstabbetrieb_ist_erlaubt = false;
-			}
 			if(
 				verbraucher.heizstabbetrieb_ist_erlaubt != Local::SemipersistentData::heizstabbetrieb_letzter_zustand
 			) {

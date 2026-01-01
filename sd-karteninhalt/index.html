@@ -106,8 +106,8 @@
 
 			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : (daten['wasser_lastschutz'] ? "sperr" : 'off');
 			document.getElementById('wasser_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_ueberladen'] ? "an" : (daten['wasser_lastschutz'] ? "sperr" : 'aus');
-			document.getElementById('heizung_ueberladen').className = daten['heizung_ueberladen'] ? 'on' : (daten['heizung_lastschutz'] ? "sperr" : 'off');
-			document.getElementById('heizung_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_ueberladen'] ? "an" : (daten['heizung_lastschutz'] ? "sperr" : 'aus');
+			document.getElementById('heizung').className = daten['heizung_aktiv'] ? 'on' : (daten['heizung_lastschutz'] ? 'sperr' : 'off');
+			document.getElementById('heizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_aktiv'] ? "an" : (daten['heizung_lastschutz'] ? 'sperr' : (daten['heizung_ueberladen'] ? 'frei' : 'aus'));
 			document.getElementById('roller_laden_an').className = daten['roller_lastschutz'] ? "sperr" : (daten['roller_laden_an'] ? 'on' : 'off');
 			document.getElementById('roller_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['roller_relay_an'] ? "frei" : (daten['roller_lastschutz'] ? "sperr" : "aus");
 			document.getElementById('auto_laden_an').className = daten['auto_lastschutz'] ? "sperr" : (daten['auto_laden_an'] ? 'on' : 'off');
@@ -606,7 +606,7 @@
 		<br><span class="ladestatus">-</span>
 	</span>
 
-	<span id="heizung_ueberladen">
+	<span id="heizung">
 		HZ
 		<br><span class="ladestatus">-</span>
 	</span>

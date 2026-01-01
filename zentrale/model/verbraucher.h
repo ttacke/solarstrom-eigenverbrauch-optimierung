@@ -37,6 +37,7 @@ namespace Local::Model {
 		int wasser_relay_zustand_seit = 0;
 
 		bool heizung_relay_ist_an = false;
+		bool heizung_ist_an = false;
 		bool heizung_lastschutz = false;
 		int heizung_relay_zustand_seit = 0;
 
