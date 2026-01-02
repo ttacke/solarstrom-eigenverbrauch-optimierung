@@ -68,7 +68,7 @@ sub _hole_daten {
 
             # my @auto = $line =~ m/,va[4],([a-z]+),([a-z]+),([a-z]+),([\d\.]+),([\d\.]+),([\d\.]+),([a-z]+),([a-z]+)/;
             # my @roller = $line =~ m/,vb[8],([a-z]+),([a-z]+),([a-z]+),([\d\.]+),([\d\.]+),([\d\.]+),([a-z]+),([a-z]+),([a-z]+)/;
-            my @luftheiz_und_begleitheiz = $line =~ m/,vc[1],([a-z]+),([\d]+),([a-z]+),([\d]+)/;
+            my @luftheiz_und_begleitheiz = $line =~ m/,vc[12],([a-z]+),([\d]+),([a-z]+),([\d]+)(?:,([\d]+)|)/;
 
             my @d = gmtime($e[0]);
             my $neu = {
@@ -113,6 +113,7 @@ sub _hole_daten {
 
                 $neu->{'begleitheizung_an'} = ($luftheiz_und_begleitheiz[2] eq 'on' ? 1 : 0);
                 $neu->{'begleitheizung_leistung'} = $luftheiz_und_begleitheiz[3];
+                $neu->{'wasser_wp_leistung'} = (exists($luftheiz_und_begleitheiz[3]) ? $luftheiz_und_begleitheiz[3] : 0);
             };
             push(@$daten, $neu);
         }

@@ -36,6 +36,8 @@ namespace Local::Model {
 		bool wasser_lastschutz = false;
 		int wasser_relay_zustand_seit = 0;
 
+		int wasser_wp_aktuelle_leistung_in_w = 0;
+
 		bool heizung_relay_ist_an = false;
 		bool heizung_ist_an = false;
 		bool heizung_lastschutz = false;
@@ -197,11 +199,12 @@ namespace Local::Model {
 			);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 			file_writer.write_formated(
-				",vc1,%s,%d,%s,%d",
+				",vc2,%s,%d,%s,%d,%d",
 				heizung_luftvorwaermer_relay_ist_an ? "on" : "off",
 				heizung_luftvorwaermer_aktuelle_leistung_in_w,
 				wasser_begleitheizung_relay_is_an ? "on" : "off",
-				wasser_begleitheizung_aktuelle_leistung_in_w
+				wasser_begleitheizung_aktuelle_leistung_in_w,
+				wasser_wp_aktuelle_leistung_in_w
 			);
 		}
 	};

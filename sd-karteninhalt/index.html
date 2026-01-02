@@ -104,8 +104,8 @@
 				+ (daten['roller_ladeort_ist_keller'] ? "Keller" : "Au&szlig;en")
 			;
 
-			document.getElementById('wasser_ueberladen').className = daten['wasser_ueberladen'] ? 'on' : (daten['wasser_lastschutz'] ? "sperr" : 'off');
-			document.getElementById('wasser_ueberladen').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_ueberladen'] ? "an" : (daten['wasser_lastschutz'] ? "sperr" : 'aus');
+			document.getElementById('wasser').className = daten['wasser_wp_an'] ? 'on' : (daten['wasser_lastschutz'] ? "sperr" : 'off');
+			document.getElementById('wasser').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_ueberladen'] ? "an" : (daten['wasser_lastschutz'] ? "sperr" : 'frei');
 			document.getElementById('heizung').className = daten['heizung_aktiv'] ? 'on' : (daten['heizung_lastschutz'] ? 'sperr' : 'off');
 			document.getElementById('heizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_ueberladen'] ? "an" : (daten['heizung_lastschutz'] ? 'sperr' : 'frei');
 			document.getElementById('roller_laden_an').className = daten['roller_lastschutz'] ? "sperr" : (daten['roller_laden_an'] ? 'on' : 'off');
@@ -597,7 +597,7 @@
 		ROL
 		<br><span class="ladestatus">-</span>
 	</span>
-	<span id="wasser_ueberladen">
+	<span id="wasser">
 		W
 		<br><span class="ladestatus">-</span>
 	</span>

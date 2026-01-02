@@ -125,6 +125,7 @@ void loop(void) {
 //			}
 		}
 		web_presenter.heartbeat(daten_filename, beat_count);
+		Serial.println("done heartbeat!");
 		last_runtime = runtime;
 		return;
 	}

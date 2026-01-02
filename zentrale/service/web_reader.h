@@ -11,9 +11,9 @@ namespace Local::Service {
 		WiFiClient& wlan_client;
 		MatchState match_state;
 		int content_length = 0;
-		char old_buffer[64];
+		char old_buffer[128];
 		bool first_body_part_exist = false;
-		char search_buffer[128];
+		char search_buffer[256];
 
 		bool _send_request(
 			const char* host, const char* request_uri, int timeout_in_hundertstel_s
@@ -72,8 +72,8 @@ namespace Local::Service {
 		}
 
 	public:
-		char finding_buffer[65];
-		char buffer[64];
+		char finding_buffer[129];
+		char buffer[128];
 		int default_timeout_in_hundertstel_s = 2000;
 		int kurzer_timeout_in_hundertstel_s = 500;
 		bool is_chunked = false;

@@ -257,6 +257,7 @@ namespace Local::Api {
 			if(_read_shelly_content(
 				(char*) cfg->heizung_luftvorwaermer_relay_host,
 				cfg->heizung_luftvorwaermer_relay_port,
+				cfg->heizung_luftvorwaermer_relay_version,
 				shelly_daten
 			)) {
 				verbraucher.heizung_luftvorwaermer_relay_ist_an = shelly_daten.ison;
@@ -266,22 +267,22 @@ namespace Local::Api {
 			if(_read_shelly_content(
 				(char*) cfg->wasser_begleitheizung_relay_host,
 				cfg->wasser_begleitheizung_relay_port,
+				cfg->wasser_begleitheizung_relay_version,
 				shelly_daten
 			)) {
 				verbraucher.wasser_begleitheizung_relay_is_an = shelly_daten.ison;
 				verbraucher.wasser_begleitheizung_aktuelle_leistung_in_w = shelly_daten.power;
 			}
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-		}
-
-		bool _shelly_plug_ist_an(const char* host, int port) {
-			web_reader->send_http_get_request(host, port, "/status");
-			while(web_reader->read_next_block_to_buffer()) {
-				if(web_reader->find_in_buffer((char*) "\"ison\":true")) {
-					return true;
-				}
+			if(_read_shelly_content(
+				(char*) cfg->wasser_wp_relay_host,
+				cfg->wasser_wp_relay_port,
+				cfg->wasser_wp_relay_version,
+				shelly_daten
+			)) {
+				verbraucher.wasser_wp_aktuelle_leistung_in_w = shelly_daten.power;
 			}
-			return false;
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 		}
 
 		bool _netz_relay_ist_an(const char* host, int port) {
@@ -302,23 +303,27 @@ namespace Local::Api {
 			);
 		}
 
-		void _schalte_shellyplug(bool ein, const char* host, int port, int timeout) {
+		void _schalte_shellyplug(bool ein, const char* host, int port, int version, int timeout) {
 			web_reader->send_http_get_request(
 				host,
 				port,
-				(ein ? "/relay/0?turn=on" : "/relay/0?turn=off"),
+				(ein ?
+					(version >= 2 ? "/rpc/Switch.Set?id=0&on=true" : "/relay/0?turn=on")
+					:
+					(version >= 2 ? "/rpc/Switch.Set?id=0&on=false" : "/relay/0?turn=off")
+				),
 				timeout
 			);
 		}
 
 		void _schalte_roller_relay(bool ein) {
 			_schalte_shellyplug(
-				ein, cfg->roller_relay_host, cfg->roller_relay_port,
+				ein, cfg->roller_relay_host, cfg->roller_relay_port, cfg->roller_relay_version,
 				web_reader->default_timeout_in_hundertstel_s
 			);
 			if(roller_benoetigte_ladeleistung_in_w_cache == cfg->roller_benoetigte_leistung_gering_in_w) {
 				_schalte_shellyplug(
-					ein, cfg->roller_aussen_relay_host, cfg->roller_aussen_relay_port,
+					ein, cfg->roller_aussen_relay_host, cfg->roller_aussen_relay_port, cfg->roller_aussen_relay_version,
 					web_reader->kurzer_timeout_in_hundertstel_s
 				);
 			}
@@ -344,7 +349,7 @@ namespace Local::Api {
 		void _schalte_heizstab_relay(bool ein) {
 			_log((char*) "schalte heizstab: ", (char*) (ein ? "erlaubt" : "aus"));
 			_schalte_shellyplug(
-				ein, cfg->heizstab_relay_host, cfg->heizstab_relay_port,
+				ein, cfg->heizstab_relay_host, cfg->heizstab_relay_port, cfg->heizstab_relay_version,
 				web_reader->default_timeout_in_hundertstel_s
 			);
 		}
@@ -352,7 +357,7 @@ namespace Local::Api {
 		void _schalte_wasser_begleitheizung_relay(bool ein) {
 			_log((char*) "schalte wasser begleitheizung: ", (char*) (ein ? "erlaubt" : "aus"));
 			_schalte_shellyplug(
-				ein, cfg->wasser_begleitheizung_relay_host, cfg->wasser_begleitheizung_relay_port,
+				ein, cfg->wasser_begleitheizung_relay_host, cfg->wasser_begleitheizung_relay_port, cfg->wasser_begleitheizung_relay_version,
 				web_reader->default_timeout_in_hundertstel_s
 			);
 		}
@@ -360,7 +365,7 @@ namespace Local::Api {
 		void _schalte_heizung_luftvorwaermer_relay(bool ein) {
 			_log((char*) "schalte heizung luftvorwaermer: ", (char*) (ein ? "erlaubt" : "aus"));
 			_schalte_shellyplug(
-				ein, cfg->heizung_luftvorwaermer_relay_host, cfg->heizung_luftvorwaermer_relay_port,
+				ein, cfg->heizung_luftvorwaermer_relay_host, cfg->heizung_luftvorwaermer_relay_port, cfg->heizung_luftvorwaermer_relay_version,
 				web_reader->default_timeout_in_hundertstel_s
 			);
 		}
@@ -509,6 +514,7 @@ namespace Local::Api {
 				if(_read_shelly_content(
 					(char*) cfg->roller_aussen_relay_host,
 					cfg->roller_aussen_relay_port,
+					cfg->roller_aussen_relay_version,
 					shelly_daten
 				)) {
 					erfolgreich = true;
@@ -519,6 +525,7 @@ namespace Local::Api {
 				_read_shelly_content(
 					(char*) cfg->roller_relay_host,
 					cfg->roller_relay_port,
+					cfg->roller_relay_version,
 					shelly_daten
 				);
 				_schalte_roller_ladeort_und_leistung_auf_aussen(false);
@@ -527,22 +534,21 @@ namespace Local::Api {
 			shelly_roller_cache_ison = shelly_daten.ison;
 			shelly_roller_cache_power = shelly_daten.power;
 		}
-
-		bool _read_shelly_content(char* host, int port, Local::Model::Shelly& shelly) {
-			if(!web_reader->send_http_get_request(host, port, "/status")) {
+		bool _read_shelly_content(char* host, int port, int version, Local::Model::Shelly& shelly) {
+			if(!web_reader->send_http_get_request(host, port, (version >= 2 ? "/rpc/Switch.GetStatus?id=0" : "/status"))) {
 				return false;
 			}
 			shelly.timestamp = 0;
 			shelly.ison = false;
 			shelly.power = 0;
 			while(web_reader->read_next_block_to_buffer()) {
-				if(web_reader->find_in_buffer((char*) "\"unixtime\":([0-9]+)[^0-9]")) {
+				if(web_reader->find_in_buffer((char*) (version >= 2 ? "\"minute_ts\":([0-9]+)[^0-9]" : "\"unixtime\":([0-9]+)[^0-9]"))) {
 					shelly.timestamp = atoi(web_reader->finding_buffer);
 				}
-				if(web_reader->find_in_buffer((char*) "\"ison\":true")) {
+				if(web_reader->find_in_buffer((char*) (version >= 2 ? "\"output\":true" : "\"ison\":true"))) {
 					shelly.ison = true;
 				}
-				if(web_reader->find_in_buffer((char*) "\"power\":([0-9]+)[^0-9]")) {
+				if(web_reader->find_in_buffer((char*) (version >= 2 ? "\"apower\":([0-9]+)[^0-9]" : "\"power\":([0-9]+)[^0-9]"))) {
 					shelly.power = atoi(web_reader->finding_buffer);
 				}
 			}
@@ -551,7 +557,6 @@ namespace Local::Api {
 			}
 			return false;
 		}
-
 		bool _winterladen_ist_aktiv() {
 			if(ladeverhalten_wintermodus) {
 				int current_hour = hour(timestamp);
@@ -831,11 +836,13 @@ namespace Local::Api {
 					_log((char*) "HeizungLuftvorwaermerLastgrenze");
 					verbraucher.heizung_luftvorwaermer_relay_ist_an = false;
 					_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
+					verbraucher.heizung_luftvorwaermer_lastschutz = true;
 				}
 				if(verbraucher.wasser_begleitheizung_relay_is_an) {
 					_log((char*) "WasserBegleitheizungLastgrenze");
 					verbraucher.wasser_begleitheizung_relay_is_an = false;
 					_schalte_wasser_begleitheizung_relay(verbraucher.wasser_begleitheizung_relay_is_an);
+					verbraucher.wasser_begleitheizung_lastschutz = true;
 				}
 				return;
 			}
@@ -862,7 +869,13 @@ namespace Local::Api {
 				verbraucher.heizstabbetrieb_ist_erlaubt = false;
 			} // Schalter ist weiter unten
 
-
+			float zuluft_offset_temperatur = 0;
+			float abluft_offset_temperatur = 0;
+			// der Versuch, das Problem zu beheben, dass beide WP zu viel Wärme ziehen und die Thermometer das nicht erkennen
+			if(verbraucher.wasser_wp_aktuelle_leistung_in_w > 200) {
+				zuluft_offset_temperatur = 3.0;
+				abluft_offset_temperatur = 1.0;
+			}
 			if(
 				!verbraucher.heizung_luftvorwaermer_relay_ist_an
 				&& !_einschalten_wegen_lastgrenzen_verboten(
@@ -875,9 +888,9 @@ namespace Local::Api {
 						&& verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_ausschalt_differenzwert
 					)
 					||
-					verbraucher.waermepumpen_zuluft_temperatur <= cfg->heizung_luftvorwaermer_zuluft_einschalttemperatur
+					verbraucher.waermepumpen_zuluft_temperatur <= cfg->heizung_luftvorwaermer_zuluft_einschalttemperatur + zuluft_offset_temperatur
 					||
-					verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_luftvorwaermer_abluft_einschalttemperatur
+					verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_luftvorwaermer_abluft_einschalttemperatur + abluft_offset_temperatur
 					||
 					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
 				)
@@ -888,9 +901,9 @@ namespace Local::Api {
 			} else if(
 				verbraucher.heizung_luftvorwaermer_relay_ist_an
 				&&
-				verbraucher.waermepumpen_zuluft_temperatur >= cfg->heizung_luftvorwaermer_zuluft_ausschalttemperatur
+				verbraucher.waermepumpen_zuluft_temperatur >= cfg->heizung_luftvorwaermer_zuluft_ausschalttemperatur + zuluft_offset_temperatur
 				&&
-				verbraucher.waermepumpen_abluft_temperatur >= cfg->heizung_luftvorwaermer_abluft_ausschalttemperatur
+				verbraucher.waermepumpen_abluft_temperatur >= cfg->heizung_luftvorwaermer_abluft_ausschalttemperatur + abluft_offset_temperatur
 				&&
 				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
 			) {
