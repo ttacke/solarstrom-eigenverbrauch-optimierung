@@ -349,7 +349,7 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
 }
 {
     my $energiemenge = {};
-    print "\nErzeugte Energiemenge (Monatsweise):\n";
+    print "\nErzeugte Energiemenge (Monatsweise, nur 'erzeugt' ist echt, der rest 'sinnvoll geschaetzt'):\n";
     my $gesamt_energiemenge_in_wh_startpunkt = 0;
     my $netzbezug = 0;
     my $einspeisung = 0;
@@ -359,7 +359,7 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
     foreach my $e (@$daten) {
         next if(!$e->{'gesamt_energiemenge_in_wh'} || $e->{'zeitpunkt'} < 1736857686);# 14.1.2025
 
-        my $key = sprintf("%02d/%04d", $e->{'monat'}, $e->{'jahr'});
+        my $key = sprintf("%04d/%02d", $e->{'jahr'}, $e->{'monat'});
         if($letzter_zeitpunkt) {
             my $veranderung = $e->{'netzbezug_in_w'} / 3600 * ($e->{'zeitpunkt'} - $letzter_zeitpunkt);
             if($veranderung > 0) {
