@@ -224,7 +224,7 @@ foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
 }
 
 {
-    print "Stromstaerken korrektem Umbau (11.08.2024)\n";
+    print "Stromstaerken korrektem Umbau (11.08.2025)\n";
     my $strom = {};
     my $ueberlast_start = 0;
     my $ueberlast_anzahl = 0;
