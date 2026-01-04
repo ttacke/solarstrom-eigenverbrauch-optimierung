@@ -113,7 +113,7 @@ sub _hole_daten {
 
                 $neu->{'begleitheizung_an'} = ($luftheiz_und_begleitheiz[2] eq 'on' ? 1 : 0);
                 $neu->{'begleitheizung_leistung'} = $luftheiz_und_begleitheiz[3];
-                $neu->{'wasser_wp_leistung'} = (exists($luftheiz_und_begleitheiz[3]) ? $luftheiz_und_begleitheiz[3] : 0);
+                $neu->{'wasser_wp_leistung'} = (exists($luftheiz_und_begleitheiz[4]) ? $luftheiz_und_begleitheiz[4] : 0);
             };
             push(@$daten, $neu);
         }
@@ -140,7 +140,7 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
     open(my $amp_file, '>', $amp_filename) or die $!;
     open(my $amp_detail_file, '>', $amp_detail_filename) or die $!;
     print $amp_file "Datum,L1,L2,L3,WPan\n";
-    print $amp_detail_file "Datum,L1,L2,L3,WPan,Abluft,Zuluft,LuftHeizAn,LuftHeiz\n";
+    print $amp_detail_file "Datum,L1,L2,L3,WPan,Abluft,Zuluft,LuftHeizAn,LuftHeiz,Begleit,WasserWP\n";
     my ($l1, $l2, $l3) = (0, 0, 0);
     my ($l1max, $l2max, $l3max) = (0, 0, 0);
     my $wp_an = 0;
@@ -180,13 +180,15 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
         $e->{'_heizung_waermepumpe_status'} = $wp_an;
         if($e->{'zeitpunkt'} > $letzter_log_zeitpunkt - 86400 * 2) {
             print $amp_detail_file sprintf(
-                "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+                "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
                 $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'},
                 $e->{"l1_strom_ma"}, $e->{"l2_strom_ma"}, $e->{"l3_strom_ma"}, $wp_an*5000,
                 $e->{'waermepumpen_abluft_temperatur'} * 1000,
                 $e->{'waermepumpen_zuluft_temperatur'} * 1000,
                 $e->{'heiz_luftvorwaermer_an'} * 6000,
-                $e->{'heiz_luftvorwaermer_leistung'}
+                $e->{'heiz_luftvorwaermer_leistung'},
+                $e->{'begleitheizung_leistung'},
+                $e->{'wasser_wp_leistung'} || 0
             );
         }
         if($e->{'minute'} == 0 || $wp_an_letzter_wert != $wp_an) {
@@ -422,8 +424,8 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
         my $day = sprintf("%04d-%02d-%02d", $e->{'jahr'}, $e->{'monat'}, $e->{'tag'});
         my $month = sprintf("%04d-%02d", $e->{'jahr'}, $e->{'monat'});
 
-        $heizstatistik_tage->{$day} ||= [0, 0, 0, 0, -1];
-        $heizstatistik_monate->{$month} ||= [0, 0, 0, 0, 0];
+        $heizstatistik_tage->{$day} ||= [0, 0, 0, 0, -1, 0, 0];
+        $heizstatistik_monate->{$month} ||= [0, 0, 0, 0, 0, 0, 0];
 
         $haus_lief_mit_solar = 0;
         if($e->{'solarakku_ladestand_in_promille'} > 800) {
@@ -475,14 +477,24 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
             exists($e->{'heiz_luftvorwaermer_leistung'})
             && $e->{'heiz_luftvorwaermer_leistung'} > 0
         ) {
-            my $verbrauch = $e->{'heiz_luftvorwaermer_leistung'} / (1000 * 60); # 1min bei 0,85 kw
+            my $verbrauch = $e->{'heiz_luftvorwaermer_leistung'} / (1000 * 60); # 1min in kWh
             $heizstatistik_tage->{$day}->[4] = 0 if($heizstatistik_tage->{$day}->[4] < 0);
             $heizstatistik_tage->{$day}->[4] += $verbrauch;
             $heizstatistik_monate->{$month}->[4] += $verbrauch;
+
+            my $begleit_verbrauch = $e->{'begleitheizung_leistung'} / (1000 * 60); # 1min in kWh
+            $heizstatistik_tage->{$day}->[5] += $begleit_verbrauch;
+            $heizstatistik_monate->{$month}->[5] += $begleit_verbrauch;
+
+            my $wasser_wp_verbrauch = ($e->{'wasser_wp_leistung'} || 0) / (1000 * 60); # 1min in kWh
+            $heizstatistik_tage->{$day}->[6] += $wasser_wp_verbrauch;
+            $heizstatistik_monate->{$month}->[6] += $wasser_wp_verbrauch;
+
             if($haus_lief_mit_solar) {
-                $heizstatistik_tage->{$day}->[1] += $verbrauch;
-                $heizstatistik_monate->{$month}->[1] += $verbrauch;
+                $heizstatistik_tage->{$day}->[1] += $verbrauch + $begleit_verbrauch + $wasser_wp_verbrauch;
+                $heizstatistik_monate->{$month}->[1] += $verbrauch + $begleit_verbrauch + $wasser_wp_verbrauch;
             }
+
         }
 
         if(exists($e->{'heizungsunterstuetzung_an'})) {
@@ -507,8 +519,8 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
     }
 
     print "\n\nHeizungsdaten der letzte 14 Tage\n";
-    print "           |     Heizstab    |      Waermepumpe     | Luftwaermer |    Gesamt   | davon Solar \n";
-    print "       Tag |  %   kWh    EUR |  %   kWh    EUR Takt |  kWh    EUR |  kWh    EUR |  kWh    EUR \n";
+    print "           |     Heizstab    |      Waermepumpe     | Luftwaermer | Begleitheiz |  Wasser-WP  |    Gesamt   | davon Solar \n";
+    print "       Tag |  %   kWh    EUR |  %   kWh    EUR Takt |  kWh    EUR |  kWh    EUR |  kWh    EUR |  kWh    EUR |  kWh    EUR \n";
     my @heizstab_tage = sort keys(%$heizstatistik_tage);
     my $strom_kosten = 0.33; # EUR
     foreach my $day (scalar(@heizstab_tage) >= 14 ? @heizstab_tage[-14..-1] : @heizstab_tage) {
@@ -529,21 +541,25 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
         my $wp_kwh = $heizstatistik_tage->{$day}->[2] / 3600 * $wp_leistung;
         my $wp_kosten = $wp_kwh * $strom_kosten;
         my $luftwaermer_kwh = $heizstatistik_tage->{$day}->[4] > 0 ? $heizstatistik_tage->{$day}->[4] : 0;
-        my $gesamt_kwh = $kwh + $kwh_solar + $wp_kwh + $luftwaermer_kwh;
+        my $begleitheiz_kwh = $heizstatistik_tage->{$day}->[5];
+        my $wasser_wp_kwh = $heizstatistik_tage->{$day}->[6];
+        my $gesamt_kwh = $kwh + $kwh_solar + $wp_kwh + $luftwaermer_kwh + $begleitheiz_kwh + $wasser_wp_kwh;
         my $gesamt_kosten = ($gesamt_kwh - $kwh_solar) * $strom_kosten;
         printf(
-            "%s | %2d  %4.1f  %5.2f | %2d  %4.1f  %5.2f   %2d | %4.1f  %5.2f | %4.1f  %5.2f | %4.1f  %5.2f\n",
+            "%s | %2d  %4.1f  %5.2f | %2d  %4.1f  %5.2f   %2d | %4.1f  %5.2f | %4.1f  %5.2f | %4.1f  %5.2f | %4.1f  %5.2f | %4.1f  %5.2f\n",
             $day,
             $nutzung, $kwh, $kosten,
             ($heizstatistik_tage->{$day}->[2] / 86400 * 100), $wp_kwh, $wp_kosten, $heizstatistik_tage->{$day}->[3],
             $luftwaermer_kwh, $luftwaermer_kwh * $strom_kosten,
+            $begleitheiz_kwh, $begleitheiz_kwh * $strom_kosten,
+            $wasser_wp_kwh, $wasser_wp_kwh * $strom_kosten,
             $gesamt_kwh, $gesamt_kosten,
             $kwh_solar, $kosten_solar,
         );
     }
     print "\n\nHeizungsdaten pro Monat\n";
-    print "        |   Heizstab   |    Waermepumpe    |  Luftwaermer |     Gesamt    |  davon Solar\n";
-    print "  Monat |   kWh    EUR |   kWh    EUR Takt |   kWh    EUR |   kWh     EUR |   kWh    EUR\n";
+    print "        |   Heizstab   |    Waermepumpe    |  Luftwaermer |  Begleitheiz |   Wasser-WP  |     Gesamt    |  davon Solar\n";
+    print "  Monat |   kWh    EUR |   kWh    EUR Takt |   kWh    EUR |   kWh    EUR |   kWh    EUR |   kWh     EUR |   kWh    EUR\n";
     foreach my $month (sort keys(%$heizstatistik_monate)) {
         my $kwh = 0;
         my $kosten = 0;
@@ -559,14 +575,18 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
         }
         my $wp_kwh = $heizstatistik_monate->{$month}->[2] / 3600 * $wp_leistung;
         my $luft_kwh = $heizstatistik_monate->{$month}->[4];
-        my $kwh_gesamt = $kwh + $kwh_solar + $wp_kwh + $luft_kwh;
+        my $begleitheiz_kwh = $heizstatistik_monate->{$month}->[5];
+        my $wasser_wp_kwh = $heizstatistik_monate->{$month}->[6];
+        my $kwh_gesamt = $kwh + $kwh_solar + $wp_kwh + $luft_kwh + $begleitheiz_kwh + $wasser_wp_kwh;
         my $kosten_gesamt = ($kwh_gesamt - $kwh_solar) * $strom_kosten;
         printf(
-            "%s | %5.1f  %5.2f | %5.1f  %5.2f   %2d | %5.1f  %5.2f | %5.1f  %6.2f | %5.1f  %5.2f\n",
+            "%s | %5.1f  %5.2f | %5.1f  %5.2f   %2d | %5.1f  %5.2f | %5.1f  %5.2f | %5.1f  %5.2f | %5.1f  %6.2f | %5.1f  %5.2f\n",
             $month,
             $kwh, $kosten,
             $wp_kwh, $wp_kwh * $strom_kosten, $heizstatistik_monate->{$month}->[3],
             $luft_kwh, $luft_kwh * $strom_kosten,
+            $begleitheiz_kwh, $begleitheiz_kwh * $strom_kosten,
+            $wasser_wp_kwh, $wasser_wp_kwh * $strom_kosten,
             $kwh_gesamt, $kosten_gesamt,
             $kwh_solar, $kosten_solar,
         );
