@@ -255,6 +255,15 @@ namespace Local::Api {
 
 			Local::Model::Shelly shelly_daten;
 			if(_read_shelly_content(
+				(char*) cfg->heizstab_relay_host,
+				cfg->heizstab_relay_port,
+				cfg->heizstab_relay_version,
+				shelly_daten
+			)) {
+				verbraucher.heizstabbetrieb_ist_erlaubt = shelly_daten.ison;
+			}
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+			if(_read_shelly_content(
 				(char*) cfg->heizung_luftvorwaermer_relay_host,
 				cfg->heizung_luftvorwaermer_relay_port,
 				cfg->heizung_luftvorwaermer_relay_version,
@@ -859,6 +868,8 @@ namespace Local::Api {
 				)
 			) {
 				verbraucher.heizstabbetrieb_ist_erlaubt = true;
+				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
+				return;
 			} else if(
 				verbraucher.heizstabbetrieb_ist_erlaubt
 				&&
@@ -867,7 +878,9 @@ namespace Local::Api {
 				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
 			) {
 				verbraucher.heizstabbetrieb_ist_erlaubt = false;
-			} // Schalter ist weiter unten
+				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
+				return;
+			}
 
 			float zuluft_offset_temperatur = 0;
 			float abluft_offset_temperatur = 0;
@@ -909,14 +922,6 @@ namespace Local::Api {
 			) {
 				verbraucher.heizung_luftvorwaermer_relay_ist_an = false;
 				_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
-				return;
-			}
-
-			if(
-				verbraucher.heizstabbetrieb_ist_erlaubt != Local::SemipersistentData::heizstabbetrieb_letzter_zustand
-			) {
-				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
-				Local::SemipersistentData::heizstabbetrieb_letzter_zustand = verbraucher.heizstabbetrieb_ist_erlaubt;
 				return;
 			}
 

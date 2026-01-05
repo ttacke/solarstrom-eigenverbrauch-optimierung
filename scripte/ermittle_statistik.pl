@@ -415,7 +415,7 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
     my $last_month = 0;
     my $last_timestamp = $daten->[$#$daten]->{'zeitpunkt'};
     my $heizstab_leistung = 1.5;
-    my $wp_leistung = 0.5;
+    my $wp_leistung = 0.44;# in kW, gemesen an der Leistung der WarmwasserWP
     foreach my $e (@$daten) {
         # next if($e->{'zeitpunkt'} < 1754922044); # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
         next if($e->{'jahr'} < 2026);# Vorher waren nicht alle Datenpunkte vorhanden
