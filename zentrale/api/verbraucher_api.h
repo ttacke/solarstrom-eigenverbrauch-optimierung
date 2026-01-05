@@ -871,8 +871,14 @@ namespace Local::Api {
 
 			float zuluft_offset_temperatur = 0;
 			float abluft_offset_temperatur = 0;
-			// der Versuch, das Problem zu beheben, dass beide WP zu viel Wärme ziehen und die Thermometer das nicht erkennen
-			if(verbraucher.wasser_wp_aktuelle_leistung_in_w > 200) {
+			if(
+				// der Versuch, das Problem zu beheben, dass beide WP zu viel Wärme ziehen und die Thermometer das nicht erkennen
+				verbraucher.wasser_wp_aktuelle_leistung_in_w > 200
+				|| (// Wenn Heizstab an ist, mehr Waerme "vorhalten"
+					verbraucher.heizstabbetrieb_ist_erlaubt
+					&& verbraucher.heizungs_temperatur_differenz > 0
+				)
+			) {
 				zuluft_offset_temperatur = 3.0;
 				abluft_offset_temperatur = 1.0;
 			}
@@ -882,12 +888,6 @@ namespace Local::Api {
 					verbraucher, cfg->heizung_luftvorwaermer_benoetigte_leistung_in_w
 				)
 				&& (
-					(
-						verbraucher.heizstabbetrieb_ist_erlaubt
-						&& verbraucher.heizungs_temperatur_differenz > 0
-						&& verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_ausschalt_differenzwert
-					)
-					||
 					verbraucher.waermepumpen_zuluft_temperatur <= cfg->heizung_luftvorwaermer_zuluft_einschalttemperatur + zuluft_offset_temperatur
 					||
 					verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_luftvorwaermer_abluft_einschalttemperatur + abluft_offset_temperatur
@@ -927,8 +927,20 @@ namespace Local::Api {
 				)
 				&&
 				verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
-			) {// das Relay geht innerhalb von 4h von alleine aus
+			) {
 				verbraucher.wasser_begleitheizung_relay_is_an = true;
+				_schalte_wasser_begleitheizung_relay(verbraucher.wasser_begleitheizung_relay_is_an);
+				return;
+			} else if(
+				verbraucher.wasser_begleitheizung_relay_is_an
+				&&
+				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
+				&& (// von 18-23 Uhr ME(S)Z steuert die Steckdose selbst
+					hour(timestamp) <= 16 // 17:59 uhr MEZ, 18:59 uhr MESZ
+					|| hour(timestamp) >= 22 // 23:00 uhr MEZ, 24:00 uhr MESZ
+				)
+			) {
+				verbraucher.wasser_begleitheizung_relay_is_an = false;
 				_schalte_wasser_begleitheizung_relay(verbraucher.wasser_begleitheizung_relay_is_an);
 				return;
 			}
