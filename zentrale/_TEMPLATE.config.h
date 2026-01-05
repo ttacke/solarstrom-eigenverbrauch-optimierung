@@ -19,7 +19,7 @@ namespace Local {
 		const int roller_relay_version = 1;
 		const char* roller_aussen_relay_host = "192.168.0.34";
 		const int roller_aussen_relay_port = 80;
-		const int roller_aussen_relay_version = 2;
+		const int roller_aussen_relay_version = 3;
 		const char* wasser_relay_host = "192.168.0.31";
 		const int wasser_relay_port = 80;
 		const char* auto_relay_host = "192.168.0.32";
@@ -28,7 +28,7 @@ namespace Local {
 		const int heizung_relay_port = 80;
 		const char* heizstab_relay_host = "192.168.0.38";
 		const int heizstab_relay_port = 80;
-		const int heizstab_relay_version = 1;
+		const int heizstab_relay_version = 3;
 		const char* heizung_luftvorwaermer_relay_host = "192.168.0.35";
 		const int heizung_luftvorwaermer_relay_port = 80;
 		const int heizung_luftvorwaermer_relay_version = 1;
@@ -37,7 +37,7 @@ namespace Local {
 		const int wasser_begleitheizung_relay_version = 1;
 		const char* wasser_wp_relay_host = "192.168.0.39";
 		const int wasser_wp_relay_port = 80;
-		const int wasser_wp_relay_version = 2;
+		const int wasser_wp_relay_version = 3;
 
 		const int roller_benoetigte_leistung_gering_in_w = 420;
 		const int roller_benoetigte_leistung_hoch_in_w = 840;
@@ -85,7 +85,7 @@ namespace Local {
 		const int einschaltreserve_in_w = 300;
 		const int ladestatus_force_dauer = 12 * 3600;//12h
 		const float solarmodul_flaeche = 50;// m²
-		// TODO aufteil und dach#1 und 2 hier abbilden, damit bei der Aufteilung das benutzt werden kann
+		// TODO aufteilund dach#1 und 2 hier abbilden, damit bei der Aufteilung das benutzt werden kann
 		// https://de.wikipedia.org/wiki/Spitzenlast
 		// UTC = MEZ - 1; -1 = ignorieren
 		const int winterladen_zwangspausen_utc[12] = {10,11,12,-1,15,16,17,-1,-1,-1,-1,-1};
