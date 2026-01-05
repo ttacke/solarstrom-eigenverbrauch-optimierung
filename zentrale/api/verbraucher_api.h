@@ -886,7 +886,7 @@ namespace Local::Api {
 			float abluft_offset_temperatur = 0;
 			if(
 				// der Versuch, das Problem zu beheben, dass beide WP zu viel Wärme ziehen und die Thermometer das nicht erkennen
-				verbraucher.wasser_wp_aktuelle_leistung_in_w > 200
+				verbraucher.wasser_wp_aktuelle_leistung_in_w > 10
 				|| (// Wenn Heizstab an ist, mehr Waerme "vorhalten"
 					verbraucher.heizstabbetrieb_ist_erlaubt
 					&& verbraucher.heizungs_temperatur_differenz > 0

@@ -408,7 +408,7 @@ namespace Local {
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"heizung_luftvorwaermer_an\":%s,",
-					(verbraucher.heizung_luftvorwaermer_aktuelle_leistung_in_w > 0 ? "true" : "false")
+					(verbraucher.heizung_luftvorwaermer_aktuelle_leistung_in_w > 10 ? "true" : "false")
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
@@ -422,12 +422,12 @@ namespace Local {
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"wasser_begleitheizung_an\":%s,",
-					(verbraucher.wasser_begleitheizung_aktuelle_leistung_in_w > 0 ? "true" : "false")
+					(verbraucher.wasser_begleitheizung_aktuelle_leistung_in_w > 10 ? "true" : "false")
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"wasser_wp_an\":%s,",
-					(verbraucher.wasser_wp_aktuelle_leistung_in_w > 0 ? "true" : "false")
+					(verbraucher.wasser_wp_aktuelle_leistung_in_w > 10 ? "true" : "false")
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
