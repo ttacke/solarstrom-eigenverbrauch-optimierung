@@ -164,6 +164,7 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
             && $e->{'waermepumpen_abluft_temperatur'} > 0
             && (
                 $abluft_letzter_wert - $e->{'waermepumpen_abluft_temperatur'} <= -2.0
+                || $e->{'waermepumpen_abluft_temperatur'} > 10.0 # Erkennung von "ist voll und deswegen aus"
             )
         ) {
             $wp_an = 0;
