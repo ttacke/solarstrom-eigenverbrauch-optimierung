@@ -550,7 +550,11 @@ namespace Local::Api {
 			shelly.timestamp = 0;
 			shelly.ison = false;
 			shelly.power = 0;
+			bool ok = false;
 			while(web_reader->read_next_block_to_buffer()) {
+				if(version >= 2 && web_reader->find_in_buffer((char*) "\"temperature\"")) {
+					ok = true;
+				}
 				if(web_reader->find_in_buffer((char*) (version >= 2 ? "\"minute_ts\":([0-9]+)[^0-9]" : "\"unixtime\":([0-9]+)[^0-9]"))) {
 					shelly.timestamp = atoi(web_reader->finding_buffer);
 				}
@@ -561,7 +565,7 @@ namespace Local::Api {
 					shelly.power = atoi(web_reader->finding_buffer);
 				}
 			}
-			if(shelly.timestamp != 0) {
+			if(ok || shelly.timestamp != 0) {
 				return true;
 			}
 			return false;
