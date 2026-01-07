@@ -929,25 +929,29 @@ namespace Local::Api {
 				return;
 			}
 
+			bool wasser_begleit_erzwungen_aktiv = false;
+			if (
+				hour(timestamp) >= 17 // 18:00 uhr MEZ, 19:00 uhr MESZ
+				&& hour(timestamp) <= 21 // 22:59 uhr MEZ, 23:59 uhr MESZ
+			) {
+				wasser_begleit_erzwungen_aktiv = true;
+			}
 			if(
 				!verbraucher.wasser_begleitheizung_relay_is_an
 				&& !_einschalten_wegen_lastgrenzen_verboten(
 					verbraucher, cfg->wasser_begleitheizung_benoetigte_leistung_in_w
+				) && (
+					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
+					|| wasser_begleit_erzwungen_aktiv
 				)
-				&&
-				verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
 			) {
 				verbraucher.wasser_begleitheizung_relay_is_an = true;
 				_schalte_wasser_begleitheizung_relay(verbraucher.wasser_begleitheizung_relay_is_an);
 				return;
 			} else if(
 				verbraucher.wasser_begleitheizung_relay_is_an
-				&&
-				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
-				&& (// von 18-23 Uhr ME(S)Z steuert die Steckdose selbst
-					hour(timestamp) <= 16 // 17:59 uhr MEZ, 18:59 uhr MESZ
-					|| hour(timestamp) >= 22 // 23:00 uhr MEZ, 24:00 uhr MESZ
-				)
+				&& verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
+				&& !wasser_begleit_erzwungen_aktiv
 			) {
 				verbraucher.wasser_begleitheizung_relay_is_an = false;
 				_schalte_wasser_begleitheizung_relay(verbraucher.wasser_begleitheizung_relay_is_an);

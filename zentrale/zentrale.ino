@@ -88,7 +88,6 @@ bool _check_internet_connection() {
 	if(!wlan.is_connected()) {
 		return false;
 	}
-	// TODO: internes Gateway irgendwie erreichbar? Kann das intern gemacht werden?
 	if(!web_reader.send_http_get_request(
 		cfg.internet_connection_check_host,
 		80,
