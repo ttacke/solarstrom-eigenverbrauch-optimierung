@@ -207,27 +207,31 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
     }
     close($amp_file) or die $!;
     close($amp_detail_file) or die $!;
-    print "CSV-Datei $amp_filename (seit 11.08.2025) + $amp_detail_filename (letzte 24h) wurde erstellt\n";
+    print "CSV-Datei $amp_filename (seit 29.12.2025) + $amp_detail_filename (letzte 24h) wurde erstellt\n";
     print "L1max: $l1max, L2max: $l2max, L3max: $l3max  (in mA)\n";
 }
-foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
+foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
     my $name = $e->[0];
     my $monate = $e->[1];
-    my $max_grundverbrauch = $e->[2];
     my $verbrauch = [];
+    my $verbrauch_sum = 0;
+    my $zaehler = 0;
     foreach my $e (@$daten) {
+        next if($e->{'jahr'} < 2025);
         if(
-            $e->{stromverbrauch_in_w} < $max_grundverbrauch
-            && grep { $_ == $e->{monat} } @$monate
+            grep { $_ == $e->{monat} } @$monate
         ) {
             push(@$verbrauch, $e->{stromverbrauch_in_w});
+            $verbrauch_sum += $e->{stromverbrauch_in_w};
+            $zaehler++;
         }
     }
-    print "grundverbrauch_in_w_pro_h_$name (via Median): " . (sort(@$verbrauch))[int(scalar(@$verbrauch) / 2)] . " W\n";
+    print "grundverbrauch_in_w_pro_h_$name (seit 2025, via Median): " . [sort {$a <=> $b} (@$verbrauch)]->[$#$verbrauch / 2] . " W\n";
+    print "grundverbrauch_in_w_pro_h_$name (seit 2025, durchschnitt): " . sprintf("%d", $verbrauch_sum/$zaehler) . " W\n";
 }
 
 {
-    print "Stromstaerken korrektem Umbau (11.08.2025)\n";
+    print "Stromstaerken korrektem Umbau (29.12.2025)\n";
     my $strom = {};
     my $ueberlast_start = 0;
     my $ueberlast_anzahl = 0;
@@ -236,51 +240,51 @@ foreach my $e (['sommer', [3..9], '800'], ['winter', [10..12,1,2], '1500']) {
     my $maximal_zulaessige_last_in_w = 9000;# ((59kVA (Syna) / 12) + 4.6kVA (lasterhoehung)) * 0,95 (VDE-AR-N 4100) = 9000 W
     my $maximale_leistung_pro_phase_in_ma = 24000;# eigentlich 32000 Haussicherung, aber wir wollen ja keinen Stress
     foreach my $e (@$daten) {
-        if($e->{'zeitpunkt'} > 1754922044) { # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
-            if($e->{'netzbezug_in_w'} > $maximal_zulaessige_last_in_w) {
-                if(!$ueberlast_start) {
-                    $ueberlast_start = $e->{'zeitpunkt'};
-                    $ueberlast_anzahl++;
+        # next if($e->{'zeitpunkt'} < 1754922044) { # 11/08/2025 -> wallbox/wp wurde korrekt verkabelt
+        next if($e->{'zeitpunkt'} < 1766962800); # 29/12/2025 -> wp zu/abluft korrekt vermessen
+        if($e->{'netzbezug_in_w'} > $maximal_zulaessige_last_in_w) {
+            if(!$ueberlast_start) {
+                $ueberlast_start = $e->{'zeitpunkt'};
+                $ueberlast_anzahl++;
+            }
+        } else {
+            if($ueberlast_start) {
+                my $dauer = $e->{'zeitpunkt'} - $ueberlast_start;
+                if($dauer > $ueberlast_max_dauer) {
+                    $ueberlast_max_dauer = $dauer;
+                }
+                $ueberlast_dauer += $dauer;
+                $ueberlast_start = 0;
+            }
+        }
+
+        foreach my $phase (1..3) {
+            $strom->{$phase} ||= {
+                min => 0, max => 0,
+                ueberlast_start => 0, ueberlast_anzahl => 0,
+                ueberlast_dauer => 0, ueberlast_max_dauer => 0
+            };
+            my $i_in_ma = $e->{"l${phase}_strom_ma"};
+            if($i_in_ma > $maximale_leistung_pro_phase_in_ma) {
+                if(!$strom->{$phase}->{'ueberlast_start'}) {
+                    $strom->{$phase}->{'ueberlast_start'} = $e->{'zeitpunkt'};
+                    $strom->{$phase}->{'ueberlast_anzahl'}++;
                 }
             } else {
-                if($ueberlast_start) {
-                    my $dauer = $e->{'zeitpunkt'} - $ueberlast_start;
-                    if($dauer > $ueberlast_max_dauer) {
-                        $ueberlast_max_dauer = $dauer;
+                if($strom->{$phase}->{'ueberlast_start'}) {
+                    my $dauer = $e->{'zeitpunkt'} - $strom->{$phase}->{'ueberlast_start'};
+                    if($dauer > $strom->{$phase}->{'ueberlast_max_dauer'}) {
+                        $strom->{$phase}->{'ueberlast_max_dauer'} = $dauer;
                     }
-                    $ueberlast_dauer += $dauer;
-                    $ueberlast_start = 0;
+                    $strom->{$phase}->{'ueberlast_dauer'} += $dauer;
+                    $strom->{$phase}->{'ueberlast_start'} = 0;
                 }
             }
-
-            foreach my $phase (1..3) {
-                $strom->{$phase} ||= {
-                    min => 0, max => 0,
-                    ueberlast_start => 0, ueberlast_anzahl => 0,
-                    ueberlast_dauer => 0, ueberlast_max_dauer => 0
-                };
-                my $i_in_ma = $e->{"l${phase}_strom_ma"};
-                if($i_in_ma > $maximale_leistung_pro_phase_in_ma) {
-                    if(!$strom->{$phase}->{'ueberlast_start'}) {
-                        $strom->{$phase}->{'ueberlast_start'} = $e->{'zeitpunkt'};
-                        $strom->{$phase}->{'ueberlast_anzahl'}++;
-                    }
-                } else {
-                    if($strom->{$phase}->{'ueberlast_start'}) {
-                        my $dauer = $e->{'zeitpunkt'} - $strom->{$phase}->{'ueberlast_start'};
-                        if($dauer > $strom->{$phase}->{'ueberlast_max_dauer'}) {
-                            $strom->{$phase}->{'ueberlast_max_dauer'} = $dauer;
-                        }
-                        $strom->{$phase}->{'ueberlast_dauer'} += $dauer;
-                        $strom->{$phase}->{'ueberlast_start'} = 0;
-                    }
-                }
-                if($i_in_ma > $strom->{$phase}->{'max'}) {
-                    $strom->{$phase}->{'max'} = $i_in_ma;
-                }
-                if($i_in_ma < $strom->{$phase}->{'min'}) {
-                    $strom->{$phase}->{'min'} = $i_in_ma;
-                }
+            if($i_in_ma > $strom->{$phase}->{'max'}) {
+                $strom->{$phase}->{'max'} = $i_in_ma;
+            }
+            if($i_in_ma < $strom->{$phase}->{'min'}) {
+                $strom->{$phase}->{'min'} = $i_in_ma;
             }
         }
     }
