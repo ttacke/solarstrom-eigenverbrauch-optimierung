@@ -819,6 +819,12 @@ namespace Local::Api {
 				roller_min_schaltzeit_in_min = 5;
 			}
 
+			verbraucher.auto_lastschutz = false;
+			verbraucher.roller_lastschutz = false;
+			verbraucher.wasser_lastschutz = false;
+			verbraucher.heizung_lastschutz = false;
+			verbraucher.heizung_luftvorwaermer_lastschutz = false;
+			verbraucher.wasser_begleitheizung_lastschutz = false;
 			if(_ausschalten_wegen_lastgrenzen(verbraucher)) {
 				if(verbraucher.auto_relay_ist_an) {
 					_log((char*) "AutoLastgrenze");
