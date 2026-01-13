@@ -892,28 +892,15 @@ namespace Local::Api {
 				return;
 			}
 
-			float zuluft_offset_temperatur = 0;
-			float abluft_offset_temperatur = 0;
-			if(
-				// der Versuch, das Problem zu beheben, dass beide WP zu viel Wärme ziehen und die Thermometer das nicht erkennen
-				verbraucher.wasser_wp_aktuelle_leistung_in_w > 10
-				|| (// Wenn Heizstab an ist, mehr Waerme "vorhalten"
-					verbraucher.heizstabbetrieb_ist_erlaubt
-					&& verbraucher.heizungs_temperatur_differenz > 0
-				)
-			) {
-				zuluft_offset_temperatur = 3.0;
-				abluft_offset_temperatur = 1.0;
-			}
 			if(
 				!verbraucher.heizung_luftvorwaermer_relay_ist_an
 				&& !_einschalten_wegen_lastgrenzen_verboten(
 					verbraucher, cfg->heizung_luftvorwaermer_benoetigte_leistung_in_w
 				)
 				&& (
-					verbraucher.waermepumpen_zuluft_temperatur <= cfg->heizung_luftvorwaermer_zuluft_einschalttemperatur + zuluft_offset_temperatur
+					verbraucher.waermepumpen_zuluft_temperatur <= cfg->heizung_luftvorwaermer_zuluft_einschalttemperatur
 					||
-					verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_luftvorwaermer_abluft_einschalttemperatur + abluft_offset_temperatur
+					verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_luftvorwaermer_abluft_einschalttemperatur
 					||
 					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
 				)
@@ -924,9 +911,9 @@ namespace Local::Api {
 			} else if(
 				verbraucher.heizung_luftvorwaermer_relay_ist_an
 				&&
-				verbraucher.waermepumpen_zuluft_temperatur >= cfg->heizung_luftvorwaermer_zuluft_ausschalttemperatur + zuluft_offset_temperatur
+				verbraucher.waermepumpen_zuluft_temperatur >= cfg->heizung_luftvorwaermer_zuluft_ausschalttemperatur
 				&&
-				verbraucher.waermepumpen_abluft_temperatur >= cfg->heizung_luftvorwaermer_abluft_ausschalttemperatur + abluft_offset_temperatur
+				verbraucher.waermepumpen_abluft_temperatur >= cfg->heizung_luftvorwaermer_abluft_ausschalttemperatur
 				&&
 				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
 			) {
