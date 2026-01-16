@@ -52,8 +52,8 @@ namespace Local {
 		const int heizstab_benoetigte_leistung_in_w = 1500;
 		const int heizstab_einschalt_differenzwert = 542;// 540 ist das Minimum
 		const int heizstab_ausschalt_differenzwert = 545;// ca Minimum+3
-		const float heizung_luftvorwaermer_zuluft_einschalttemperatur = 14.5;
-		const float heizung_luftvorwaermer_zuluft_ausschalttemperatur = 14.8;
+		const float heizung_luftvorwaermer_zuluft_einschalttemperatur = 14.7;
+		const float heizung_luftvorwaermer_zuluft_ausschalttemperatur = 14.9;
 		const float heizung_luftvorwaermer_abluft_einschalttemperatur = 6.5;
 		const float heizung_luftvorwaermer_abluft_ausschalttemperatur = 6.8;
 		const float heizung_max_ablufttemperatur_wenn_aktiv = 10.0;
