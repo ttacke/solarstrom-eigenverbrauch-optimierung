@@ -357,17 +357,20 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
 }
 {
     my $energiemenge = {};
-    print "\nErzeugte Energiemenge (Monatsweise, nur 'erzeugt' ist echt, der rest 'sinnvoll geschaetzt'):\n";
+    my $energiemenge_jahresweise = {};
     my $gesamt_energiemenge_in_wh_startpunkt = 0;
     my $netzbezug = 0;
     my $einspeisung = 0;
     my $letzter_zeitpunkt = 0;
     my $letzter_key = 0;
+    my $letzter_jahres_key = 0;
     my $letzter_zeitpunkt_der_daten = $daten->[$#$daten]->{'zeitpunkt'};
     foreach my $e (@$daten) {
         next if(!$e->{'gesamt_energiemenge_in_wh'} || $e->{'zeitpunkt'} < 1736857686);# 14.1.2025
 
         my $key = sprintf("%04d/%02d", $e->{'jahr'}, $e->{'monat'});
+        my $jahres_key = sprintf("%04d", $e->{'jahr'});
+        $energiemenge_jahresweise->{$jahres_key} ||= [0, 0, 0];
         if($letzter_zeitpunkt) {
             my $veranderung = $e->{'netzbezug_in_w'} / 3600 * ($e->{'zeitpunkt'} - $letzter_zeitpunkt);
             if($veranderung > 0) {
@@ -385,6 +388,9 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
                 $netzbezug,
                 $einspeisung
             ];
+            $energiemenge_jahresweise->{$letzter_jahres_key}[0] += $e->{'gesamt_energiemenge_in_wh'} - $gesamt_energiemenge_in_wh_startpunkt;
+            $energiemenge_jahresweise->{$letzter_jahres_key}[1] += $netzbezug;
+            $energiemenge_jahresweise->{$letzter_jahres_key}[2] += $einspeisung;
         }
         if(!defined($energiemenge->{$key})) {
             $gesamt_energiemenge_in_wh_startpunkt = $e->{'gesamt_energiemenge_in_wh'};
@@ -393,19 +399,35 @@ foreach my $e (['sommer', [3..9]], ['winter', [10..12,1,2]]) {
             $energiemenge->{$key} = [0, 0, 0];
         }
         $letzter_key = $key;
+        $letzter_jahres_key = $jahres_key;
         $letzter_zeitpunkt = $e->{'zeitpunkt'};
     }
+    print "\nErzeugte Energiemenge (Monatsweise, nur 'erzeugt' ist echt, der rest 'sinnvoll geschaetzt'):\n";
     my $erster_monat = 1;
     foreach my $key (sort(keys(%$energiemenge))) {
         printf(
-            "%s: erzeugt %5.0f kWh, netzbezug %5.0f kWh, einspeisung %5.0f kWh %s\n",
+            "%s: erzeugt %5.0f kWh, eigenverbrauch %5.0f kWh, netzbezug %5.0f kWh, einspeisung %5.0f kWh, autarkie %2d %% %s\n",
             $key,
             $energiemenge->{$key}->[0] / 1000,
+            ($energiemenge->{$key}->[0] + $energiemenge->{$key}->[2]) / 1000,
             $energiemenge->{$key}->[1] / 1000,
             $energiemenge->{$key}->[2] / 1000,
+            ($energiemenge->{$key}->[0] + $energiemenge->{$key}->[2]) / (($energiemenge->{$key}->[0] + $energiemenge->{$key}->[2]) + $energiemenge->{$key}->[1]) * 100,
             ($erster_monat ? ' (nur teilweise!)' : '')
         );
         $erster_monat = 0;
+    }
+    print "\nErzeugte Energiemenge (Jahresweise, nur 'erzeugt' ist echt, der rest 'sinnvoll geschaetzt'):\n";
+    foreach my $key (sort(keys(%$energiemenge_jahresweise))) {
+        printf(
+            "%s: erzeugt %5.0f kWh, eigenverbrauch %5.0f kWh, netzbezug %5.0f kWh, einspeisung %5.0f kWh, autarkie %2d %%\n",
+            $key,
+            $energiemenge_jahresweise->{$key}->[0] / 1000,
+            ($energiemenge_jahresweise->{$key}->[0] + $energiemenge_jahresweise->{$key}->[2]) / 1000,
+            $energiemenge_jahresweise->{$key}->[1] / 1000,
+            $energiemenge_jahresweise->{$key}->[2] / 1000,
+            ($energiemenge_jahresweise->{$key}->[0] + $energiemenge_jahresweise->{$key}->[2]) / (($energiemenge_jahresweise->{$key}->[0] + $energiemenge_jahresweise->{$key}->[2]) + $energiemenge_jahresweise->{$key}->[1]) * 100,
+        );
     }
 }
 {
