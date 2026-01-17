@@ -56,6 +56,10 @@ Zusätzliche Features:
     - Heizungs-Wärmepumpe
     - Heizungs-Elektro-Heizstab
     - Heizungs-Zuluft-Vorwärmer
+  - "aus": Ist explizit abgeschaltet
+  - "frei": Verbraucher ist erlaubt. Etwas anderes bestimmt, ob er aktiviert wird
+    - Bsp Warmwasser: das ist fast immer "frei", denn nur die WP selbst weiß, ob das Wasser nacherwärmt werden muss
+  - "sperr": Explizit unterbunden wegen z.B. zu viel Netzlast
 - Dritte Zeile
   - Temperaturen und Luftfeuchtigkeit von Heizungs-Wärmepumpen Zu- bzw Abluft.
 - Vierte Zeile
