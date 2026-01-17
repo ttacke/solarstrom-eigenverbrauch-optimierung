@@ -117,6 +117,7 @@ namespace Local {
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			int max_read_size = sizeof(buffer) - 1;
+			Serial.print("ReadWeb\n----\n");
 			while(wlan_client.available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
 				std::fill(buffer, buffer + sizeof(buffer), 0);// Reset
@@ -143,17 +144,20 @@ namespace Local {
 //							&& !strncmp(buffer + read_size, "\n", 1) == 0
 //						)
 					) {
+
 						break;
 					}
 				}
 				std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
+				Serial.print(buffer);
+
 				_prepare_search_buffer();
 				_read_content_length_header();
 				if(!content_length) {
 					is_chunked = _has_chunk_header();
 				}
 				if(content_start_reached) {
-					old_buffer[0] = '\0';
+					/*old_buffer[0] = '\0';
 					if(is_chunked) {
 						_handle_chunked_content_length();
 					}
@@ -161,7 +165,11 @@ namespace Local {
 					if(content_length > 0) {
 						first_body_part_exist = true;
 						_read_body_content_to_buffer();// Zu kurze Inhalte enden sonst hier!
-					}
+					}*/
+					Serial.println("\n---\n->end");
+					Serial.println("Content-Length");
+					Serial.println(content_length);
+
 					return true;
 				}
 			}

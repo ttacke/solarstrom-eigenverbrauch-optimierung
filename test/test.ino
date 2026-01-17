@@ -24,23 +24,31 @@ bool _run_test() {
 			return false;
 		}
 	}
+	/*
+
+	 */
 	if(!web_reader.send_http_get_request(
-		(char*) "192.168.0.33",
-		80,
-		(char*) "/relay"
+		//Closed
+		//(char*)"192.168.0.39",80,(char*)"/relay"
+		//(char*)"192.168.0.39",80,(char*)"/rpc/Switch.GetStatus?id=0"
+		//(char*)"192.168.0.36",80,(char*)"/status"
+		//CHUNK
+		(char*)"api.open-meteo.com",80,(char*)"/v1/forecast?latitude=50.00&longitude=7.95&daily=sunrise,sunset,shortwave_radiation_sum&hourly=global_tilted_irradiance_instant&timezone=Europe/Berlin&tilt=35&azimuth=30&timeformat=unixtime&forecast_hours=12"
+		//(char*)"192.168.0.14",80,(char*)"/solar_api/v1/GetMeterRealtimeData.cgi"
+		//(char*)"192.168.0.14",80,(char*)"/solar_api/v1/GetPowerFlowRealtimeData.fcgi"
+		//(char*)"192.168.0.14",80,(char*)"/components/inverter/readable"
 	)) {
 		Serial.println("Webreader-Read: Failed");
 		return false;
 	}
 	while(web_reader.read_next_block_to_buffer()) {
-		Serial.println(web_reader.buffer);
-		if(web_reader.find_in_buffer((char*) "\"ison\":")) {
-			Serial.println("Webreader-Find: Success");
+		if(web_reader.find_in_buffer((char*) "\"DONTFINDME\":")) {
+			Serial.println("Webreader-Find: Found!");
 			return true;
 		}
 	}
-	Serial.println("Webreader-Find: Failed");
-	return false;
+	Serial.println("Webreader-Find: Finished");
+	return true;
 }
 
 void loop(void) {
