@@ -112,7 +112,7 @@
 			document.getElementById('roller_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['roller_relay_an'] ? "frei" : (daten['roller_lastschutz'] ? "sperr" : "aus");
 			document.getElementById('auto_laden_an').className = daten['auto_lastschutz'] ? "sperr" : (daten['auto_laden_an'] ? 'on' : 'off');
 			document.getElementById('auto_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['auto_relay_an'] ? "frei" : (daten['auto_lastschutz'] ? "sperr" : "aus");
-			document.getElementById('solarerzeugung_ist_aktiv').className = daten['solarerzeugung_ist_aktiv'] ? 'on' : 'off';
+			// daten['solarerzeugung_ist_aktiv']
 
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
 			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string1'] == 0 ? 0 : daten['solaranteil_in_prozent_string2'];
@@ -634,7 +634,7 @@
 	</div>
 	<div>
 		HZ-STB-Diff: <span id="heizung_temperatur_differenz"></span>
-		Dachverteilung: <span id="solarerzeugung_ist_aktiv">N <span id="solaranteil_in_prozent_string1"></span> % / S <span id="solaranteil_in_prozent_string2"></span> %
+		Dachverteilung: N <span id="solaranteil_in_prozent_string1"></span> % / S <span id="solaranteil_in_prozent_string2"></span> %
 	</div>
 </div>
 
