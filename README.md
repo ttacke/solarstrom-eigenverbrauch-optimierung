@@ -45,25 +45,36 @@ Zusätzliche Features:
 ![Screenshot der UI](ui-screenshot.png)
 
 - Obere Zeile:
-  - Links: Überschuss-Leistung (Solarerzeugung abzüglich Hausverbrauch)
+  - Links: Überschuss-Leistung (+) bzw. Netzbezug (-) (Solarerzeugung abzüglich Hausverbrauch)
   - Rechts: Pufferakku-Ladestand
-- Zweite Zeile (v.l.n.r; schwarz=aktiv, grau=inaktiv):
-  - Status Solarerzeugung incl relative Verteilung der Leistung der beiden Dachhälften
-  - Ladestatus von Auto-Wallbox, Roller-Lader, Warmwasser- und Heizungs-Überladen
-    - Anzeige "schutz"/mit Unrandung = Lastschutz, dieser Ladewunsch wird blockiert
-- Dritte Zeile:
+- Zweite Zeile (schwarz=aktiv, grau=inaktiv, markiert=Gesperrt wegen zu viel Netzlast):
+  - Zeig an, ob die folgenden Verbraucher aktiv sind (v.l.n.r):
+    - Auto-Wallbox
+    - Roller-Lader
+    - Warmwasser-Wärmepumpe
+    - Warmwasser-Begleitheizung
+    - Heizungs-Wärmepumpe
+    - Heizungs-Elektro-Heizstab
+    - Heizungs-Zuluft-Vorwärmer
+- Dritte Zeile
+  - Temperaturen und Luftfeuchtigkeit von Heizungs-Wärmepumpen Zu- bzw Abluft.
+- Vierte Zeile
+  - Heizungs Vor- und Rücklauf Temperaturdifferenz (wichtig: das sind nicht °C/°K)
+  - Relative Verteilung der Solarleistung auf die beiden Dachhälften
+- Fünfte Zeile:
   - Links: Vorhersage des Pufferakku-Ladestandes der nächsten 12 Stunden
   - Rechts: Vorhersage der Sonnenenergie der nächsten 5 Tage
-  - Die Balken sind via Fibonacci-Folge gestaffelt. Helle Balken, ganz unten, stellen bis 20% Akkustand dar, die etwas dunkleren bis 100%. Schwarze Balken bedeuten, das potentiell zu viel Energie vorhanden sein wird (= passt nicht mehr in Pufferakku = Netzeinspeisung)
+  - Die Balken sind via Fibonacci-Folge gestaffelt.
+    - Helle Balken, ganz unten, stellen bis 20% Akkustand dar, die etwas dunkleren bis 100%.
+    - Schwarze Balken bedeuten, das potentiell zu viel Energie vorhanden sein wird (= passt nicht mehr in Pufferakku = Netzeinspeisung)
 - Unterer Bereich: Schalter der Ladesteuerung
   - Schalter "Auto" und "Roller": tippen auf Button de/aktiviert ihn
     - aktiv = Wallbox wird aktiviert, außer Lastschutz sagt etwas anderes. Wechselt nach 12h wieder zu inaktiv.
     - inaktiv + Sonne und Mond sind zu sehen (1. Oktober - 14. März) = in Nicht-Hochlastzeiten wird geladen + Überschussladen 
     - inaktiv + nur Sonne ist zu sehen (15. April - 30. September) = Überschussladen
   - Nur bei "Roller"
-    - "Keller": beide Akkus ja an einem Ladegerät an der Kellerdose
+    - "Keller": beide Akkus an je einem Ladegerät an der Kellerdose
     - "Außen": beide Akkus im Roller mit nur einem Ladegerät (wird automatisch aktiviert, wenn die Ladebuchse außen an ist)
-- ganz unten: Temperatur im Keller (nur für Betrieb der Heizanlage zur Überwachung)
 
 ## Systembestandteile:
 - ein ESP8266-E12 als Zentrale

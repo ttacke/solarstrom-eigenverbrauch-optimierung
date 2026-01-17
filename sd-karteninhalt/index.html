@@ -502,13 +502,19 @@
 				background-color: var(--dunkel);
 			}
 			.zusatzinfo > .off {
-				border: solid 0.2rem #000;
-				border-color: var(--dunkel);
+			}
+			.zusatzinfo > .sperr {
+				border-top: solid 0.2rem #000;
+				border-bottom: solid 0.2rem #000;
+				border-top-color: var(--dunkel);
+				border-bottom-color: var(--dunkel);
 				padding-right: 0.3rem;
 				padding-left: 0.3rem;
 			}
-			.zusatzinfo > .sperr {
-			}
+				.zusatzinfo > .sperr .ladestatus {
+					color: var(--dunkel);
+					font-weight: bold;
+				}
 
 		.schalter {
 			vertical-align: bottom;
@@ -558,15 +564,15 @@
 			}
 		.weitere_info {
 			text-align: center;
-			font-size: 1.5rem;
+			font-size: 0.9rem;
 		}
+			.weitere_info * {
+				color: var(--mitteldunkel);
+			}
 			.weitere_info span {
 				display: inline-block;
 				font-weight: bold;
 			}
-		small {
-			font-size: 0.8rem;
-		}
 	</style>
 </head>
 <body onload="refresh('', '', '');">
@@ -620,6 +626,17 @@
 	</span>
 </div>
 
+<div class="weitere_info">
+	<div>
+		HZ-Zu: <span id="waermepumpen_zuluft_temperatur"></span> &#8451; (<span id="waermepumpen_zuluft_luftfeuchtigkeit"></span> %)
+		HZ-Ab: <span id="waermepumpen_abluft_temperatur"></span> &#8451; (<span id="waermepumpen_abluft_luftfeuchte"></span> %)
+	</div>
+	<div>
+		HZ-STB-Diff: <span id="heizung_temperatur_differenz"></span>
+		Dachverteilung: <span id="solarerzeugung_ist_aktiv">N<span id="solaranteil_in_prozent_string1"></span> % / S<span id="solaranteil_in_prozent_string2"></span> %
+	</div>
+</div>
+
 <table class="balkentabelle" id="balkenanzeige"></table>
 
 <div class="schalter" id="auto_laden">
@@ -637,17 +654,6 @@
 		<div class="ladeverhalten" id="roller_ladeort"></div>
 	</div>
 	<button onclick="refresh('change', 'roller', this.className == 'on' ? 'solar' : 'force', this)">&#9889;</button>
-</div>
-
-<div class="weitere_info">
-	<div>
-		<small>WP-Zuluft: <span id="waermepumpen_zuluft_temperatur"></span> &#8451; / <span id="waermepumpen_zuluft_luftfeuchtigkeit"></span> %</small>
-		<small><span>HZ-Stab-Diff:<span id="heizung_temperatur_differenz"></span></span></small>
-	</div>
-	<div>
-		<small>WP-Abluft: <span id="waermepumpen_abluft_temperatur"></span> &#8451; / <span id="waermepumpen_abluft_luftfeuchte"></span> %</small>
-		<small>Solar:<span id="solarerzeugung_ist_aktiv">N<span id="solaranteil_in_prozent_string1"></span>%/S<span id="solaranteil_in_prozent_string2"></span>%</span></small>
-	</div>
 </div>
 
 </body>
