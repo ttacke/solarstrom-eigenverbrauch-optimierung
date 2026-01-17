@@ -10,10 +10,12 @@ namespace Local::Service {
 	protected:
 		WiFiClient& wlan_client;
 		MatchState match_state;
+
 		int content_length = 0;
-		char old_buffer[128];
-		bool first_body_part_exist = false;
-		char search_buffer[256];
+		char old_buffer[64];
+		char search_buffer[128];
+		bool is_chunked = false;
+		bool debug = false;
 
 		bool _send_request(
 			const char* host, const char* request_uri, int timeout_in_hundertstel_s
@@ -43,7 +45,7 @@ namespace Local::Service {
 
 		bool _has_chunk_header() {
 			if(is_chunked) {
-				return is_chunked;
+				return true;
 			}
 			if(find_in_buffer((char*) "\r\nTransfer[-]Encoding: *chunked\r\n")) {
 				return true;
@@ -63,20 +65,27 @@ namespace Local::Service {
 				std::min((size_t) content_length, (size_t) (sizeof(buffer) - 1))
 			);
 			std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
+			if(debug) {
+				Serial.print(buffer);
+				Serial.print("|");
+			}
 			_prepare_search_buffer();
 			content_length -= strlen(buffer);
-			if(content_length <= 0 && is_chunked) {
-				content_length = 0; // Bei Weather wird beim Ende einfach gestoppt. Klappt das ueberall?
-				//_handle_chunked_content_length();
+			if(content_length == 0 && is_chunked) {
+				_read_next_chunk_content_length();
+				if(debug) {
+					Serial.print("[NextChunk:");
+					Serial.print(content_length);
+					Serial.print("]");
+				}
 			}
 		}
 
 	public:
-		char finding_buffer[129];
-		char buffer[128];
+		char finding_buffer[65];
+		char buffer[64];
 		int default_timeout_in_hundertstel_s = 2000;
 		int kurzer_timeout_in_hundertstel_s = 500;
-		bool is_chunked = false;
 
 		WebReader(WiFiClient& wlan_client): wlan_client(wlan_client) {
 		}
@@ -100,7 +109,6 @@ namespace Local::Service {
 		bool send_http_get_request(
 			const char* host, const int port, const char* request_uri, int timeout_in_hundertstel_s
 		) {
-			first_body_part_exist = false;
 			content_length = 0;
 			old_buffer[0] = '\0';
 			buffer[0] = '\0';
@@ -114,49 +122,60 @@ namespace Local::Service {
 
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			int max_read_size = sizeof(buffer) - 1;
+			int max_buffer_offset = sizeof(buffer) - 1;
+			if(debug) {
+				Serial.print("ReadWeb\n----\n");
+			}
 			while(wlan_client.available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
 				std::fill(buffer, buffer + sizeof(buffer), 0);// Reset
 
-				int read_size = 0;
+				int buffer_offset = 0;
 				bool content_start_reached = false;
 				while(true) {
-					wlan_client.readBytes(buffer + read_size, 1);
-					read_size++;
-					if(
-						read_size >= 4
-						&& strncmp(buffer + read_size - 4, "\r\n\r\n", 4) == 0
+					wlan_client.readBytes(buffer + buffer_offset, 1);// Liest 1 Byte in den buffer, beginnend beim offset
+					buffer_offset++;
+					if(buffer_offset < 4) {
+						_prepare_search_buffer();
+						if(find_in_buffer((char*) "\r\n\r\n")) {
+							content_start_reached = true;
+							break;
+						}
+					} else if (// geiches wie oben drueber, aber schneller
+						strncmp(buffer + buffer_offset - 4, "\r\n\r\n", 4) == 0
 					) {
 						content_start_reached = true;
 						break;
-					} else if(
-						read_size == max_read_size - 1
-						||
-						(
-							read_size == max_read_size - (1 + 4)
-							&& !strncmp(buffer + read_size, "\r", 1) == 0
-							&& !strncmp(buffer + read_size, "\n", 1) == 0
-						)
+					} else if(// Wenn buffer voll
+						buffer_offset == max_buffer_offset
 					) {
 						break;
 					}
 				}
-				std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
+				std::fill(buffer + buffer_offset, buffer + sizeof(buffer), 0);// Rest immer leeren
+				if(debug) {
+					Serial.print(buffer);
+					Serial.print("|");
+				}
+
 				_prepare_search_buffer();
 				_read_content_length_header();
 				if(!content_length) {
 					is_chunked = _has_chunk_header();
 				}
 				if(content_start_reached) {
+					if(debug) {
+						Serial.println("\n---\n->end");
+					}
 					if(is_chunked) {
-						_handle_chunked_content_length();
+						_read_next_chunk_content_length();
 					}
 					old_buffer[0] = '\0';
 					buffer[0] = '\0';
-					if(content_length > 0) {
-						first_body_part_exist = true;
-						_read_body_content_to_buffer();// Zu kurze Inhalte enden sonst hier!
+					if(debug) {
+						Serial.println(is_chunked ? "Chunked" : "NoChunk");
+						Serial.println("Content-Length");
+						Serial.println(content_length);
 					}
 					return true;
 				}
@@ -164,34 +183,40 @@ namespace Local::Service {
 			return false;
 		}
 
-		void _handle_chunked_content_length() {
-			int read_size = 0;
+		void _read_next_chunk_content_length() {
+			int buffer_offset = 0;
 			buffer[0] = '\0';
+			content_length = 0;
+			int max_buffer_offset = sizeof(buffer) - 1;
 			while(true) {
-				wlan_client.readBytes(buffer + read_size, 1);
-				read_size++;
-				if(
-					read_size >= 2
-					&& strncmp(buffer + read_size - 2, "\r\n", 2) == 0
+				wlan_client.readBytes(buffer + buffer_offset, 1);
+				buffer_offset++;
+				if(// Lies den Start des Chunks und ermittle die Laenge
+					buffer_offset > 2 // min 1 Byte muss da noch zusaetzlich sein
+					&& strncmp(buffer + buffer_offset - 2, "\r\n", 2) == 0
 				) {
-					std::fill(buffer + read_size - 2, buffer + sizeof(buffer), 0); // ende abschneiden
+					std::fill(buffer + buffer_offset - 2, buffer + sizeof(buffer), 0); // ende abschneiden
+					if(debug) {
+						Serial.print("[Chunk:");
+						Serial.print(buffer_offset);
+						Serial.print(",");
+						Serial.print(buffer);
+						Serial.print("]");
+					}
 					content_length = content_length + strtoul(buffer, 0, 16);
+					break;
+				} else if (buffer_offset == max_buffer_offset) {
+					Serial.println("Error: no chunk found");
+					content_length = 0;
 					break;
 				}
 			}
 		}
 
 		bool read_next_block_to_buffer() {
-			if(first_body_part_exist) {
-				first_body_part_exist = false;
-				return true;
-			}
 			if(content_length <= 0) {
 				return false;
 			}
-
-			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-
 			if(wlan_client.available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
 				_read_body_content_to_buffer();

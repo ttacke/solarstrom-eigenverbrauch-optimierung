@@ -89,7 +89,7 @@ namespace Local::Api {
 			while(web_reader->read_next_block_to_buffer()) {
 				_daten_extrahieren_und_einsetzen(elektroanlage);
 			}
-			// TODO API nutzen
+			// TODO offizielle API nutzen... aber die gibts fuer die Daten nicht :/
 			web_reader->send_http_get_request(
 				cfg->wechselrichter_host,
 				cfg->wechselrichter_port,
@@ -98,7 +98,8 @@ namespace Local::Api {
 			while(web_reader->read_next_block_to_buffer()) {
 				_detaildaten_einsetzen(elektroanlage);
 			}
-			if(!(findings & 0b1111'1111) && !(findings2 & 0b0000'0111)) {
+			if(findings != 0b1111'1111 || findings2 != 0b0000'0111) {
+				Serial.println("Error: cant read all wechselrichter data");
 				elektroanlage.solarerzeugung_in_w = 0;
 				elektroanlage.solarakku_zuschuss_in_w = 0;
 				elektroanlage.solarakku_ladestand_in_promille = 0;
@@ -108,6 +109,8 @@ namespace Local::Api {
 				elektroanlage.leistungsanteil_pv1 = 0;
 				elektroanlage.leistungsanteil_pv2 = 0;
 				elektroanlage.l1_solarstrom_ma = 0;
+				elektroanlage.l2_solarstrom_ma = 0;
+				elektroanlage.l3_solarstrom_ma = 0;
 			}
 		}
 	};
