@@ -115,7 +115,7 @@
 			document.getElementById('solarerzeugung_ist_aktiv').className = daten['solarerzeugung_ist_aktiv'] ? 'on' : 'off';
 
 			document.getElementById('solaranteil_in_prozent_string1').innerHTML = daten['solaranteil_in_prozent_string1'];
-			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string2'];
+			document.getElementById('solaranteil_in_prozent_string2').innerHTML = daten['solaranteil_in_prozent_string1'] == 0 ? 0 : daten['solaranteil_in_prozent_string2'];
 
 			document.getElementById('waermepumpen_zuluft_temperatur').innerHTML = daten['waermepumpen_zuluft_temperatur'];
 			document.getElementById('waermepumpen_zuluft_luftfeuchtigkeit').innerHTML = daten['waermepumpen_zuluft_luftfeuchtigkeit'];
@@ -634,7 +634,7 @@
 	</div>
 	<div>
 		HZ-STB-Diff: <span id="heizung_temperatur_differenz"></span>
-		Dachverteilung: <span id="solarerzeugung_ist_aktiv">N<span id="solaranteil_in_prozent_string1"></span> % / S<span id="solaranteil_in_prozent_string2"></span> %
+		Dachverteilung: <span id="solarerzeugung_ist_aktiv">N <span id="solaranteil_in_prozent_string1"></span> % / S <span id="solaranteil_in_prozent_string2"></span> %
 	</div>
 </div>
 
