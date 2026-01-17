@@ -14,8 +14,8 @@ namespace Local {
 		int content_length = 0;
 		char old_buffer[64];
 		char search_buffer[128];
-		bool first_body_part_exist = false;
 		bool is_chunked = false;
+		bool debug = true;
 
 		bool _send_request(
 			const char* host, const char* request_uri, int timeout_in_hundertstel_s
@@ -65,12 +65,19 @@ namespace Local {
 				std::min((size_t) content_length, (size_t) (sizeof(buffer) - 1))
 			);
 			std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
+			if(debug) {
+				Serial.print(buffer);
+				Serial.print("|");
+			}
 			_prepare_search_buffer();
 			content_length -= strlen(buffer);
-			// TODO unklar
-			if(content_length <= 0 && is_chunked) {
-				content_length = 0; // Bei Weather wird beim Ende einfach gestoppt. Klappt das ueberall?
-				_handle_chunked_content_length();
+			if(content_length == 0 && is_chunked) {
+				_read_next_chunk_content_length();
+				if(debug) {
+					Serial.print("[NextChunk:");
+					Serial.print(content_length);
+					Serial.print("]");
+				}
 			}
 		}
 
@@ -102,7 +109,6 @@ namespace Local {
 		bool send_http_get_request(
 			const char* host, const int port, const char* request_uri, int timeout_in_hundertstel_s
 		) {
-			first_body_part_exist = false;
 			content_length = 0;
 			old_buffer[0] = '\0';
 			buffer[0] = '\0';
@@ -116,40 +122,41 @@ namespace Local {
 
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
-			int max_read_size = sizeof(buffer) - 1;
-			Serial.print("ReadWeb\n----\n");
+			int max_buffer_offset = sizeof(buffer) - 1;
+			if(debug) {
+				Serial.print("ReadWeb\n----\n");
+			}
 			while(wlan_client.available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
 				std::fill(buffer, buffer + sizeof(buffer), 0);// Reset
 
-// TODO hier weiter
-				int read_size = 0;
+				int buffer_offset = 0;
 				bool content_start_reached = false;
 				while(true) {
-					wlan_client.readBytes(buffer + read_size, 1);// Liest 1 Byte in den buffer, beginnend beim offset
-					read_size++;// schiebt den offset eins weiter
-					if(// Wenn min 4 Zeichen gelesen + die letzten 4 Zeichen sind das Header-Ende
-						read_size >= 4
-						&& strncmp(buffer + read_size - 4, "\r\n\r\n", 4) == 0
+					wlan_client.readBytes(buffer + buffer_offset, 1);// Liest 1 Byte in den buffer, beginnend beim offset
+					buffer_offset++;
+					if(buffer_offset < 4) {
+						_prepare_search_buffer();
+						if(find_in_buffer((char*) "\r\n\r\n")) {
+							content_start_reached = true;
+							break;
+						}
+					} else if (// geiches wie oben drueber, aber schneller
+						strncmp(buffer + buffer_offset - 4, "\r\n\r\n", 4) == 0
 					) {
 						content_start_reached = true;
 						break;
 					} else if(// Wenn buffer voll
-						read_size == max_read_size - 1
-// TODO warum nochmal -1?
-//						|| // Warum gibts das hier?? Ist das noetig?
-//						(
-//							read_size == max_read_size - (1 + 4)
-//							&& !strncmp(buffer + read_size, "\r", 1) == 0
-//							&& !strncmp(buffer + read_size, "\n", 1) == 0
-//						)
+						buffer_offset == max_buffer_offset
 					) {
-
 						break;
 					}
 				}
-				std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
-				Serial.print(buffer);
+				std::fill(buffer + buffer_offset, buffer + sizeof(buffer), 0);// Rest immer leeren
+				if(debug) {
+					Serial.print(buffer);
+					Serial.print("|");
+				}
 
 				_prepare_search_buffer();
 				_read_content_length_header();
@@ -157,53 +164,59 @@ namespace Local {
 					is_chunked = _has_chunk_header();
 				}
 				if(content_start_reached) {
-					/*old_buffer[0] = '\0';
-					if(is_chunked) {
-						_handle_chunked_content_length();
+					if(debug) {
+						Serial.println("\n---\n->end");
 					}
+					if(is_chunked) {
+						_read_next_chunk_content_length();
+					}
+					old_buffer[0] = '\0';
 					buffer[0] = '\0';
-					if(content_length > 0) {
-						first_body_part_exist = true;
-						_read_body_content_to_buffer();// Zu kurze Inhalte enden sonst hier!
-					}*/
-					Serial.println("\n---\n->end");
-					Serial.println("Content-Length");
-					Serial.println(content_length);
-
+					if(debug) {
+						Serial.println(is_chunked ? "Chunked" : "NoChunk");
+						Serial.println("Content-Length");
+						Serial.println(content_length);
+					}
 					return true;
 				}
 			}
 			return false;
 		}
 
-		void _handle_chunked_content_length() {
-			int read_size = 0;
+		void _read_next_chunk_content_length() {
+			int buffer_offset = 0;
 			buffer[0] = '\0';
+			content_length = 0;
+			int max_buffer_offset = sizeof(buffer) - 1;
 			while(true) {
-				wlan_client.readBytes(buffer + read_size, 1);
-				read_size++;
-				if(
-					read_size >= 2
-					&& strncmp(buffer + read_size - 2, "\r\n", 2) == 0
+				wlan_client.readBytes(buffer + buffer_offset, 1);
+				buffer_offset++;
+				if(// Lies den Start des Chunks und ermittle die Laenge
+					buffer_offset > 2 // min 1 Byte muss da noch zusaetzlich sein
+					&& strncmp(buffer + buffer_offset - 2, "\r\n", 2) == 0
 				) {
-					std::fill(buffer + read_size - 2, buffer + sizeof(buffer), 0); // ende abschneiden
+					std::fill(buffer + buffer_offset - 2, buffer + sizeof(buffer), 0); // ende abschneiden
+					if(debug) {
+						Serial.print("[Chunk:");
+						Serial.print(buffer_offset);
+						Serial.print(",");
+						Serial.print(buffer);
+						Serial.print("]");
+					}
 					content_length = content_length + strtoul(buffer, 0, 16);
+					break;
+				} else if (buffer_offset == max_buffer_offset) {
+					Serial.println("Error: no chunk found");
+					content_length = 0;
 					break;
 				}
 			}
 		}
 
 		bool read_next_block_to_buffer() {
-			if(first_body_part_exist) {
-				first_body_part_exist = false;
-				return true;
-			}
 			if(content_length <= 0) {
 				return false;
 			}
-
-			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-
 			if(wlan_client.available()) {
 				memcpy(old_buffer, buffer, strlen(buffer) + 1);
 				_read_body_content_to_buffer();

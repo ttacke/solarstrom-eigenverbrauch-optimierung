@@ -33,10 +33,10 @@ bool _run_test() {
 		//(char*)"192.168.0.39",80,(char*)"/rpc/Switch.GetStatus?id=0"
 		//(char*)"192.168.0.36",80,(char*)"/status"
 		//CHUNK
-		(char*)"api.open-meteo.com",80,(char*)"/v1/forecast?latitude=50.00&longitude=7.95&daily=sunrise,sunset,shortwave_radiation_sum&hourly=global_tilted_irradiance_instant&timezone=Europe/Berlin&tilt=35&azimuth=30&timeformat=unixtime&forecast_hours=12"
+		//(char*)"api.open-meteo.com",80,(char*)"/v1/forecast?latitude=50.00&longitude=7.95&daily=sunrise,sunset,shortwave_radiation_sum&hourly=global_tilted_irradiance_instant&timezone=Europe/Berlin&tilt=35&azimuth=30&timeformat=unixtime&forecast_hours=12"
 		//(char*)"192.168.0.14",80,(char*)"/solar_api/v1/GetMeterRealtimeData.cgi"
 		//(char*)"192.168.0.14",80,(char*)"/solar_api/v1/GetPowerFlowRealtimeData.fcgi"
-		//(char*)"192.168.0.14",80,(char*)"/components/inverter/readable"
+		(char*)"192.168.0.14",80,(char*)"/components/inverter/readable"
 	)) {
 		Serial.println("Webreader-Read: Failed");
 		return false;
