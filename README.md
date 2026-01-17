@@ -6,28 +6,39 @@ und die Solar-Batterie dabei weitgehend schonend behandeln.
 Konkret:
 - Pufferbatterie beim Laden anderer Verbraucher am besten zwischen 40% und 60% "bewegen"
 - Pufferbatterie-Ladestände versuchen zwischen 20% und 80% zu halten
-- Pufferbatterie-Zielladestand am Ende des Tages: 80%
+- Pufferbatterie-Zielladestand am Ende des Tages: 90%
   - Bei potentiellem Überschreiten des Pufferbatterie-Zielladestandes:
     - Laden von Auto und Roller
     - einmaliges, morgendliches (4 Uhr UTC) Leeren der Puffer-Batterie auf 25% in Auto und Roller, da beides potentiell tagsüber nicht da ist
-- Bei potentieller Einspeisung: frühzeitiges Überladen der Warmwasser- und Heizungsanlage
-- Bei akuter Einspeisung: aktivieren eines weiteren (Groß-)Verbrauchers
-  - der muss Schaltzeiten von ~5min ertragen können
+- Bei potentieller Einspeisung:
+  - frühzeitiges Überladen der Warmwasser- und Heizungsanlage
+- Bei akuter Einspeisung:
+  - aktivieren der Warmwasser-Begleitheizung
+  - freischalten des Heizungs-Heizstabes
  
 Zusätzliche Features:
+- Optimierung des Energieverbrauches für die Heizung:
+  - Wegen Fehlen einer Abtaueinrichtung an der Heizungs-Wärmepumpe gibt es einen externen Zuluft-Erwärmer. Der wird nur dann gesteuert, wenn
+    die Abluft akutes einfrieren anzeigt.
+  - Der Elektro-heizstab der Heizung wird nur dann freigeschaltet, wenn der Temperaturunterschied von Vor- und Rücklauf sehr gerung ist.
+    Die Wärmepumpe startet ihn sonst schon bei <45° Kesseltemperatur, was unnötig ist.
 - Winter-Ladeverhalten für Auto und Roller
   - wenn aktiviert, lädt das Auto immer Nachts zwischen 19 und 4 Uhr UTC
 - Winter-Standort des Rollers
   - wenn aktiviert, wird die Keller-Steckdose genutzt, an der beide Akkus parallel geladen werden. Sonst die Außendose.
 - Last wird abgeworfen bzw gar nicht erst zusgeschaltet um...
-  - nur maximal 4,9kW aus dem Netz zu ziehen
+  - nur maximal 6,5kW aus dem Netz zu ziehen (vom Netzbetreiber vorgegeben)
   - den Wechselrichter nicht über 80% seiner Leistung zu betreiben
   - bei Ersatzstrom und keinem Überschuss nicht die Batterie leer zu saugen
 - Bei Ersatzstrom ist nur Überschussladen möglich
   - dann wird der Akku-Zielladestand auf 120% gesetzt, so dass nur bei akutem Überschuss geladen wird
-- Wenn die Steuerung deaktiviert wird, in dem einfach dessen Strom abgeschalten wird, verhält sich das System so, dass die Wallbox immer an
-  ist und kein Solar-Überschussladen verwendet wird. Der Roller-Lader ist dann aber dauerhaft aus und muss über eine normale Steckdose
-  benutzt werden 
+- Wenn die Steuerung deaktiviert wird, in dem einfach dessen Strom abgeschalten wird, verhält sich das System folgendermaßen:
+  - die Wallbox ist immer an
+  - es findet kein Solar-Überschussladen statt
+  - der Roller-Lader ist dann aber dauerhaft aus und muss über eine normale Steckdose benutzt werden
+  - die Warmwasser-Begleitheizung wird nur von 18-23 Uhr gestartet
+  - der Heizungs-Heizstab wird von der Heizungs-Wärmepumpe gesteuert
+  - der Heizungs-Zuluft-Erwärmer wird von seinem eingebauten Temperaturfühler gesteuert
 
 ## Steuerungs-UI (optional)
 
@@ -60,16 +71,14 @@ Zusätzliche Features:
     - ![Schaltplan zum Anschluss der SD-Karte an den ESP8266-12E](sd-card-anschlussplan.png)
     - Quelle: <https://www.mischianti.org/2019/12/15/how-to-use-sd-card-with-esp8266-and-arduino/#esp8266>
 - 3x "3V Relais Power Switch Board"
-  - Werden verwendet, um die potentialfreihen Eingänge der Wärmepumpen und der Wallbox zu schalten
+  - um die potentialfreihen Eingänge der Wärmepumpen und der Wallbox zu schalten
   - Da die ESPs nur sehr wenig Leistung abgeben können, wird jedes Relais von einem weiteren ESP8266-E12 betrieben. Die Steuerung erfolgt via Netzwerk.
-- 2x "Shelly Plug S"
-  - Wird genutzt, um den Roller-Lader zu schalten (1x innen und 1x aussen)
+- 1x "Shelly 1 Mini"
+  - um den Heizungs-Elektro-Heizstab zu sperren bzw freizugeben
+- 4x "Shelly Plug S", 1x "Shelly-Plug"
+  - um den Roller-Lader (1x innen und 1x aussen), die Warmwasser-Begleitheizung (1x), den Heizungs-Zuluft-Erwärmer (1x) zu schalten
+  - um die Aktivität der Warmwasser-Wärmepumpe (1x) zu messen
   - wird per WLAN gesteuert
-- "Shelly Plug" 3,5kW
-  - Wird genutzt, um Überschuss irgendwie zu nutzen (z.B. für eine Elektro-Heizung)
-  - wird per WLAN gesteuert
-- Ein "Shelly Button"
-  - aktiviert das Forcierte Laden des Autos (macht die UI obsolet; kann im Auto bleiben)
 - Ein (ausgedienter) KindlePaperwhite der ersten Generation als Anzeige
   - Der genutzte Beta-Browser hat einige Eigenheiten, wewegen die UI auf anderen Geräte schräg aussieht
   - Auf dem Kindle wurde der Bildschirm dauerhaft eingeschaltet via "~ds" im Suchfeld eingeben
@@ -88,8 +97,10 @@ Zusätzliche Features:
 - Warmwasser-Wärmepumpe "Viessmann Vitocal 060-A, Typ TOS-ze Umluft 254L"
   - via potentialfeiem Eingang kann es "überladen" werden (Zieltemperatur wird temporär auf Maximum gesetzt)
   - [PV-Anschluss Doku](https://www.viessmann-community.com/t5/Waermepumpe-Hybridsysteme/Funktion-PV-Anlage-mit-Vitocal-262-A-und-Vitocal-060-A/m-p/303739/emcs_t/S2h8ZW1haWx8dG9waWNfc3Vic2NyaXB0aW9ufExENDlMU0w2VVlVREtCfDMwMzczOXxTVUJTQ1JJUFRJT05TfGhL#M64397)
-- Warmwasser-Wärmepumpe "Viessmann Vitocal 060-A, Typ TOE-ze Umluft 178L" als Heizung
-  - Steuerung baugleich wie Warmwasser
+- Heizungs-Wärmepumpe "Viessmann Vitocal 060-A, Typ TOE-ze Umluft 178L"
+  - via potentialfeiem Eingang kann es "überladen" werden (Zieltemperatur wird temporär auf Maximum gesetzt)
+  - [PV-Anschluss Doku](https://www.viessmann-community.com/t5/Waermepumpe-Hybridsysteme/Funktion-PV-Anlage-mit-Vitocal-262-A-und-Vitocal-060-A/m-p/303739/emcs_t/S2h8ZW1haWx8dG9waWNfc3Vic2NyaXB0aW9ufExENDlMU0w2VVlVREtCfDMwMzczOXxTVUJTQ1JJUFRJT05TfGhL#M64397)
+  - Der integrierte Elektro-Heizstab ist nachträglich mit einem Unterbrecher versehen worden
 
 ## Einrichtung
 - Die Zentrale mit der SD-Karte versehen
@@ -121,9 +132,4 @@ Wechselrichter und Batterie sollten nie im Netzwerk mit anderen Endgeräten sein
 sind fest codiert und "zertifizierten Handwerkern" bekannt. Also jedem. Jemand/Etwas auf einem
 anderen Endgerät im gleichen Netzwerk könnte also problemlos Schaden anrichten. Und: SSL kennen
 die Geräte nicht.
-
-# TODO Anstehende Aufgaben
-- Luftwärmer: temp anpassen und schauen, was passiert 
--- 30.12 9:40 -> 14-14.5 zuluft
--  30.12 12:56-> 6.8-7.3 abluft
 
