@@ -112,8 +112,8 @@ namespace Local {
 		}
 
 		void set_heat_difference(int val) {
-		    heat_difference = val;
-		    webserver.server.send(200, "text/plain", "ok");
+			heat_difference = val;
+			webserver.server.send(200, "text/plain", "ok");
 		}
 
 		void upload_file() {
@@ -208,7 +208,7 @@ namespace Local {
 
 			verbraucher.waermepumpen_zuluft_temperatur = waermepumpen_zuluft_temperatur;
 			verbraucher.waermepumpen_abluft_temperatur = waermepumpen_abluft_temperatur;
-			verbraucher.heizungs_temperatur_differenz = heat_difference;
+			verbraucher.setze_heizungs_temperatur_differenz(heat_difference);
 
 			verbraucher.heizung_ist_an =
 				verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_max_ablufttemperatur_wenn_aktiv
@@ -389,8 +389,8 @@ namespace Local {
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
-					"\"heizung_temperatur_differenz\":%d,",
-					heat_difference
+					"\"heizung_temperatur_differenz_in_grad\":%.1f,",
+					verbraucher.heizungs_temperatur_differenz_in_grad
 				);
 				file_writer.write_formated(
 					"\"heizstab_erlaubt\":%s,",

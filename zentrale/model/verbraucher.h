@@ -72,7 +72,17 @@ namespace Local::Model {
 		float waermepumpen_zuluft_temperatur = 0;
 		float waermepumpen_abluft_temperatur = 0;
 		int heizungs_temperatur_differenz = 0;
+		float heizungs_temperatur_differenz_in_grad = 0;
 		bool heizstabbetrieb_ist_erlaubt = false;
+
+		void setze_heizungs_temperatur_differenz(int diff) {
+			heizungs_temperatur_differenz = diff;
+			heizungs_temperatur_differenz_in_grad = diff - 540;// Nullpunkt
+			if(heizungs_temperatur_differenz_in_grad < 0) {
+				heizungs_temperatur_differenz_in_grad = 0;
+			}
+			heizungs_temperatur_differenz_in_grad = 5;// TODO in °C umrechnen für die Anzeige -> diff_value
+		}
 
 		int gib_stundenvorhersage_akku_ladestand_als_fibonacci(int index) {
 			int max_promille = 0;
