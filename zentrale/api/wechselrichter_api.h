@@ -12,10 +12,12 @@ namespace Local::Api {
 		std::uint8_t findings2;
 
 		void _daten_extrahieren_und_einsetzen(Local::Model::ElektroAnlage& elektroanlage) {
+			// Solarleistung(+)
 			if(web_reader->find_in_buffer((char*) "\"P_PV\" *: *([-0-9.]+)[^0-9]")) {
 				elektroanlage.solarerzeugung_in_w = round(atof(web_reader->finding_buffer));
 				findings |= 0b0000'0001;
 			}
+			// Batterie entladen(+) oder laden(-)
 			if(web_reader->find_in_buffer((char*) "\"P_Akku\" *: *([-0-9.]+)[^0-9]")) {
 				elektroanlage.solarakku_zuschuss_in_w = round(atof(web_reader->finding_buffer));
 				findings |= 0b0000'0010;
@@ -27,6 +29,7 @@ namespace Local::Api {
 			if(web_reader->find_in_buffer((char*) "\"E_Total\" *: *([0-9]+)[^0-9]")) {
 				elektroanlage.gesamt_energiemenge_in_wh = round(atof(web_reader->finding_buffer) * 1);
 			}
+			// Was aus dem Netz entnommen(-) oder eingespeist(+) wird
 			if(web_reader->find_in_buffer((char*) "\"P_Grid\" *: *([-0-9.nul]+)[^0-9]")) {
 				if(strcmp(web_reader->finding_buffer, "null") == 0) {
 					elektroanlage.ersatzstrom_ist_aktiv = true;
@@ -37,6 +40,7 @@ namespace Local::Api {
 				}
 				findings |= 0b0000'1000;
 			}
+			// Verbrauch(-)
 			if(web_reader->find_in_buffer((char*) "\"P_Load\" *: *([-0-9.]+)[^0-9]")) {
 				elektroanlage.stromverbrauch_in_w = round(atof(web_reader->finding_buffer) * -1);
 				findings |= 0b0001'0000;
