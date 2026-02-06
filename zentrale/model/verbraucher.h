@@ -76,8 +76,10 @@ namespace Local::Model {
 		float heizungs_temperatur_differenz_in_grad = 0;
 		bool heizstabbetrieb_ist_erlaubt = false;
 
-		void setze_heizungs_temperatur_differenz(int diff, float heizungs_temperatur_differenz_umrechnungsfaktor) {
-			heizungs_temperatur_differenz = diff - 540;// Nullpunkt
+		void setze_heizungs_temperatur_differenz(
+			int diff, float heizungs_temperatur_differenz_umrechnungsfaktor, int heizungs_temperatur_differenz_nullpunkt
+		) {
+			heizungs_temperatur_differenz = diff - heizungs_temperatur_differenz_nullpunkt;
 			if(heizungs_temperatur_differenz < 0) {
 				heizungs_temperatur_differenz = 0;
 			}

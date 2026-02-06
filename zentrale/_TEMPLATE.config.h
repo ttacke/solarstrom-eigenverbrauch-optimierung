@@ -51,8 +51,9 @@ namespace Local {
 		const int heizung_benoetigte_leistung_in_w = 420;
 		const int heizung_min_schaltzeit_in_min = 60;
 		const int heizstab_benoetigte_leistung_in_w = 1500;
-		const int heizstab_einschalt_differenzwert = 542;// 540 ist das Minimum
-		const int heizstab_ausschalt_differenzwert = 547;// +3°
+		const int heizungs_temperatur_differenz_nullpunkt = 540;
+		const int heizstab_einschalt_differenzwert = 2;
+		const int heizstab_ausschalt_differenzwert = 7;// +3°
 		const float heizungs_temperatur_differenz_umrechnungsfaktor = 1.875; // das sind 1°C
 // TODO DEPRECATED
 //		const float heizung_luftvorwaermer_zuluft_einschalttemperatur = 15.3;

@@ -208,7 +208,11 @@ namespace Local {
 
 			verbraucher.waermepumpen_zuluft_temperatur = waermepumpen_zuluft_temperatur;
 			verbraucher.waermepumpen_abluft_temperatur = waermepumpen_abluft_temperatur;
-			verbraucher.setze_heizungs_temperatur_differenz(heat_difference, cfg->heizungs_temperatur_differenz_umrechnungsfaktor);
+			verbraucher.setze_heizungs_temperatur_differenz(
+				heat_difference,
+				cfg->heizungs_temperatur_differenz_umrechnungsfaktor,
+				cfg->heizungs_temperatur_differenz_nullpunkt
+			);
 
 			verbraucher.heizung_ist_an =
 				verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_max_ablufttemperatur_wenn_aktiv
