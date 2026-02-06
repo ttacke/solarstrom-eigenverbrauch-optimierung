@@ -216,6 +216,50 @@ TEST(regex_capture_content_length) {
 	// find_in_buffer kann verwendet werden um das zu pruefen
 }
 
+TEST(find_64_byte_capture_ok) {
+	WiFiClient client;
+	Local::Service::WebReader reader(client);
+
+	// finding_buffer ist 65 Bytes → max 64 Zeichen + Null-Terminator
+	// Block 1: 63 A's, Block 2: 1 A → search_buffer hat 64 A's
+	const char* response =
+		"HTTP/1.1 200 OK\r\n"
+		"Content-Length: 64\r\n"
+		"\r\n"
+		"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";  // 64 x A
+
+	client.set_response(response);
+
+	ASSERT(reader.send_http_get_request("test.local", 80, "/test"));
+	ASSERT(reader.read_next_block_to_buffer());  // Liest 63 A
+	ASSERT(reader.read_next_block_to_buffer());  // Liest 1 A
+	// search_buffer = old_buffer (63 A) + buffer (1 A) = 64 A
+	ASSERT(reader.find_in_buffer((char*)"(A+)"));
+	ASSERT_EQ((int)strlen(reader.finding_buffer), 64);
+}
+
+TEST(find_65_byte_capture_rejected) {
+	WiFiClient client;
+	Local::Service::WebReader reader(client);
+
+	// 65 Zeichen Capture wuerde finding_buffer ueberlaufen
+	// Block 1: 63 A's, Block 2: 2 A's → search_buffer hat 65 A's
+	const char* response =
+		"HTTP/1.1 200 OK\r\n"
+		"Content-Length: 65\r\n"
+		"\r\n"
+		"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";  // 65 x A
+
+	client.set_response(response);
+
+	ASSERT(reader.send_http_get_request("test.local", 80, "/test"));
+	ASSERT(reader.read_next_block_to_buffer());  // Liest 63 A
+	ASSERT(reader.read_next_block_to_buffer());  // Liest 2 A
+	// search_buffer = old_buffer (63 A) + buffer (2 A) = 65 A
+	// Capture von 65 Zeichen sollte abgelehnt werden
+	ASSERT(!reader.find_in_buffer((char*)"(A+)"));
+}
+
 // ============================================================
 // Main
 // ============================================================
