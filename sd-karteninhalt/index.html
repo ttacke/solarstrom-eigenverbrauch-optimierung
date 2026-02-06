@@ -127,9 +127,6 @@
 			document.getElementById('heizstab_erlaubt').className = daten['heizstab_erlaubt'] ? 'on' : 'off';
 			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'an' : 'aus';
 			
-			document.getElementById('heizung_luftvorwaermer').className = daten['heizung_luftvorwaermer_lastschutz'] ? "sperr" : (daten['heizung_luftvorwaermer_an'] ? 'on' : 'off');
-			document.getElementById('heizung_luftvorwaermer').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_luftvorwaermer_relay_an'] ? "an" : (daten['heizung_luftvorwaermer_lastschutz'] ? "sperr" : "aus");
-			
 			document.getElementById('wasser_begleitheizung').className = daten['wasser_begleitheizung_lastschutz'] ? "sperr" : (daten['wasser_begleitheizung_an'] ? 'on' : 'off');
 			document.getElementById('wasser_begleitheizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_begleitheizung_relay_an'] ? "an" : (daten['wasser_begleitheizung_lastschutz'] ? "sperr" : "aus");
 		}
@@ -621,10 +618,6 @@
 		HZ-STB
 		<br><span class="ladestatus">-</span>
 	</span>
-	<span id="heizung_luftvorwaermer">
-		HZ-LFT
-		<br><span class="ladestatus">-</span>
-	</span>
 </div>
 
 <div class="weitere_info">
@@ -633,7 +626,7 @@
 		HZ-Ab: <span id="waermepumpen_abluft_temperatur"></span> &#8451; (<span id="waermepumpen_abluft_luftfeuchte"></span> %)
 	</div>
 	<div>
-		HZ-Diff: +<span id="heizung_temperatur_differenz_in_grad"></span> °C
+		HZ-Diff: +<span id="heizung_temperatur_differenz_in_grad"></span> &#8451;
 		Dachverteilung: N <span id="solaranteil_in_prozent_string1"></span> % / S <span id="solaranteil_in_prozent_string2"></span> %
 	</div>
 </div>

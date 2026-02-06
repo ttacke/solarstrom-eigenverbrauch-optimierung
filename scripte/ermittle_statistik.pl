@@ -106,8 +106,12 @@ sub _hole_daten {
 
                 heizungsunterstuetzung_an       => $t[4],
                 heizung_temperatur_differenz => $t[5],
+                # TODO roller_laden_ist_an + auto_laden_ist_an + roller_benoetigte_ladeleistung_in_w
+                # Um wallbox zu bestätigen
+                # Um RollerKosten zu holen
             };
             if(scalar(@luftheiz_und_begleitheiz)) {
+                # TODO DEPRECATED
                 $neu->{'heiz_luftvorwaermer_an'} = ($luftheiz_und_begleitheiz[0] eq 'on' ? 1 : 0);
                 $neu->{'heiz_luftvorwaermer_leistung'} = $luftheiz_und_begleitheiz[1];
 
@@ -179,7 +183,7 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
             $wp_an = 1;
         }
         $e->{'_heizung_waermepumpe_status'} = $wp_an;
-        if($e->{'zeitpunkt'} > $letzter_log_zeitpunkt - 86400 * 2) {
+        if($e->{'zeitpunkt'} > $letzter_log_zeitpunkt - 86400 * 14) {
             print $amp_detail_file sprintf(
                 "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
                 $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'},

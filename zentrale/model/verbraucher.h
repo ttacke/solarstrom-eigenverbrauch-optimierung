@@ -24,9 +24,10 @@ namespace Local::Model {
 	public:
 		enum class Ladestatus {force, solar};
 
-		bool heizung_luftvorwaermer_relay_ist_an = false;
-		bool heizung_luftvorwaermer_lastschutz = false;
-		int heizung_luftvorwaermer_aktuelle_leistung_in_w = 0;
+// TODO DEPRECATED
+//		bool heizung_luftvorwaermer_relay_ist_an = false;
+//		bool heizung_luftvorwaermer_lastschutz = false;
+//		int heizung_luftvorwaermer_aktuelle_leistung_in_w = 0;
 
 		bool wasser_begleitheizung_relay_is_an = false;
 		bool wasser_begleitheizung_lastschutz = false;
@@ -75,13 +76,12 @@ namespace Local::Model {
 		float heizungs_temperatur_differenz_in_grad = 0;
 		bool heizstabbetrieb_ist_erlaubt = false;
 
-		void setze_heizungs_temperatur_differenz(int diff) {
-			heizungs_temperatur_differenz = diff;
-			heizungs_temperatur_differenz_in_grad = diff - 540;// Nullpunkt
-			if(heizungs_temperatur_differenz_in_grad < 0) {
-				heizungs_temperatur_differenz_in_grad = 0;
+		void setze_heizungs_temperatur_differenz(int diff, float heizungs_temperatur_differenz_umrechnungsfaktor) {
+			heizungs_temperatur_differenz = diff - 540;// Nullpunkt
+			if(heizungs_temperatur_differenz < 0) {
+				heizungs_temperatur_differenz = 0;
 			}
-			heizungs_temperatur_differenz_in_grad = 5;// TODO in °C umrechnen für die Anzeige -> diff_value
+			heizungs_temperatur_differenz_in_grad = heizungs_temperatur_differenz / heizungs_temperatur_differenz_umrechnungsfaktor;
 		}
 
 		int gib_stundenvorhersage_akku_ladestand_als_fibonacci(int index) {
@@ -210,8 +210,8 @@ namespace Local::Model {
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 			file_writer.write_formated(
 				",vc2,%s,%d,%s,%d,%d",
-				heizung_luftvorwaermer_relay_ist_an ? "on" : "off",
-				heizung_luftvorwaermer_aktuelle_leistung_in_w,
+				"off",// DEPRECATED Heiz-WP-Luftvorwaermer
+				0,// DEPRECATED Heiz-WP-Luftvorwaermer Leistung in W
 				wasser_begleitheizung_relay_is_an ? "on" : "off",
 				wasser_begleitheizung_aktuelle_leistung_in_w,
 				wasser_wp_aktuelle_leistung_in_w

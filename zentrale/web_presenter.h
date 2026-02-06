@@ -208,7 +208,7 @@ namespace Local {
 
 			verbraucher.waermepumpen_zuluft_temperatur = waermepumpen_zuluft_temperatur;
 			verbraucher.waermepumpen_abluft_temperatur = waermepumpen_abluft_temperatur;
-			verbraucher.setze_heizungs_temperatur_differenz(heat_difference);
+			verbraucher.setze_heizungs_temperatur_differenz(heat_difference, cfg->heizungs_temperatur_differenz_umrechnungsfaktor);
 
 			verbraucher.heizung_ist_an =
 				verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_max_ablufttemperatur_wenn_aktiv
@@ -397,20 +397,21 @@ namespace Local {
 					(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-				file_writer.write_formated(
-					"\"heizung_luftvorwaermer_lastschutz\":%s,",
-					(verbraucher.heizung_luftvorwaermer_lastschutz ? "true" : "false")
-				);
-				file_writer.write_formated(
-					"\"heizung_luftvorwaermer_relay_an\":%s,",
-					(verbraucher.heizung_luftvorwaermer_relay_ist_an ? "true" : "false")
-				);
-				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-				file_writer.write_formated(
-					"\"heizung_luftvorwaermer_an\":%s,",
-					(verbraucher.heizung_luftvorwaermer_aktuelle_leistung_in_w > 10 ? "true" : "false")
-				);
-				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+// TODO DEPRECATED
+//				file_writer.write_formated(
+//					"\"heizung_luftvorwaermer_lastschutz\":%s,",
+//					(verbraucher.heizung_luftvorwaermer_lastschutz ? "true" : "false")
+//				);
+//				file_writer.write_formated(
+//					"\"heizung_luftvorwaermer_relay_an\":%s,",
+//					(verbraucher.heizung_luftvorwaermer_relay_ist_an ? "true" : "false")
+//				);
+//				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+//				file_writer.write_formated(
+//					"\"heizung_luftvorwaermer_an\":%s,",
+//					(verbraucher.heizung_luftvorwaermer_aktuelle_leistung_in_w > 10 ? "true" : "false")
+//				);
+//				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"wasser_begleitheizung_lastschutz\":%s,",
 					(verbraucher.wasser_begleitheizung_lastschutz ? "true" : "false")

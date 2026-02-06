@@ -263,16 +263,17 @@ namespace Local::Api {
 				verbraucher.heizstabbetrieb_ist_erlaubt = shelly_daten.ison;
 			}
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-			if(_read_shelly_content(
-				(char*) cfg->heizung_luftvorwaermer_relay_host,
-				cfg->heizung_luftvorwaermer_relay_port,
-				cfg->heizung_luftvorwaermer_relay_version,
-				shelly_daten
-			)) {
-				verbraucher.heizung_luftvorwaermer_relay_ist_an = shelly_daten.ison;
-				verbraucher.heizung_luftvorwaermer_aktuelle_leistung_in_w = shelly_daten.power;
-			}
-			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+// TODO DEPRECATED
+//			if(_read_shelly_content(
+//				(char*) cfg->heizung_luftvorwaermer_relay_host,
+//				cfg->heizung_luftvorwaermer_relay_port,
+//				cfg->heizung_luftvorwaermer_relay_version,
+//				shelly_daten
+//			)) {
+//				verbraucher.heizung_luftvorwaermer_relay_ist_an = shelly_daten.ison;
+//				verbraucher.heizung_luftvorwaermer_aktuelle_leistung_in_w = shelly_daten.power;
+//			}
+//			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 			if(_read_shelly_content(
 				(char*) cfg->wasser_begleitheizung_relay_host,
 				cfg->wasser_begleitheizung_relay_port,
@@ -371,13 +372,14 @@ namespace Local::Api {
 			);
 		}
 
-		void _schalte_heizung_luftvorwaermer_relay(bool ein) {
-			_log((char*) "schalte heizung luftvorwaermer: ", (char*) (ein ? "erlaubt" : "aus"));
-			_schalte_shellyplug(
-				ein, cfg->heizung_luftvorwaermer_relay_host, cfg->heizung_luftvorwaermer_relay_port, cfg->heizung_luftvorwaermer_relay_version,
-				web_reader->default_timeout_in_hundertstel_s
-			);
-		}
+// TODO DEPRECATED
+//		void _schalte_heizung_luftvorwaermer_relay(bool ein) {
+//			_log((char*) "schalte heizung luftvorwaermer: ", (char*) (ein ? "erlaubt" : "aus"));
+//			_schalte_shellyplug(
+//				ein, cfg->heizung_luftvorwaermer_relay_host, cfg->heizung_luftvorwaermer_relay_port, cfg->heizung_luftvorwaermer_relay_version,
+//				web_reader->default_timeout_in_hundertstel_s
+//			);
+//		}
 
 		int _gib_roller_benoetigte_ladeleistung_in_w() {
 			int leistung = cfg->roller_benoetigte_leistung_hoch_in_w;
@@ -823,7 +825,8 @@ namespace Local::Api {
 			verbraucher.roller_lastschutz = false;
 			verbraucher.wasser_lastschutz = false;
 			verbraucher.heizung_lastschutz = false;
-			verbraucher.heizung_luftvorwaermer_lastschutz = false;
+// TODO DEPRECATED
+//			verbraucher.heizung_luftvorwaermer_lastschutz = false;
 			verbraucher.wasser_begleitheizung_lastschutz = false;
 			if(_ausschalten_wegen_lastgrenzen(verbraucher)) {
 				if(verbraucher.auto_relay_ist_an) {
@@ -851,12 +854,13 @@ namespace Local::Api {
 					verbraucher.heizstabbetrieb_ist_erlaubt = false;
 					_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
 				}
-				if(verbraucher.heizung_luftvorwaermer_relay_ist_an) {
-					_log((char*) "HeizungLuftvorwaermerLastgrenze");
-					verbraucher.heizung_luftvorwaermer_relay_ist_an = false;
-					_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
-					verbraucher.heizung_luftvorwaermer_lastschutz = true;
-				}
+// TODO DEPRECATED
+//				if(verbraucher.heizung_luftvorwaermer_relay_ist_an) {
+//					_log((char*) "HeizungLuftvorwaermerLastgrenze");
+//					verbraucher.heizung_luftvorwaermer_relay_ist_an = false;
+//					_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
+//					verbraucher.heizung_luftvorwaermer_lastschutz = true;
+//				}
 				if(verbraucher.wasser_begleitheizung_relay_is_an) {
 					_log((char*) "WasserBegleitheizungLastgrenze");
 					verbraucher.wasser_begleitheizung_relay_is_an = false;
@@ -892,35 +896,36 @@ namespace Local::Api {
 				return;
 			}
 
-			if(
-				!verbraucher.heizung_luftvorwaermer_relay_ist_an
-				&& !_einschalten_wegen_lastgrenzen_verboten(
-					verbraucher, cfg->heizung_luftvorwaermer_benoetigte_leistung_in_w
-				)
-				&& (
-					verbraucher.waermepumpen_zuluft_temperatur <= cfg->heizung_luftvorwaermer_zuluft_einschalttemperatur
-					||
-					verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_luftvorwaermer_abluft_einschalttemperatur
-					||
-					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
-				)
-			) {
-				verbraucher.heizung_luftvorwaermer_relay_ist_an = true;
-				_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
-				return;
-			} else if(
-				verbraucher.heizung_luftvorwaermer_relay_ist_an
-				&&
-				verbraucher.waermepumpen_zuluft_temperatur >= cfg->heizung_luftvorwaermer_zuluft_ausschalttemperatur
-				&&
-				verbraucher.waermepumpen_abluft_temperatur >= cfg->heizung_luftvorwaermer_abluft_ausschalttemperatur
-				&&
-				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
-			) {
-				verbraucher.heizung_luftvorwaermer_relay_ist_an = false;
-				_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
-				return;
-			}
+// TODO DEPRECATED
+//			if(
+//				!verbraucher.heizung_luftvorwaermer_relay_ist_an
+//				&& !_einschalten_wegen_lastgrenzen_verboten(
+//					verbraucher, cfg->heizung_luftvorwaermer_benoetigte_leistung_in_w
+//				)
+//				&& (
+//					verbraucher.waermepumpen_zuluft_temperatur <= cfg->heizung_luftvorwaermer_zuluft_einschalttemperatur
+//					||
+//					verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_luftvorwaermer_abluft_einschalttemperatur
+//					||
+//					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
+//				)
+//			) {
+//				verbraucher.heizung_luftvorwaermer_relay_ist_an = true;
+//				_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
+//				return;
+//			} else if(
+//				verbraucher.heizung_luftvorwaermer_relay_ist_an
+//				&&
+//				verbraucher.waermepumpen_zuluft_temperatur >= cfg->heizung_luftvorwaermer_zuluft_ausschalttemperatur
+//				&&
+//				verbraucher.waermepumpen_abluft_temperatur >= cfg->heizung_luftvorwaermer_abluft_ausschalttemperatur
+//				&&
+//				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
+//			) {
+//				verbraucher.heizung_luftvorwaermer_relay_ist_an = false;
+//				_schalte_heizung_luftvorwaermer_relay(verbraucher.heizung_luftvorwaermer_relay_ist_an);
+//				return;
+//			}
 
 			bool wasser_begleit_erzwungen_aktiv = false;
 			if (
