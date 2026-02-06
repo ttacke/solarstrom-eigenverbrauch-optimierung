@@ -872,28 +872,29 @@ namespace Local::Api {
 
 			if(
 				!verbraucher.heizstabbetrieb_ist_erlaubt
-				&& !_einschalten_wegen_lastgrenzen_verboten(
-					verbraucher, cfg->heizstab_benoetigte_leistung_in_w
-				)
-				&& (
-					verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
-					||
-					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
-				)
+// TODO korrigieren!
+//				&& !_einschalten_wegen_lastgrenzen_verboten(
+//					verbraucher, cfg->heizstab_benoetigte_leistung_in_w
+//				)
+//				&& (
+//					verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert
+//					||
+//					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
+//				)
 			) {
 				verbraucher.heizstabbetrieb_ist_erlaubt = true;
 				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
 				return;
-			} else if(
-				verbraucher.heizstabbetrieb_ist_erlaubt
-				&&
-				verbraucher.heizungs_temperatur_differenz >= cfg->heizstab_ausschalt_differenzwert
-				&&
-				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
-			) {
-				verbraucher.heizstabbetrieb_ist_erlaubt = false;
-				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
-				return;
+//			} else if(
+//				verbraucher.heizstabbetrieb_ist_erlaubt
+//				&&
+//				verbraucher.heizungs_temperatur_differenz >= cfg->heizstab_ausschalt_differenzwert
+//				&&
+//				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
+//			) {
+//				verbraucher.heizstabbetrieb_ist_erlaubt = false;
+//				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
+//				return;
 			}
 
 // TODO DEPRECATED
