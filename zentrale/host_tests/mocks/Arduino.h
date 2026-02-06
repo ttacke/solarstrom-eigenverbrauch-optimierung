@@ -8,6 +8,9 @@
 // Arduino Typen
 typedef uint8_t byte;
 
+// Pin-Konstanten
+const int D2 = 2;
+
 // Serial Mock
 class SerialMock {
 public:

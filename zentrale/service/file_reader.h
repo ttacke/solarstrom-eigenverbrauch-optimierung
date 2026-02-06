@@ -12,6 +12,8 @@ namespace Local::Service {
 		int offset = 0;
 		char old_buffer[128];
 		char search_buffer[256];
+		int buffer_len = 0;
+		int old_buffer_len = 0;
 		int next_capture_group;
 
 		bool _init() {
@@ -27,23 +29,25 @@ namespace Local::Service {
 		}
 
 		void _prepare_search_buffer() {
-			int old_buffer_strlen = strlen(old_buffer);
-			memcpy(search_buffer, old_buffer, old_buffer_strlen);
-			memcpy(search_buffer + old_buffer_strlen, buffer, strlen(buffer) + 1);
+			memcpy(search_buffer, old_buffer, old_buffer_len);
+			memcpy(search_buffer + old_buffer_len, buffer, buffer_len);
+			search_buffer[old_buffer_len + buffer_len] = '\0';
 		}
 
 		bool _read_next_block_to_buffer() {
-			int size = fh.size();
 			fh.seek(offset);
 			int read_size = std::min(sizeof(buffer) - 1, fh.size() - offset);
 			if(read_size == 0) {
 				std::fill(buffer, buffer + sizeof(buffer), 0);
+				buffer_len = 0;
 				return false;
 			}
 
-			memcpy(old_buffer, buffer, sizeof(buffer));
+			old_buffer_len = buffer_len;
+			memcpy(old_buffer, buffer, buffer_len);
 			fh.read((uint8_t*) buffer, read_size);
-			std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
+			buffer_len = read_size;
+			std::fill(buffer + buffer_len, buffer + sizeof(buffer), 0);// Rest immer leeren
 			offset += read_size;
 			return true;
 		}
@@ -62,6 +66,8 @@ namespace Local::Service {
 			}
 			offset = 0;
 			buffer[0] = '\0';
+			buffer_len = 0;
+			old_buffer_len = 0;
 			fh = SD.open(filename);
 			return true;
 		}
@@ -74,14 +80,16 @@ namespace Local::Service {
 			if(!_read_next_block_to_buffer()) {
 				return false;
 			}
-			for(int i = 0; i < strlen(buffer) + 1; i++) {
+			for(int i = 0; i < buffer_len + 1; i++) {
 				if(buffer[i] == '\n') {
-					offset = offset - strlen(buffer) + i + 1;// Zurueckspuhlen zum ersten Zeilenumbruch
+					offset = offset - buffer_len + i + 1;// Zurueckspuhlen zum ersten Zeilenumbruch
 					std::fill(buffer + i, buffer + sizeof(buffer), 0);// Rest immer leeren
+					buffer_len = i;
 					break;
 				}
 			}
 			std::fill(old_buffer, old_buffer + sizeof(old_buffer), 0);// Leeren; nur buffer wird genutzt
+			old_buffer_len = 0;
 			_prepare_search_buffer();
 			return true;
 		}
@@ -104,9 +112,13 @@ namespace Local::Service {
 
 		bool fetch_next_finding() {
 			if(next_capture_group < match_state.level) {
-				match_state.GetCapture(finding_buffer, next_capture_group);
+				if(match_state.capture_len(next_capture_group) < (int) sizeof(finding_buffer)) {
+					match_state.GetCapture(finding_buffer, next_capture_group);
+					next_capture_group++;
+					return true;
+				}
+				// Capture zu lang - ueberspringe diese Gruppe
 				next_capture_group++;
-				return true;
 			}
 			return false;
 		}

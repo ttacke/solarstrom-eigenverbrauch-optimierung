@@ -54,11 +54,13 @@ public:
 				for (size_t i = 1; i < match_result.size(); i++) {
 					captures.push_back(match_result[i].str());
 				}
+				level = (int)captures.size();
 				return 1;
 			}
 		} catch (const std::regex_error& e) {
 			// Regex Fehler - kein Match
 		}
+		level = 0;
 		return 0;
 	}
 
@@ -78,4 +80,5 @@ public:
 	// Fuer Kompatibilitaet
 	int MatchStart = 0;
 	int MatchLength = 0;
+	int level = 0;  // Anzahl der Capture-Gruppen
 };
