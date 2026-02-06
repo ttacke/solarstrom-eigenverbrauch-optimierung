@@ -111,6 +111,41 @@ TEST(content_length_response) {
 	ASSERT(reader.send_http_get_request("test.local", 80, "/test"));
 	ASSERT(reader.read_next_block_to_buffer());
 	ASSERT(reader.find_in_buffer((char*)"20 Bytes"));
+	// Nach 20 Bytes muss Schluss sein
+	ASSERT(!reader.read_next_block_to_buffer());
+}
+
+TEST(content_length_multiple_blocks) {
+	WiFiClient client;
+	Local::Service::WebReader reader(client);
+
+	// 150 Bytes Content - wird in 3 Bloecke aufgeteilt (buffer = 63 Bytes nutzbar)
+	const char* response =
+		"HTTP/1.1 200 OK\r\n"
+		"Content-Length: 150\r\n"
+		"\r\n"
+		"BLOCK1-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"  // 63 Bytes
+		"BLOCK2-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"   // 63 Bytes
+		"BLOCK3-CCCCCCCCCCCCCCC";                                          // 24 Bytes
+
+	client.set_response(response);
+
+	ASSERT(reader.send_http_get_request("test.local", 80, "/test"));
+
+	// Block 1
+	ASSERT(reader.read_next_block_to_buffer());
+	ASSERT(reader.find_in_buffer((char*)"BLOCK1"));
+
+	// Block 2
+	ASSERT(reader.read_next_block_to_buffer());
+	ASSERT(reader.find_in_buffer((char*)"BLOCK2"));
+
+	// Block 3
+	ASSERT(reader.read_next_block_to_buffer());
+	ASSERT(reader.find_in_buffer((char*)"BLOCK3"));
+
+	// Ende erreicht
+	ASSERT(!reader.read_next_block_to_buffer());
 }
 
 TEST(find_pattern_across_buffer_boundary) {
