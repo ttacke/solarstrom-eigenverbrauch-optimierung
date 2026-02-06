@@ -14,6 +14,8 @@ namespace Local::Service {
 		int content_length = 0;
 		char old_buffer[64];
 		char search_buffer[128];
+		int buffer_len = 0;
+		int old_buffer_len = 0;
 		bool is_chunked = false;
 		bool debug = false;
 
@@ -54,23 +56,23 @@ namespace Local::Service {
 		}
 
 		void _prepare_search_buffer() {
-			int old_buffer_strlen = strlen(old_buffer);
-			memcpy(search_buffer, old_buffer, old_buffer_strlen);
-			memcpy(search_buffer + old_buffer_strlen, buffer, strlen(buffer) + 1);
+			memcpy(search_buffer, old_buffer, old_buffer_len);
+			memcpy(search_buffer + old_buffer_len, buffer, buffer_len);
+			search_buffer[old_buffer_len + buffer_len] = '\0';
 		}
 
 		void _read_body_content_to_buffer() {
-			int read_size = wlan_client.readBytes(
+			buffer_len = wlan_client.readBytes(
 				buffer,
 				std::min((size_t) content_length, (size_t) (sizeof(buffer) - 1))
 			);
-			std::fill(buffer + read_size, buffer + sizeof(buffer), 0);// Rest immer leeren
+			std::fill(buffer + buffer_len, buffer + sizeof(buffer), 0);// Rest immer leeren
 			if(debug) {
 				Serial.print(buffer);
 				Serial.print("|");
 			}
 			_prepare_search_buffer();
-			content_length -= strlen(buffer);
+			content_length -= buffer_len;
 			if(content_length == 0 && is_chunked) {
 				_read_next_chunk_content_length();
 				if(debug) {
@@ -94,8 +96,13 @@ namespace Local::Service {
 			match_state.Target(search_buffer);
 			char result = match_state.Match(regex);
 			if(result > 0) {
-				match_state.GetCapture(finding_buffer, 0);
-				return true;
+				if(match_state.capture_len(0) < (int) sizeof(finding_buffer)) {
+					match_state.GetCapture(finding_buffer, 0);
+					return true;
+				}
+				if(debug) {
+					Serial.println("Warn: capture overflow");
+				}
 			}
 			return false;
 		}
@@ -112,6 +119,8 @@ namespace Local::Service {
 			content_length = 0;
 			old_buffer[0] = '\0';
 			buffer[0] = '\0';
+			buffer_len = 0;
+			old_buffer_len = 0;
 			is_chunked = false;
 			if(!wlan_client.connect(host, port)) {
 				return false;
@@ -127,7 +136,8 @@ namespace Local::Service {
 				Serial.print("ReadWeb\n----\n");
 			}
 			while(wlan_client.available()) {
-				memcpy(old_buffer, buffer, strlen(buffer) + 1);
+				old_buffer_len = buffer_len;
+				memcpy(old_buffer, buffer, buffer_len);
 				std::fill(buffer, buffer + sizeof(buffer), 0);// Reset
 
 				int buffer_offset = 0;
@@ -153,6 +163,7 @@ namespace Local::Service {
 					}
 				}
 				std::fill(buffer + buffer_offset, buffer + sizeof(buffer), 0);// Rest immer leeren
+				buffer_len = buffer_offset;
 				if(debug) {
 					Serial.print(buffer);
 					Serial.print("|");
@@ -172,6 +183,8 @@ namespace Local::Service {
 					}
 					old_buffer[0] = '\0';
 					buffer[0] = '\0';
+					old_buffer_len = 0;
+					buffer_len = 0;
 					if(debug) {
 						Serial.println(is_chunked ? "Chunked" : "NoChunk");
 						Serial.println("Content-Length");
@@ -218,7 +231,8 @@ namespace Local::Service {
 				return false;
 			}
 			if(wlan_client.available()) {
-				memcpy(old_buffer, buffer, strlen(buffer) + 1);
+				old_buffer_len = buffer_len;
+				memcpy(old_buffer, buffer, buffer_len);
 				_read_body_content_to_buffer();
 				return true;
 			}
