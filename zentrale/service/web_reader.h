@@ -197,32 +197,43 @@ namespace Local::Service {
 		}
 
 		void _read_next_chunk_content_length() {
-			int buffer_offset = 0;
-			buffer[0] = '\0';
+			char chunk_size_buf[16];
+			int buf_offset = 0;
 			content_length = 0;
-			int max_buffer_offset = sizeof(buffer) - 1;
-			while(true) {
-				wlan_client.readBytes(buffer + buffer_offset, 1);
-				buffer_offset++;
-				if(// Lies den Start des Chunks und ermittle die Laenge
-					buffer_offset > 2 // min 1 Byte muss da noch zusaetzlich sein
-					&& strncmp(buffer + buffer_offset - 2, "\r\n", 2) == 0
-				) {
-					std::fill(buffer + buffer_offset - 2, buffer + sizeof(buffer), 0); // ende abschneiden
-					if(debug) {
-						Serial.print("[Chunk:");
-						Serial.print(buffer_offset);
-						Serial.print(",");
-						Serial.print(buffer);
-						Serial.print("]");
-					}
-					content_length = content_length + strtoul(buffer, 0, 16);
-					break;
-				} else if (buffer_offset == max_buffer_offset) {
-					Serial.println("Error: no chunk found");
-					content_length = 0;
+
+			// Ueberspringe fuehrende \r\n (Chunk-Ende des vorherigen Chunks)
+			char skip_char;
+			while(wlan_client.available() > 0) {
+				wlan_client.readBytes(&skip_char, 1);
+				if(skip_char != '\r' && skip_char != '\n') {
+					chunk_size_buf[0] = skip_char;
+					buf_offset = 1;
 					break;
 				}
+			}
+
+			while(buf_offset < (int)sizeof(chunk_size_buf) - 1) {
+				wlan_client.readBytes(chunk_size_buf + buf_offset, 1);
+				buf_offset++;
+				if(// Lies den Start des Chunks und ermittle die Laenge
+					buf_offset > 1 // min 1 Byte Hex-Zahl
+					&& strncmp(chunk_size_buf + buf_offset - 2, "\r\n", 2) == 0
+				) {
+					chunk_size_buf[buf_offset - 2] = '\0';
+					if(debug) {
+						Serial.print("[Chunk:");
+						Serial.print(buf_offset);
+						Serial.print(",");
+						Serial.print(chunk_size_buf);
+						Serial.print("]");
+					}
+					content_length = strtoul(chunk_size_buf, 0, 16);
+					break;
+				}
+			}
+			if(buf_offset >= (int)sizeof(chunk_size_buf) - 1) {
+				Serial.println("Error: no chunk found");
+				content_length = 0;
 			}
 		}
 
