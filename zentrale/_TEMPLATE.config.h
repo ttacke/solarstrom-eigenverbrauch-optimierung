@@ -29,8 +29,11 @@ namespace Local {
 		const char* heizstab_relay_host = "192.168.0.38";
 		const int heizstab_relay_port = 80;
 		const int heizstab_relay_version = 3;
+		const char* heiz_verdichter_relay_host = "192.168.0.35";
+		const int heiz_verdichter_relay_port = 80;
+		const int heiz_verdichter_relay_version = 3;
 // TODO DEPRECATED
-//		const char* heizung_luftvorwaermer_relay_host = "192.168.0.35";
+//		const char* heizung_luftvorwaermer_relay_host = "192.168.0.50";
 //		const int heizung_luftvorwaermer_relay_port = 80;
 //		const int heizung_luftvorwaermer_relay_version = 1;
 		const char* wasser_begleitheizung_relay_host = "192.168.0.36";
@@ -55,14 +58,15 @@ namespace Local {
 		const int heizstab_einschalt_differenzwert = 2;
 		const int heizstab_ausschalt_differenzwert = 7;// +3°
 		const float heizungs_temperatur_differenz_umrechnungsfaktor = 1.875; // das sind 1°C
+		const int heiz_wp_maximale_laufzeit_in_s = 4 * 3600; // 4h
+		const int heiz_wp_zangspausen_dauer_in_s = 30 * 60; // 0,5h
 // TODO DEPRECATED
 //		const float heizung_luftvorwaermer_zuluft_einschalttemperatur = 15.3;
 //		const float heizung_luftvorwaermer_zuluft_ausschalttemperatur = 15.5;
 //		const float heizung_luftvorwaermer_abluft_einschalttemperatur = 6.8;
 //		const float heizung_luftvorwaermer_abluft_ausschalttemperatur = 7.0;
 //		const int heizung_luftvorwaermer_benoetigte_leistung_in_w = 850;
-// TODO Maximale Heiz-WP Laufzeit: 2,5h dann 20min P
-// TODO Minimale Pause: 45min
+// TODO Maximale Heiz-WP Laufzeit: 4h dann 30min P
 // Ziel: taktung auf dieses Maß verringern
 		const float heizung_max_ablufttemperatur_wenn_aktiv = 7.0;
 		const int wasser_begleitheizung_benoetigte_leistung_in_w = 500;// Einschaltwert, sinkt rapide auf ~120
