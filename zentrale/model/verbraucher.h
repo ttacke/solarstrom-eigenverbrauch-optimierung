@@ -24,10 +24,9 @@ namespace Local::Model {
 	public:
 		enum class Ladestatus {force, solar};
 
-// TODO DEPRECATED
-//		bool heizung_luftvorwaermer_relay_ist_an = false;
-//		bool heizung_luftvorwaermer_lastschutz = false;
-//		int heizung_luftvorwaermer_aktuelle_leistung_in_w = 0;
+		bool heiz_verdichter_relay_ist_an = false;
+		int heiz_verdichter_laeuft_seit = 0;
+		int heiz_verdichter_zwangspause_seit = 0;
 
 		bool wasser_begleitheizung_relay_is_an = false;
 		bool wasser_begleitheizung_lastschutz = false;

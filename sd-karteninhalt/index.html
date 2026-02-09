@@ -123,9 +123,11 @@
 			document.getElementById('waermepumpen_abluft_luftfeuchte').innerHTML = daten['waermepumpen_abluft_luftfeuchte'];
 			
 			document.getElementById('heizung_temperatur_differenz_in_grad').innerHTML = daten['heizung_temperatur_differenz_in_grad'];
+			document.getElementById('heiz_verdichter_laufzeit').innerHTML = daten['heiz_verdichter_laufzeit'];
+			document.getElementById('heiz_verdichter_pausenzeit').innerHTML = daten['heiz_verdichter_pausenzeit'];
 			
-			document.getElementById('heizstab_erlaubt').className = daten['heizstab_erlaubt'] ? 'on' : 'off';
-			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'an' : 'aus';
+			document.getElementById('heizstab_erlaubt').className = daten['heiz_verdichter_pausenzeit'] ? "sperr" : (daten['heizstab_erlaubt'] ? 'on' : 'off');
+			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heiz_verdichter_pausenzeit'] ? "sperr" : (daten['heizstab_erlaubt'] ? 'an' : 'aus');
 			
 			document.getElementById('wasser_begleitheizung').className = daten['wasser_begleitheizung_lastschutz'] ? "sperr" : (daten['wasser_begleitheizung_an'] ? 'on' : 'off');
 			document.getElementById('wasser_begleitheizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_begleitheizung_relay_an'] ? "an" : (daten['wasser_begleitheizung_lastschutz'] ? "sperr" : "aus");
@@ -628,6 +630,9 @@
 	<div>
 		HZ-Diff: +<span id="heizung_temperatur_differenz_in_grad"></span> &#8451;
 		Dachverteilung: N <span id="solaranteil_in_prozent_string1"></span> % / S <span id="solaranteil_in_prozent_string2"></span> %
+	</div>
+	<div>
+		<small>Laufzeit: <span id="heiz_verdichter_laufzeit"></span> s, Pausenzeit: <span id="heiz_verdichter_pausenzeit"></span> s
 	</div>
 </div>
 

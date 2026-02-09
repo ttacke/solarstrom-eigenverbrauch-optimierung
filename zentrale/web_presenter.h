@@ -214,9 +214,6 @@ namespace Local {
 				cfg->heizungs_temperatur_differenz_nullpunkt
 			);
 
-			verbraucher.heizung_ist_an =
-				verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_max_ablufttemperatur_wenn_aktiv
-				? true : false;
 			verbraucher_api.fuehre_schaltautomat_aus(verbraucher);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
@@ -328,10 +325,20 @@ namespace Local {
 					"\"heizung_lastschutz\":%s,",
 					verbraucher.heizung_lastschutz ? "true" : "false"
 				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"heizung_aktiv\":%s,",
 					verbraucher.heizung_ist_an ? "true" : "false"
 				);
+				file_writer.write_formated(
+					"\"heiz_verdichter_pausenzeit\":%i,",
+					(verbraucher.heiz_verdichter_zwangspause_seit == 0 ? 0 : now_timestamp - verbraucher.heiz_verdichter_zwangspause_seit)
+				);
+				file_writer.write_formated(
+					"\"heiz_verdichter_laufzeit\":%i,",
+					(verbraucher.heiz_verdichter_laeuft_seit == 0 ? 0 : now_timestamp - verbraucher.heiz_verdichter_laeuft_seit)
+				);
+				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"auto_laden\":%s,\"roller_laden\":%s,",
 					verbraucher.auto_ladestatus == Local::Model::Verbraucher::Ladestatus::force
@@ -401,21 +408,6 @@ namespace Local {
 					(verbraucher.heizstabbetrieb_ist_erlaubt ? "true" : "false")
 				);
 				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-// TODO DEPRECATED
-//				file_writer.write_formated(
-//					"\"heizung_luftvorwaermer_lastschutz\":%s,",
-//					(verbraucher.heizung_luftvorwaermer_lastschutz ? "true" : "false")
-//				);
-//				file_writer.write_formated(
-//					"\"heizung_luftvorwaermer_relay_an\":%s,",
-//					(verbraucher.heizung_luftvorwaermer_relay_ist_an ? "true" : "false")
-//				);
-//				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-//				file_writer.write_formated(
-//					"\"heizung_luftvorwaermer_an\":%s,",
-//					(verbraucher.heizung_luftvorwaermer_aktuelle_leistung_in_w > 10 ? "true" : "false")
-//				);
-//				yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 				file_writer.write_formated(
 					"\"wasser_begleitheizung_lastschutz\":%s,",
 					(verbraucher.wasser_begleitheizung_lastschutz ? "true" : "false")
