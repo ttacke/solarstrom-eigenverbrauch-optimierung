@@ -906,11 +906,20 @@ namespace Local::Api {
 					}
 				}
 				if(// Zwangspause starten
-					verbraucher.heiz_verdichter_laeuft_seit > 0
-					&&
-					timestamp - verbraucher.heiz_verdichter_laeuft_seit
-					>
-					cfg->heiz_verdichter_maximale_laufzeit_in_s
+					verbraucher.heiz_verdichter_laeuft_seit >= cfg->heiz_verdichter_minimale_laufzeit_in_s
+					&& (
+						timestamp - verbraucher.heiz_verdichter_laeuft_seit
+						>
+						cfg->heiz_verdichter_maximale_laufzeit_in_s
+						||
+						(
+							verbraucher.waermepumpen_abluft_temperatur != 0
+							&&
+							verbraucher.waermepumpen_abluft_temperatur
+							<=
+							cfg->heiz_verdichter_min_abluft_temperatur
+						)
+					)
 				) {
 					verbraucher.heiz_verdichter_zwangspause_seit = timestamp;
 					Local::SemipersistentData::heiz_verdichter_zwangspause_seit = verbraucher.heiz_verdichter_zwangspause_seit;

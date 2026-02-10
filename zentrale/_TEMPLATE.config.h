@@ -55,7 +55,9 @@ namespace Local {
 		const int heizstab_ausschalt_differenzwert = 7;// +3°
 		const float heizungs_temperatur_differenz_umrechnungsfaktor = 1.875; // das sind 1°C
 		const int heiz_verdichter_maximale_laufzeit_in_s = 8 * 3600; // 8h
-		const int heiz_verdichter_zangspausen_dauer_in_s = 30 * 60; // 0,5h
+		const int heiz_verdichter_minimale_laufzeit_in_s = 5 * 60;// 5min
+		const float heiz_verdichter_min_abluft_temperatur = 4.9;
+		const int heiz_verdichter_zangspausen_dauer_in_s = 1 * 3600; // 1h
 		const float heizung_max_ablufttemperatur_wenn_aktiv = 7.0;
 		const int wasser_begleitheizung_benoetigte_leistung_in_w = 500;// Einschaltwert, sinkt rapide auf ~120
 
