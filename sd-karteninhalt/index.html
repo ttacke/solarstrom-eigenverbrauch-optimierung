@@ -106,8 +106,17 @@
 
 			document.getElementById('wasser').className = daten['wasser_wp_an'] ? 'on' : (daten['wasser_lastschutz'] ? "sperr" : 'off');
 			document.getElementById('wasser').getElementsByClassName('ladestatus')[0].innerHTML = daten['wasser_ueberladen'] ? "an" : (daten['wasser_lastschutz'] ? "sperr" : 'frei');
-			document.getElementById('heizung').className = daten['heiz_verdichter_pausenzeit'] > 0 || daten['heizung_lastschutz'] ? "sperr" : (daten['heizung_aktiv'] ? 'on' : 'off');
-			document.getElementById('heizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['heiz_verdichter_pausenzeit'] > 0 || daten['heizung_lastschutz'] ? "sperr" : (daten['heizung_ueberladen'] ? "an" : 'frei');
+			document.getElementById('heizung').className = daten['heizung_lastschutz'] ? "sperr" : (daten['heizung_aktiv'] ? 'on' : 'off');
+			document.getElementById('heizung').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizung_lastschutz'] ? "sperr" : (daten['heizung_ueberladen'] ? "an" : 'frei');
+			if(daten['heiz_verdichter_laufzeit'] > 0) {
+				document.getElementById('heiz_verdichter_zeit').innerHTML = `${Math.floor(daten['heiz_verdichter_laufzeit'] / 3600)}:${String(Math.floor(daten['heiz_verdichter_laufzeit'] % 3600 / 60)).padStart(2, '0')}`;
+			} else {
+				if(daten['heiz_verdichter_pausenzeit'] > 86400) {
+					document.getElementById('heiz_verdichter_zeit').innerHTML = '-';
+				} else {
+					document.getElementById('heiz_verdichter_zeit').innerHTML = `${Math.floor(daten['heiz_verdichter_pausenzeit'] / 3600)}:${String(Math.floor(daten['heiz_verdichter_pausenzeit'] % 3600 / 60)).padStart(2, '0')}`;
+				}
+			}
 			document.getElementById('roller_laden_an').className = daten['roller_lastschutz'] ? "sperr" : (daten['roller_laden_an'] ? 'on' : 'off');
 			document.getElementById('roller_laden_an').getElementsByClassName('ladestatus')[0].innerHTML = daten['roller_relay_an'] ? "frei" : (daten['roller_lastschutz'] ? "sperr" : "aus");
 			document.getElementById('auto_laden_an').className = daten['auto_lastschutz'] ? "sperr" : (daten['auto_laden_an'] ? 'on' : 'off');
@@ -123,8 +132,6 @@
 			document.getElementById('waermepumpen_abluft_luftfeuchte').innerHTML = daten['waermepumpen_abluft_luftfeuchte'];
 			
 			document.getElementById('heizung_temperatur_differenz_in_grad').innerHTML = daten['heizung_temperatur_differenz_in_grad'];
-			document.getElementById('heiz_verdichter_laufzeit').innerHTML = daten['heiz_verdichter_laufzeit'];
-			document.getElementById('heiz_verdichter_pausenzeit').innerHTML = daten['heiz_verdichter_pausenzeit'];
 			
 			document.getElementById('heizstab_erlaubt').className = daten['heizstab_erlaubt'] ? 'on' : 'off';
 			document.getElementById('heizstab_erlaubt').getElementsByClassName('ladestatus')[0].innerHTML = daten['heizstab_erlaubt'] ? 'an' : 'aus';
@@ -613,7 +620,7 @@
 	</span>
 
 	<span id="heizung">
-		HZ
+		HZ <span id="heiz_verdichter_zeit"></span>
 		<br><span class="ladestatus">-</span>
 	</span>
 	<span id="heizstab_erlaubt">
@@ -630,9 +637,6 @@
 	<div>
 		HZ-Diff: +<span id="heizung_temperatur_differenz_in_grad"></span> &#8451;
 		Dachverteilung: N <span id="solaranteil_in_prozent_string1"></span> % / S <span id="solaranteil_in_prozent_string2"></span> %
-	</div>
-	<div>
-		<small>Laufzeit: <span id="heiz_verdichter_laufzeit"></span> s, Pausenzeit: <span id="heiz_verdichter_pausenzeit"></span> s
 	</div>
 </div>
 
