@@ -26,7 +26,7 @@ namespace Local::Model {
 
 		bool heiz_verdichter_relay_ist_an = false;
 		int heiz_verdichter_laeuft_seit = 0;
-		int heiz_verdichter_zwangspause_seit = 0;
+		int heiz_verdichter_aus_seit = 0;
 
 		bool wasser_begleitheizung_relay_is_an = false;
 		bool wasser_begleitheizung_lastschutz = false;

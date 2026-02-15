@@ -332,7 +332,7 @@ namespace Local {
 				);
 				file_writer.write_formated(
 					"\"heiz_verdichter_pausenzeit\":%i,",
-					(verbraucher.heiz_verdichter_zwangspause_seit == 0 ? 0 : now_timestamp - verbraucher.heiz_verdichter_zwangspause_seit)
+					(verbraucher.heiz_verdichter_aus_seit == 0 ? 0 : now_timestamp - verbraucher.heiz_verdichter_aus_seit)
 				);
 				file_writer.write_formated(
 					"\"heiz_verdichter_laufzeit\":%i,",

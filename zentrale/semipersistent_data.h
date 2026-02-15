@@ -17,5 +17,5 @@ namespace Local::SemipersistentData {
 	int frueh_leeren_roller_zuletzt_gestartet_an_timestamp = 0;
 	bool frueh_leeren_roller_ist_aktiv = false;
 	int heiz_verdichter_laeuft_seit = 0;
-	int heiz_verdichter_zwangspause_seit = 0;
+	int heiz_verdichter_aus_seit = 0;
 }
