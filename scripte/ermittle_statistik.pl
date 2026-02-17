@@ -78,7 +78,7 @@ sub _hole_daten {
                 stunde => sprintf('%02d', $d[2]),
                 tag => sprintf('%02d', $d[3]),
                 monat => sprintf('%02d', $d[4] + 1),
-                jahr => sprintf('%02d', $d[5] + 1900),
+                jahr => sprintf('%d', $d[5] + 1900),
 
                 netzbezug_in_w                  => $e[2],
                 solarakku_zuschuss_in_w         => $e[3],
@@ -105,7 +105,8 @@ sub _hole_daten {
                 waermepumpen_abluft_luftfeuchtigkeit           => $t[3],
 
                 heizungsunterstuetzung_an       => $t[4],
-                heizung_temperatur_differenz => $t[5],
+                heizung_temperatur_differenz => $t[5] ? $t[5] - 540 : undef,
+                heizungs_temperatur_differenz_in_grad => $t[5] ? ($t[5] - 540) / 1.875 : undef,
                 # TODO roller_laden_ist_an + auto_laden_ist_an + roller_benoetigte_ladeleistung_in_w
                 # Um wallbox zu bestätigen
                 # Um RollerKosten zu holen
@@ -131,6 +132,28 @@ sub _hole_daten {
     return $daten;
 }
 my $daten = _hole_daten();
+# open(my $analyse_fh, '>', 'analyse_temp.log') or die $!;
+# print $analyse_fh "timestamp,t_ansaug,t_ausblas,delta_t,heizstab,verdichter,rh_ansaug,rh_ausblas\n";
+# foreach my $e (@$daten) {
+#     next if(
+#         $e->{'jahr'} < 2025
+#         || ($e->{'tag'} < 29 && $e->{'monat'} == 12 && $e->{'jahr'} == 2025)
+#         || ($e->{'monat'} < 12 && $e->{'jahr'} == 2025)
+#     );
+#     next if(!$e->{'waermepumpen_abluft_temperatur'} || $e->{'waermepumpen_abluft_temperatur'} > 20);
+#     next if(!$e->{'heizung_temperatur_differenz'});
+#     my $wp_an = $e->{'waermepumpen_abluft_temperatur'} != 0 && $e->{'waermepumpen_abluft_temperatur'} < 7 ? 1 : 0;
+#     my $stab_an = $e->{'heizungsunterstuetzung_an'} ? 1 : 0;
+#     print $analyse_fh
+#         "$e->{'jahr'}-$e->{'monat'}-$e->{'tag'}T$e->{'stunde'}:$e->{'minute'}:00,"
+#         . "$e->{'waermepumpen_zuluft_temperatur'},"
+#         . "$e->{'waermepumpen_abluft_temperatur'},"
+#         . "$e->{'heizungs_temperatur_differenz_in_grad'},$stab_an,$wp_an,"
+#         , ",$e->{'waermepumpen_zuluft_luftfeuchtigkeit'},$e->{'waermepumpen_abluft_luftfeuchtigkeit'}\n"
+#     ;
+# }
+# close($analyse_fh) or die $!;
+# exit;
 print "\nAnzahl der Log-Datensaetze: " . scalar(@$daten) . "\n";
 my $logdaten_in_tagen = ($daten->[$#$daten]->{'zeitpunkt'} - $daten->[0]->{'zeitpunkt'}) / 86400;
 print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n";
@@ -139,8 +162,8 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
     my $amp_detail_filename = '3phasiger_lastverlauf_detail.csv';
     open(my $amp_file, '>', $amp_filename) or die $!;
     open(my $amp_detail_file, '>', $amp_detail_filename) or die $!;
-    print $amp_file "Datum,L1,L2,L3,WPan\n";
-    print $amp_detail_file "Datum,L1,L2,L3,WPan,Abluft,Zuluft,Begleit,WasserWP\n";
+    print $amp_file "Datum,L1,L2,L3,WPan,Heizstab\n";
+    print $amp_detail_file "Datum,L1,L2,L3,WPan,Abluft,Zuluft,Begleit,WasserWP,Heizstab,HeizDiff\n";
     my ($l1, $l2, $l3) = (0, 0, 0);
     my ($l1max, $l2max, $l3max) = (0, 0, 0);
     my $wp_an = 0;
@@ -179,22 +202,24 @@ print "Betrachteter Zeitraum: " . sprintf("%.1f", $logdaten_in_tagen) . " Tage\n
             $wp_an = 1;
         }
         $e->{'_heizung_waermepumpe_status'} = $wp_an;
-        if($e->{'zeitpunkt'} > $letzter_log_zeitpunkt - 86400 * 14) {
+        if($e->{'zeitpunkt'} > $letzter_log_zeitpunkt - 86400 * 3) {
             print $amp_detail_file sprintf(
-                "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+                "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
                 $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'},
                 $e->{"l1_strom_ma"}, $e->{"l2_strom_ma"}, $e->{"l3_strom_ma"}, $wp_an*5000,
                 $e->{'waermepumpen_abluft_temperatur'} * 1000,
                 $e->{'waermepumpen_zuluft_temperatur'} * 1000,
                 $e->{'begleitheizung_leistung'},
-                $e->{'wasser_wp_leistung'} || 0
+                $e->{'wasser_wp_leistung'} || 0,
+                $e->{'heizungsunterstuetzung_an'} * 4000,
+                $e->{'heizungs_temperatur_differenz_in_grad'} ? $e->{'heizungs_temperatur_differenz_in_grad'} * 1000 : 0
             );
         }
         if($e->{'minute'} == 0 || $wp_an_letzter_wert != $wp_an) {
             print $amp_file sprintf(
-                "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d\n",
+                "%4d-%02d-%02d %d:%02d,%d,%d,%d,%d,%d\n",
                 $e->{'jahr'}, $e->{'monat'}, $e->{'tag'}, $e->{'stunde'}, $e->{'minute'},
-                $l1, $l2, $l3, $wp_an*5000
+                $l1, $l2, $l3, $wp_an*5000, $e->{'heizungsunterstuetzung_an'} * 4000
             );
             ($l1, $l2, $l3) = (0, 0, 0);
         }
