@@ -863,6 +863,7 @@ namespace Local::Api {
 
 			if(verbraucher.waermepumpen_abluft_temperatur == 0) {
 				_log((char*) "heiz_verdichter: NEUSTART");
+				verbraucher.heizung_ist_an = false;
 				verbraucher.heiz_verdichter_relay_ist_an = true;
 				verbraucher.heiz_verdichter_laeuft_seit = 0;
 				verbraucher.heiz_verdichter_aus_seit = timestamp;
@@ -890,54 +891,41 @@ namespace Local::Api {
 						Local::SemipersistentData::heiz_verdichter_laeuft_seit = verbraucher.heiz_verdichter_laeuft_seit;
 						verbraucher.heiz_verdichter_aus_seit = timestamp;
 						Local::SemipersistentData::heiz_verdichter_aus_seit = verbraucher.heiz_verdichter_aus_seit;
+
+						_log((char*) "heiz_verdichter: MINDESTPAUSE");
+						verbraucher.heiz_verdichter_relay_ist_an = false;
+						_schalte_heiz_verdichter_relay(verbraucher.heiz_verdichter_relay_ist_an);
+						return;
 					}
 				}
-				if(
-					verbraucher.heiz_verdichter_aus_seit == timestamp
-					&& verbraucher.heizung_ist_an
-				) {
-					_log((char*) "heiz_verdichter: MINDESTPAUSE");
-					verbraucher.heiz_verdichter_relay_ist_an = false;
-					verbraucher.heizung_ist_an = false;
-					_schalte_heiz_verdichter_relay(verbraucher.heiz_verdichter_relay_ist_an);
-					return;
-				}
 				if(// Zwangs & Mindestpausenzeit beenden
-					!verbraucher.heiz_verdichter_relay_ist_an
-					&&
-					verbraucher.heiz_verdichter_aus_seit > 0
-					&&
-					timestamp - verbraucher.heiz_verdichter_aus_seit
-					>=
-					cfg->heiz_verdichter_zwangspausen_dauer_in_s
+					!verbraucher.heizung_ist_an
+					&& !verbraucher.heiz_verdichter_relay_ist_an
+					&& verbraucher.heiz_verdichter_aus_seit > 0
+					&& timestamp - verbraucher.heiz_verdichter_aus_seit
+						>=
+						cfg->heiz_verdichter_zwangspausen_dauer_in_s
 				) {
-					verbraucher.heiz_verdichter_relay_ist_an = true;
-					verbraucher.heizung_ist_an = true;
-					_schalte_heiz_verdichter_relay(verbraucher.heiz_verdichter_relay_ist_an);
-					verbraucher.heiz_verdichter_laeuft_seit = timestamp;
-					Local::SemipersistentData::heiz_verdichter_laeuft_seit = verbraucher.heiz_verdichter_laeuft_seit;
-					verbraucher.heiz_verdichter_aus_seit = 0;
-					Local::SemipersistentData::heiz_verdichter_aus_seit = verbraucher.heiz_verdichter_aus_seit;
-					_log((char*) "heiz_verdichter: PAUSE-ENDE");
-					return;
-				}
-				if(// Zwangspause starten
-					verbraucher.heiz_verdichter_relay_ist_an
-					&&
-					verbraucher.heiz_verdichter_laeuft_seit
-					&&
-					timestamp - verbraucher.heiz_verdichter_laeuft_seit
-					>=
-					cfg->heiz_verdichter_maximale_laufzeit_in_s
-				) {
-					verbraucher.heiz_verdichter_relay_ist_an = false;
-					verbraucher.heizung_ist_an = false;
-					_schalte_heiz_verdichter_relay(verbraucher.heiz_verdichter_relay_ist_an);
 					verbraucher.heiz_verdichter_laeuft_seit = 0;
 					Local::SemipersistentData::heiz_verdichter_laeuft_seit = verbraucher.heiz_verdichter_laeuft_seit;
 					verbraucher.heiz_verdichter_aus_seit = timestamp;
 					Local::SemipersistentData::heiz_verdichter_aus_seit = verbraucher.heiz_verdichter_aus_seit;
+					_log((char*) "heiz_verdichter: PAUSE-ENDE");
+					verbraucher.heiz_verdichter_relay_ist_an = true;
+					_schalte_heiz_verdichter_relay(verbraucher.heiz_verdichter_relay_ist_an);
+					return;
+				}
+				if(// Zwangspause starten
+					verbraucher.heizung_ist_an
+					&& verbraucher.heiz_verdichter_relay_ist_an
+					&& verbraucher.heiz_verdichter_laeuft_seit
+					&& timestamp - verbraucher.heiz_verdichter_laeuft_seit
+						>=
+						cfg->heiz_verdichter_maximale_laufzeit_in_s
+				) {
 					_log((char*) "heiz_verdichter: ZWANGSPAUSE-START");
+					verbraucher.heiz_verdichter_relay_ist_an = false;
+					_schalte_heiz_verdichter_relay(verbraucher.heiz_verdichter_relay_ist_an);
 					return;
 				}
 			}
