@@ -146,15 +146,9 @@ Zusätzliche Features:
 
 ### netz-relay
 
-Setup (Ubuntu/Debian):
 ```bash
-apt install python3-pytest
-```
-
-Ausführung:
-```bash
-cd netz-relay/test
-python3 -m pytest
+apt install g++
+./netz-relay/run_tests.sh
 ```
 
 ## HINWEIS
