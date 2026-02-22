@@ -142,6 +142,21 @@ Zusätzliche Features:
   - forciertes Laden des Rollers: http://[IP-DER-ZENTRALE]/change?key=roller&value=force
     - wieder zurücksetzen: http://[IP-DER-ZENTRALE]/change?key=roller&value=solar
 
+## Tests
+
+### netz-relay
+
+Setup (Ubuntu/Debian):
+```bash
+apt install python3-pytest
+```
+
+Ausführung:
+```bash
+cd netz-relay/test
+python3 -m pytest
+```
+
 ## HINWEIS
 Wechselrichter und Batterie sollten nie im Netzwerk mit anderen Endgeräten sein. Die Zugänge
 sind fest codiert und "zertifizierten Handwerkern" bekannt. Also jedem. Jemand/Etwas auf einem
