@@ -236,14 +236,6 @@ namespace Local::Api {
 		}
 
 		void _ermittle_relay_zustaende(Local::Model::Verbraucher& verbraucher) {
-			verbraucher.heizung_relay_ist_an = _netz_relay_ist_an(cfg->heizung_relay_host, cfg->heizung_relay_port);
-			verbraucher.heizung_relay_zustand_seit = Local::SemipersistentData::heizung_relay_zustand_seit;
-			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-
-			verbraucher.wasser_relay_ist_an = _netz_relay_ist_an(cfg->wasser_relay_host, cfg->wasser_relay_port);
-			verbraucher.wasser_relay_zustand_seit = Local::SemipersistentData::wasser_relay_zustand_seit;
-			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-
 			// Wird invertiert, damit der Zustand ohne Steuerung der normale Wallboxbetrieb ist
 			verbraucher.auto_relay_ist_an = !_netz_relay_ist_an(cfg->auto_relay_host, cfg->auto_relay_port);
 			verbraucher.auto_relay_zustand_seit = Local::SemipersistentData::auto_relay_zustand_seit;
@@ -257,6 +249,29 @@ namespace Local::Api {
 			verbraucher.heiz_verdichter_aus_seit = Local::SemipersistentData::heiz_verdichter_aus_seit;
 
 			Local::Model::Shelly shelly_daten;
+
+			if(_read_shelly_content(
+				(char*) cfg->heizung_relay_host,
+				cfg->heizung_relay_port,
+				cfg->heizung_relay_version,
+				shelly_daten
+			)) {
+				verbraucher.heizung_relay_ist_an = shelly_daten.ison;
+			}
+			verbraucher.heizung_relay_zustand_seit = Local::SemipersistentData::heizung_relay_zustand_seit;
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+
+			if(_read_shelly_content(
+				(char*) cfg->wasser_relay_host,
+				cfg->wasser_relay_port,
+				cfg->wasser_relay_version,
+				shelly_daten
+			)) {
+				verbraucher.wasser_relay_ist_an = shelly_daten.ison;
+			}
+			verbraucher.wasser_relay_zustand_seit = Local::SemipersistentData::wasser_relay_zustand_seit;
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
+
 			if(_read_shelly_content(
 				(char*) cfg->heizstab_relay_host,
 				cfg->heizstab_relay_port,
@@ -348,12 +363,20 @@ namespace Local::Api {
 		}
 
 		void _schalte_wasser_relay(bool ein) {
-			_schalte_netz_relay(ein, cfg->wasser_relay_host, cfg->wasser_relay_port);
+			_log((char*) "schalte wasser-ueberladen: ", (char*) (ein ? "an" : "aus"));
+			_schalte_shellyplug(
+				ein, cfg->wasser_relay_host, cfg->wasser_relay_port, cfg->wasser_relay_version,
+				web_reader->default_timeout_in_hundertstel_s
+			);
 			Local::SemipersistentData::wasser_relay_zustand_seit = timestamp;
 		}
 
 		void _schalte_heizung_relay(bool ein) {
-			_schalte_netz_relay(ein, cfg->heizung_relay_host, cfg->heizung_relay_port);
+			_log((char*) "schalte heizung-ueberladen: ", (char*) (ein ? "an" : "aus"));
+			_schalte_shellyplug(
+				ein, cfg->heizung_relay_host, cfg->heizung_relay_port, cfg->heizung_relay_version,
+				web_reader->default_timeout_in_hundertstel_s
+			);
 			Local::SemipersistentData::heizung_relay_zustand_seit = timestamp;
 		}
 

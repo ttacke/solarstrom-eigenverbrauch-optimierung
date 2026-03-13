@@ -22,10 +22,12 @@ namespace Local {
 		const int roller_aussen_relay_version = 3;
 		const char* wasser_relay_host = "192.168.0.31";
 		const int wasser_relay_port = 80;
+		const int wasser_relay_version = 3;
 		const char* auto_relay_host = "192.168.0.32";
 		const int auto_relay_port = 80;
 		const char* heizung_relay_host = "192.168.0.33";
 		const int heizung_relay_port = 80;
+		const int heizung_relay_version = 3;
 		const char* heizstab_relay_host = "192.168.0.38";
 		const int heizstab_relay_port = 80;
 		const int heizstab_relay_version = 3;
