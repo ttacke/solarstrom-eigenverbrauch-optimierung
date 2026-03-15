@@ -17,6 +17,14 @@ Ansätze:
 import pandas as pd
 import numpy as np
 
+try:
+    from astral import LocationInfo
+    from astral.sun import sun as astral_sun
+    WIESBADEN = LocationInfo("Wiesbaden", "Germany", "Europe/Berlin", 50.07, 8.24)
+    HAS_ASTRAL = True
+except ImportError:
+    HAS_ASTRAL = False
+
 CSV_PATH = '/mnt/solar.csv'
 
 # --- Laden & Filtern ---
@@ -68,12 +76,21 @@ daily = daily[daily['vorhersage_tages'] > 100]
 daily['faktor'] = daily['produktion_kwh'] / (daily['vorhersage_tages'] / 1000)
 
 # Vorhersagequalität: Stunden-Summe / Tagesvorhersage
-# stunden_solarstrahlung ist W/m² pro Stunde, tages in Wh/m²
-# Summe der Stundenwerte * 1 (je eine Stunde) = Wh/m² approximiert Tagessumme
-daily['vorh_konsistenz'] = daily['stunden_sum'] / daily['vorhersage_tages']
+daily['vorh_konsistenz_korr'] = (daily['stunden_sum'] / 60) / daily['vorhersage_tages']
 
 # Peakanteil: max Stunde / mean Stunde → niedrig = breite Kurve, hoch = schmaler Peak
 daily['peak_ratio'] = daily['stunden_max'] / (daily['stunden_mean'] + 1)
+
+# Tageslänge via astral (Wiesbaden, rein berechnet)
+if HAS_ASTRAL:
+    def tageslänge(datum):
+        s = astral_sun(WIESBADEN.observer, date=datum, tzinfo=WIESBADEN.timezone)
+        return (s['sunset'] - s['sunrise']).total_seconds() / 3600
+    daily['tageslänge_h'] = daily['datum'].dt.date.map(tageslänge)
+    print("  Tageslänge: via astral berechnet")
+else:
+    daily['tageslänge_h'] = None
+    print("  HINWEIS: astral nicht installiert (pip install astral) — Abschnitte 6+7 eingeschränkt")
 
 print(f"  Tage gesamt: {len(daily)}, Sommer: {(daily['saison']=='Sommer').sum()}, Winter: {(daily['saison']=='Winter').sum()}")
 print(f"  Zeitraum: {daily['datum'].min().date()} bis {daily['datum'].max().date()}")
@@ -147,10 +164,6 @@ print(hl(ws))
 section("3. Faktor vs. Vorhersage-Konsistenz (stunden_sum / tages_vorhersage)")
 print("  (Wert ~1 = konsistente Vorhersage, <1 oder >1 = Abweichung)")
 
-# stunden_solarstrahlung ist W/m² für jede Minute → sum / 60 = Wh/m²
-# Korrektur:
-daily['vorh_konsistenz_korr'] = (daily['stunden_sum'] / 60) / daily['vorhersage_tages']
-
 kbins = [0, 0.5, 0.8, 1.2, 1.5, 99]
 klabs = ['<0.5', '0.5-0.8', '0.8-1.2', '1.2-1.5', '>1.5']
 daily['k_bin'] = pd.cut(daily['vorh_konsistenz_korr'], bins=kbins, labels=klabs)
@@ -167,7 +180,6 @@ for lab in klabs:
     print(drow([lab, len(g), f'{g.median():.2f}', f'{g.std():.2f}'], ws))
 print(hl(ws))
 
-# Korrelation
 corr_k = daily[['vorh_konsistenz_korr', 'faktor']].corr().iloc[0, 1]
 print(f"  Korrelation Konsistenz↔Faktor: {corr_k:.3f}")
 
@@ -229,53 +241,77 @@ else:
 
 
 # ============================================================
-# 6. KOMBINIERT: Vorhersagehöhe × Saison (Empfehlung)
+# 6. KOMBINIERT: Tageslänge × Vorhersage-Klasse (Lookup-Tabelle)
 # ============================================================
-section("6. Empfehlung: Faktor-Tabelle Saison × Vorhersage-Klasse")
-print("  Diese Tabelle kann direkt als Lookup-Tabelle im Steuerungssystem genutzt werden.")
-print("  Wert = Median-Faktor (m²). IQR zeigt verbleibende Unsicherheit.\n")
+section("6. Empfehlung: Faktor-Tabelle Tageslänge × Vorhersage-Klasse")
 
-ws = [7, 8, 6, 8, 6]
-heads = ['Klasse', 'S-Fakt', 'S-IQR', 'W-Fakt', 'W-IQR']
-print(hl(ws))
-print(hrow(heads, ws))
-print(hl(ws))
-for label in labels:
-    row = [label]
-    for saison in ['Sommer', 'Winter']:
-        g = daily[(daily['saison'] == saison) & (daily['vorh_bin'] == label)]['faktor']
+if not HAS_ASTRAL or daily['tageslänge_h'].isna().all():
+    print("  astral nicht verfügbar — Abschnitt übersprungen.")
+else:
+    print("  Wert = Median-Faktor (m²). Feingranularer als Sommer/Winter.\n")
+
+    TL_BINS = [0, 10, 12, 14, 16, 25]
+    TL_LABS = ['<10h', '10-12h', '12-14h', '14-16h', '>16h']
+    daily['tl_bin'] = pd.cut(daily['tageslänge_h'], bins=TL_BINS, labels=TL_LABS)
+
+    WTL = 7
+    WK  = 7
+    widths_6 = [WTL] + [WK] * len(labels)
+    print(hl(widths_6))
+    print(hrow(['TL (h)'] + labels, widths_6))
+    print(hl(widths_6))
+    for tl_lab in TL_LABS:
+        row_vals = [tl_lab]
+        for v_lab in labels:
+            g = daily[(daily['tl_bin'] == tl_lab) & (daily['vorh_bin'] == v_lab)]['faktor']
+            row_vals.append(f'{g.median():.2f}' if len(g) >= 3 else '-')
+        print(drow(row_vals, widths_6))
+    print(hl(widths_6))
+
+    # Zum Vergleich: Tageslänge-only (Marginal)
+    print("\n  Marginal (nur Tageslänge):")
+    ws_tl = [7, 5, 8, 8]
+    print(hl(ws_tl))
+    print(hrow(['TL (h)', 'Tage', 'Fakt.Med', 'Fakt.Std'], ws_tl))
+    print(hl(ws_tl))
+    for tl_lab in TL_LABS:
+        g = daily[daily['tl_bin'] == tl_lab]['faktor']
         if len(g) < 3:
-            row += ['-', '-']
-        else:
-            iqr = g.quantile(0.75) - g.quantile(0.25)
-            row += [f'{g.median():.2f}', f'{iqr:.2f}']
-    print(drow(row, ws))
-print(hl(ws))
+            continue
+        print(drow([tl_lab, len(g), f'{g.median():.2f}', f'{g.std():.2f}'], ws_tl))
+    print(hl(ws_tl))
+
 
 # ============================================================
 # 7. ERKLAERTE VARIANZ
 # ============================================================
 section("7. Erklärte Varianz (wie viel des Faktors erklärt jede Variable?)")
-print("  R² = 1 → perfekte Erklärung, 0 → kein Zusammenhang\n")
+print("  R² = 1 → perfekte Erklärung, 0 → kein Zusammenhang")
+print("  Monat (diskret) vs. Tageslänge (kontinuierlich): beide erklären Saisoneffekt\n")
 
 from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import LabelEncoder
 
 try:
-    d = daily.dropna(subset=['faktor', 'vorhersage_tages', 'peak_ratio',
-                              'vorh_konsistenz_korr', 'monat'])
-    results = []
-    for col, label in [
-        ('vorhersage_tages',   'Vorhersagehöhe'),
-        ('monat',              'Monat'),
-        ('peak_ratio',         'Tagesform (Peak)'),
+    base_cols = ['faktor', 'vorhersage_tages', 'peak_ratio', 'vorh_konsistenz_korr', 'monat']
+    if HAS_ASTRAL:
+        base_cols.append('tageslänge_h')
+    d = daily.dropna(subset=base_cols)
+
+    candidates = [
+        ('vorhersage_tages',    'Vorhersagehöhe'),
+        ('peak_ratio',          'Tagesform (Peak)'),
         ('vorh_konsistenz_korr','Konsistenz Std/Tag'),
-    ]:
+        ('monat',               'Monat (diskret 1–12)'),
+    ]
+    if HAS_ASTRAL:
+        candidates.append(('tageslänge_h', 'Tageslänge (h)'))
+
+    results = []
+    for col, label in candidates:
         X = d[[col]].values
         y = d['faktor'].values
         lr = LinearRegression().fit(X, y)
-        r2 = lr.score(X, y)
-        results.append((label, r2))
+        results.append((label, lr.score(X, y)))
 
     if has_temp:
         d2 = d.dropna(subset=['temp_mean'])
@@ -285,12 +321,26 @@ try:
         results.append(('Temperatur', lr.score(X, y)))
 
     results.sort(key=lambda x: -x[1])
-    ws2 = [22, 6]
+    ws2 = [24, 6]
     print(hl(ws2))
     print(hrow(['Variable', 'R²'], ws2))
     print(hl(ws2))
     for label, r2 in results:
         print(drow([label, f'{r2:.4f}'], ws2))
     print(hl(ws2))
+
+    if HAS_ASTRAL:
+        r2_tl  = next(r for l, r in results if 'Tageslänge' in l)
+        r2_mon = next(r for l, r in results if 'Monat' in l)
+        diff   = r2_tl - r2_mon
+        sign   = "höher" if diff > 0 else "niedriger"
+        print(f"\n  Tageslänge R² {abs(diff):.4f} {sign} als Monat.")
+        if abs(diff) < 0.005:
+            print("  → Kein relevanter Unterschied: Saisoneffekt vollständig durch Tageslänge erklärt.")
+        elif diff > 0:
+            print("  → Tageslänge ist präzisere Variable für denselben Effekt.")
+        else:
+            print("  → Monat enthält Zusatzinformation (z.B. Temperatur, Schnee).")
+
 except ImportError:
     print("  sklearn nicht verfügbar, übersprungen.")
