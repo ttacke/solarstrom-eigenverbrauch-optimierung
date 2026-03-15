@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-Verbraucher-Analyse: Heizstab, Heizungs-WP, Begleitheizung, Warmwasser-WP, Wallbox, Roller
+Verbraucher-Analyse: Heizstab, Heizungs-WP, Begleitheizung, Warmwasser-WP, Wallbox
 
 Methoden:
   Heizstab       : heizungsunterstuetzung_an == 1 → 1500 W
   Heizungs-WP    : waermepumpen_abluft_temperatur in (0, 7) → 420 W
   Begleitheizung : begleitheizung_leistung (W direkt)
   Warmwasser-WP  : wasser_wp_leistung (W, Standby 0–2 W filtern)
-  Wallbox        : auto_laden_ist_an == 1 → auto_benoetigte_ladeleistung_in_w W
-  Roller         : roller_laden_ist_an == 1 → roller_benoetigte_ladeleistung_in_w W
+  Wallbox        : korrigierter L1 > 9 A für > 30 aufeinander folgende Minuten → 2300 W
   Solar-EV       : solarerzeugung - einspeisung (= selbst genutzter Solarstrom)
+
+L1-Korrektur (Wechselrichter speist gleichmäßig auf alle 3 Phasen):
+  l1_real_mA = l1_strom_ma + (solarerzeugung_in_w + solarakku_zuschuss_in_w) / 3 / 230 * 1000
 
 Spaltentrennlinien: || zwischen Verbraucher-Gruppen, | innerhalb
 """
@@ -17,8 +19,9 @@ import pandas as pd
 import numpy as np
 
 CSV_PATH              = '/mnt/solar.csv'
-WALLBOX_LEISTUNG_W    = 2300   # Fallback wenn auto_benoetigte_ladeleistung_in_w fehlt
-ROLLER_LEISTUNG_W     = 840    # Fallback wenn roller_benoetigte_ladeleistung_in_w fehlt
+WALLBOX_THRESHOLD_MA  = 9000
+WALLBOX_MIN_MINUTES   = 30
+WALLBOX_LEISTUNG_W    = 2300
 HEIZSTAB_LEISTUNG_W   = 1500
 WP_HEIZUNG_LEISTUNG_W = 420
 WP_HEIZUNG_MAX_TEMP   = 7.0
@@ -38,7 +41,8 @@ print("Lade Daten...")
 df = pd.read_csv(CSV_PATH, index_col=False)
 df = df[df['zeitpunkt'] != 0].copy()
 df = df.dropna(subset=['zeitpunkt', 'datum', 'jahr', 'monat',
-                        'solarerzeugung_in_w', 'netzbezug_in_w', 'stromverbrauch_in_w'])
+                        'solarerzeugung_in_w', 'solarakku_zuschuss_in_w',
+                        'netzbezug_in_w', 'stromverbrauch_in_w', 'l1_strom_ma'])
 
 df['datum'] = pd.to_datetime(df['datum'])
 df['jahr']  = df['jahr'].astype(int)
@@ -46,6 +50,23 @@ df['monat'] = df['monat'].astype(int)
 df = df[df['jahr'] >= 2026].copy()
 
 print(f"  {len(df):,} Zeilen, {df['datum'].min().date()} bis {df['datum'].max().date()}")
+
+
+# --- L1-Korrektur ---
+df['l1_real_ma'] = (
+    df['l1_strom_ma']
+    + (df['solarerzeugung_in_w'] + df['solarakku_zuschuss_in_w']) / 3.0 / 230.0 * 1000.0
+)
+
+
+# --- Wallbox-Erkennung (L1 > Schwelle für ≥ 30 Minuten am Stück) ---
+print("Erkenne Wallbox-Phasen...")
+df = df.sort_values('zeitpunkt').reset_index(drop=True)
+
+above       = df['l1_real_ma'] > WALLBOX_THRESHOLD_MA
+group_id    = (above != above.shift()).cumsum()
+run_lengths = above.groupby(group_id).transform('sum')
+df['wallbox_an'] = above & (run_lengths >= WALLBOX_MIN_MINUTES)
 
 
 # --- Leistungen berechnen (jede Zeile = 1 Minute) ---
@@ -78,28 +99,12 @@ if 'wasser_wp_leistung' in df.columns:
 else:
     df['ww_wp_w'] = 0
 
-if 'auto_laden_ist_an' in df.columns:
-    auto_an = df['auto_laden_ist_an'].fillna(0).astype(int) == 1
-    leistung = df['auto_benoetigte_ladeleistung_in_w'].fillna(WALLBOX_LEISTUNG_W) \
-               if 'auto_benoetigte_ladeleistung_in_w' in df.columns \
-               else WALLBOX_LEISTUNG_W
-    df['wallbox_w'] = np.where(auto_an, leistung, 0)
-else:
-    df['wallbox_w'] = 0
-
-if 'roller_laden_ist_an' in df.columns:
-    roller_an = df['roller_laden_ist_an'].fillna(0).astype(int) == 1
-    leistung = df['roller_benoetigte_ladeleistung_in_w'].fillna(ROLLER_LEISTUNG_W) \
-               if 'roller_benoetigte_ladeleistung_in_w' in df.columns \
-               else ROLLER_LEISTUNG_W
-    df['roller_w'] = np.where(roller_an, leistung, 0)
-else:
-    df['roller_w'] = 0
+df['wallbox_w'] = np.where(df['wallbox_an'], WALLBOX_LEISTUNG_W, 0)
 
 
 # --- Aggregation ---
-POWER_COLS = ['heizstab_w', 'heiz_wp_w', 'begleit_w', 'ww_wp_w', 'wallbox_w', 'roller_w']
-KWH_COLS   = ['heizstab_kwh', 'heiz_wp_kwh', 'begleit_kwh', 'ww_wp_kwh', 'wallbox_kwh', 'roller_kwh']
+POWER_COLS = ['heizstab_w', 'heiz_wp_w', 'begleit_w', 'ww_wp_w', 'wallbox_w']
+KWH_COLS   = ['heizstab_kwh', 'heiz_wp_kwh', 'begleit_kwh', 'ww_wp_kwh', 'wallbox_kwh']
 
 
 def agg_group(grp):
@@ -118,12 +123,6 @@ def agg_group(grp):
     active = grp['heiz_wp_w'] > 0
     result['heiz_wp_takte'] = int((active & ~active.shift(1).fillna(False)).sum())
 
-    active = grp['wallbox_w'] > 0
-    result['wallbox_takte'] = int((active & ~active.shift(1).fillna(False)).sum())
-
-    active = grp['roller_w'] > 0
-    result['roller_takte'] = int((active & ~active.shift(1).fillna(False)).sum())
-
     return pd.Series(result)
 
 
@@ -134,14 +133,13 @@ daily   = df.groupby('tag').apply(agg_group).reset_index()
 
 
 # --- Tabellen-Konfiguration ---
-# Reihenfolge: Heizstab, Heizungs-WP, Begleit., WW-WP, Wallbox, Roller, Solar-EV
+# Reihenfolge: Heizstab, Heizungs-WP, Begleit., WW-WP, Wallbox, Solar-EV
 VERBRAUCHER = [
     ('Heizstab',    'heizstab_kwh'),
     ('Heizungs-WP', 'heiz_wp_kwh'),
     ('Begleit.',    'begleit_kwh'),
     ('WW-WP',       'ww_wp_kwh'),
     ('Wallbox',     'wallbox_kwh'),
-    ('Roller',      'roller_kwh'),
 ]
 
 def build_config(daily_extras=False):
@@ -159,9 +157,6 @@ def build_config(daily_extras=False):
         elif daily_extras and name == 'Heizungs-WP':
             heads  += ['%Tag', 'Takte']
             widths += [W_PCT, W_TAKT]
-        elif daily_extras and name in ('Wallbox', 'Roller'):
-            heads  += ['Takte']
-            widths += [W_TAKT]
     thick.add(len(widths))
     heads  += ['Solar-EV', '€', '%Haus']
     widths += [W_KWH, W_EUR, W_PCT]
@@ -213,10 +208,6 @@ def build_daily_vals(r):
             vals += [f'{r.heizstab_pct:>5.1f} %']
         elif name == 'Heizungs-WP':
             vals += [f'{r.heiz_wp_pct:>5.1f} %', f'{int(r.heiz_wp_takte):>5}']
-        elif name == 'Wallbox':
-            vals += [f'{int(r.wallbox_takte):>5}']
-        elif name == 'Roller':
-            vals += [f'{int(r.roller_takte):>5}']
     kwh = r.solar_ev_kwh
     vals += [f'{kwh:>5.2f} kWh', fmt_eur(kwh), f'{r.solar_ev_pct:>5.1f} %']
     return vals
