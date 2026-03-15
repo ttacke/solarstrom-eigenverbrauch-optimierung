@@ -2,10 +2,8 @@
 /zentrale/config.h
 /netz-relay/config.h
 /sd-karteninhalt/*
-/scripte/temperaturverlauf.csv
 /temperatur_differenz_messer/config.h
-/scripte/3phasiger_lastverlauf.csv
-/scripte/3phasiger_lastverlauf_detail.csv
 /test/config.h
 /WORKLOG.md
 /CLAUDE.md
+/scripte/solar.csv
