@@ -5,7 +5,7 @@ Script#1: Maximallasten und Überlast
 import pandas as pd
 
 CSV_PATH   = '/mnt/solar.csv'
-LIMIT_W       = 9000  # Hausanschluss-Auslegung Gesamt
+LIMIT_W       = 6500  # Lastschutz-Schwellwert (Steuerung)
 LIMIT_PHASE_W = 5520  # Phasen-Grenzwert (24A × 230V)
 VOLTAGE_V     = 230
 
@@ -106,6 +106,9 @@ sommer_mask = (
 df['saison'] = 'Winter'
 df.loc[sommer_mask, 'saison'] = 'Sommer'
 
+# Tageslicht-Flag für Lastschutz-Analyse
+df['ist_tag'] = df['solarerzeugung_in_w'] > 0
+
 years = sorted(df['jahr'].unique())
 
 # --- Ausgabe ---
@@ -166,3 +169,45 @@ print_simple_table(
     ['Sommer', 'Winter'],
     t3_rows
 )
+
+# Tabelle 4: Lastschutz-Statistik
+# auto/roller: Energie verhindert = benoetigte_ladeleistung × blockierte Minuten / 60 / 1000
+# heizung/wasser: Relay = Überlad-Signal (WP läuft ggf. trotzdem normal) → Energie nicht quantifizierbar
+LASTSCHUTZ = [
+    ('Auto (Wallbox)', 'auto_lastschutz',    'auto_benoetigte_ladeleistung_in_w',   2300),
+    ('Roller',         'roller_lastschutz',  'roller_benoetigte_ladeleistung_in_w', 840),
+    ('Heizung-WP',     'heizung_lastschutz', None,                                  None),
+    ('Wasser-WP',      'wasser_lastschutz',  None,                                  None),
+]
+
+def print_lastschutz_table(year, y):
+    WC = 16; WB = 9; WT = 9; WE = 11
+
+    def hl():
+        return f"+{'-'*(WC+2)}+{'-'*(WB+2)}+{'-'*(WT+2)}+{'-'*(WE+2)}+"
+
+    print(f"Tabelle 4: Lastschutz-Statistik — {year}  (Schwellwert: {LIMIT_W}W)")
+    print(f"  tagsüber = solarerzeugung_in_w > 0")
+    print(hl())
+    print(f"| {'Verbraucher':{WC}} | {'Blockiert':>{WB}} | {'Tagsüber':>{WT}} | {'Energie':>{WE}} |")
+    print(hl())
+    for label, flag_col, leistung_col, fallback_w in LASTSCHUTZ:
+        if flag_col not in y.columns:
+            print(f"| {label:{WC}} | {'n.v.':>{WB}} | {'n.v.':>{WT}} | {'n.v.':>{WE}} |")
+            continue
+        blocked = y[flag_col] == 1
+        n_blocked = int(blocked.sum())
+        n_tag     = int((blocked & y['ist_tag']).sum())
+        if leistung_col and leistung_col in y.columns:
+            lp = y.loc[blocked, leistung_col].fillna(fallback_w)
+            lp = lp.where(lp > 0, fallback_w)
+            energie_kwh = (lp / 60 / 1000).sum()
+            energie_str = f"{energie_kwh:.1f} kWh"
+        else:
+            energie_str = '-'
+        print(f"| {label:{WC}} | {format_duration(n_blocked):>{WB}} | {format_duration(n_tag):>{WT}} | {energie_str:>{WE}} |")
+    print(hl())
+    print()
+
+for year in years:
+    print_lastschutz_table(year, df[df['jahr'] == year])
