@@ -17,7 +17,7 @@ Spaltentrennlinien: || zwischen Verbraucher-Gruppen, | innerhalb
 import pandas as pd
 import numpy as np
 
-CSV_PATH              = '/mnt/solar.csv'
+CSV_PATH              = '../solar.csv'
 WALLBOX_LEISTUNG_W    = 2300   # Fallback wenn benoetigte_ladeleistung fehlt
 ROLLER_LEISTUNG_W     = 840    # Fallback
 HEIZSTAB_LEISTUNG_W   = 1500

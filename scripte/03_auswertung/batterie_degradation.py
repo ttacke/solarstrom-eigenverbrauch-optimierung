@@ -13,7 +13,7 @@ import numpy as np
 from datetime import datetime, timedelta
 
 # --- Parameter ---
-INPUT_CSV       = '/mnt/solar.csv'
+INPUT_CSV       = '../solar.csv'
 NOMINAL_KWH     = 7.65     # BYD HVS 7.7 Brutto
 SAMPLE_S        = 60       # Messintervall in Sekunden
 MIN_SOC_SWING   = 300      # Mindest-Hub in Promille (= 30%) für gültigen Halbzyklus

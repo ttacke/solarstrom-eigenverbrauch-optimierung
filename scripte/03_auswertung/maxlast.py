@@ -4,7 +4,7 @@ Script#1: Maximallasten und Überlast
 """
 import pandas as pd
 
-CSV_PATH   = '/mnt/solar.csv'
+CSV_PATH   = '../solar.csv'
 LIMIT_W       = 6500  # Lastschutz-Schwellwert (Steuerung)
 LIMIT_PHASE_W = 5520  # Phasen-Grenzwert (24A × 230V)
 VOLTAGE_V     = 230

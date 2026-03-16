@@ -13,7 +13,7 @@ Sommer: 15.3.–30.10.   Winter: alle übrigen Tage
 import pandas as pd
 import numpy as np
 
-CSV_PATH = '/mnt/solar.csv'
+CSV_PATH = '../solar.csv'
 
 # --- Laden & Filtern ---
 df = pd.read_csv(CSV_PATH, index_col=False)
