@@ -236,11 +236,6 @@ namespace Local::Api {
 		}
 
 		void _ermittle_relay_zustaende(Local::Model::Verbraucher& verbraucher) {
-			// Wird invertiert, damit der Zustand ohne Steuerung der normale Wallboxbetrieb ist
-			verbraucher.auto_relay_ist_an = !_netz_relay_ist_an(cfg->auto_relay_host, cfg->auto_relay_port);
-			verbraucher.auto_relay_zustand_seit = Local::SemipersistentData::auto_relay_zustand_seit;
-			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
-
 			verbraucher.roller_relay_ist_an = shelly_roller_cache_ison;
 			verbraucher.roller_relay_zustand_seit = Local::SemipersistentData::roller_relay_zustand_seit;
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
@@ -249,6 +244,17 @@ namespace Local::Api {
 			verbraucher.heiz_verdichter_aus_seit = Local::SemipersistentData::heiz_verdichter_aus_seit;
 
 			Local::Model::Shelly shelly_daten;
+
+			if(_read_shelly_content(
+				(char*) cfg->auto_relay_host,
+				cfg->auto_relay_port,
+				cfg->auto_relay_version,
+				shelly_daten
+			)) {
+				verbraucher.auto_relay_ist_an = shelly_daten.ison;
+			}
+			verbraucher.auto_relay_zustand_seit = Local::SemipersistentData::auto_relay_zustand_seit;
+			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
 
 			if(_read_shelly_content(
 				(char*) cfg->heizung_relay_host,
@@ -357,8 +363,11 @@ namespace Local::Api {
 		}
 
 		void _schalte_auto_relay(bool ein) {
-			// Wird invertiert, damit der Zustand ohne Steuerung der normale Wallboxbetrieb ist
-			_schalte_netz_relay(ein ? false : true, cfg->auto_relay_host, cfg->auto_relay_port);
+			_log((char*) "schalte wallbox-laden: ", (char*) (ein ? "an" : "aus"));
+			_schalte_shellyplug(
+				ein, cfg->auto_relay_host, cfg->auto_relay_port, cfg->auto_relay_version,
+				web_reader->default_timeout_in_hundertstel_s
+			);
 			Local::SemipersistentData::auto_relay_zustand_seit = timestamp;
 		}
 
