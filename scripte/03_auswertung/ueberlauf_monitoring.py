@@ -22,7 +22,7 @@ SCRIPTE_DIR = os.path.dirname(SCRIPT_DIR)  # scripte/
 PROJECT_DIR = os.path.dirname(SCRIPTE_DIR)  # projekt-root/
 CSV = os.path.join(SCRIPTE_DIR, "solar.csv")
 LOG_DIR = os.path.join(PROJECT_DIR, "sd-karteninhalt")
-START = "2026-03-13"
+START = "2026-03-19" # An dem Tag davor wurde das letzte, kaputte Relais getauscht
 UEBERLAUF_SOC = 99.5
 UEBERLAUF_MIN_EINSPEISUNG = -50
 

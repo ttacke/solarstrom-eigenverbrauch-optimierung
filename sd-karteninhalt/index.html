@@ -2,6 +2,9 @@
 <head>
 	<title>Solarstrom Eigenverbrauch Optimierung</title>
 	<script type="text/javascript">
+		if (navigator.userAgent.indexOf('tolino') !== -1) {
+			document.documentElement.id = 'tolino';
+		}
 		const wochentage = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 		var ist_initialisiert = false;
 		var zeit_des_ersten_fehlers = null;
@@ -302,7 +305,7 @@
 			--mitteldunkel: #666;
 			--dunkel: #000;
 		}
-		/* ausgenommen: Kindle */
+		/* ausgenommen: Kindle & Tolino */
 		@supports(transform:rotate(180deg)) {
 			:root {
 				--hell: #000;
@@ -316,6 +319,13 @@
 				margin-left: auto;
 				margin-right: auto;
 			}
+		}
+		/* Nur Tolino */
+		html#tolino {
+			font-size: 23px;
+		}
+		html#tolino body {
+			margin-top: 0.5rem;
 		}
 		html.ersatzstrom {
 			font-size: 0.8rem;
@@ -485,6 +495,9 @@
 		.zusatzinfo {
 			font-size: 0.8rem;
 			text-align: center;
+		}
+		#tolino .zusatzinfo {
+			font-size: 1.1rem;
 		}
 			.zusatzinfo>span {
 				padding-right: 0.5rem;
