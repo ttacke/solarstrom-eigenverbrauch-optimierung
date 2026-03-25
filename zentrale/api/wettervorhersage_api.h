@@ -102,7 +102,7 @@ namespace Local::Api {
 						for(int i = 0; i < tage_anzahl; i++) {// Nur die erste Zeit finden, die anderen sind immer 1h weiter. Grund: das Finden ist unnoetig aufwendig
 							zeitpunkt_tage_liste[i] = zeitpunkt + (i * 86400);
 							if(
-								now_timestamp > zeitpunkt_stunden_liste[i] + 86400 // Zu altes ueberspringen
+								now_timestamp > zeitpunkt_tage_liste[i] + 86400 // Zu altes ueberspringen
 							) {
 								veraltete_tages_datensaetze++;
 							}

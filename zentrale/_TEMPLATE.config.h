@@ -64,8 +64,8 @@ namespace Local {
 
 		const int grundverbrauch_in_w_pro_h_sommer = 330;
 		const int grundverbrauch_in_w_pro_h_winter = 645;
-		const float solarstrahlungs_vorhersage_umrechnungsfaktor_sommer = 4.96;// 90% von 5.51
-		const float solarstrahlungs_vorhersage_umrechnungsfaktor_winter = 5.63;// 90% von 6.25
+		const float solarstrahlungs_vorhersage_umrechnungsfaktor_sommer = 4.0;//4.96= 90% von 5.51
+		const float solarstrahlungs_vorhersage_umrechnungsfaktor_winter = 4.0;//5.63= 90% von 6.25
 
 		const int akku_groesse_in_wh = 7680;
 		const int akku_zielladestand_in_promille = 900;// sollte <= maxSOC-Begrenzung sein

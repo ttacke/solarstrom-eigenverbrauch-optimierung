@@ -183,3 +183,20 @@ if(system("wget --tries=1 --read-timeout=30 'http://$SERVER_IP/daten.json' -O $t
 } else {
     print "FEHLER\n";
 }
+
+# Backups komprimieren
+print "\n=== Backups komprimieren ===\n";
+my @backups = glob("$SD_DIR/*.bak.*");
+if(@backups) {
+    for my $bak (@backups) {
+        next if $bak =~ /\.gz$/;
+        print "$bak...";
+        if(system("gzip", $bak) == 0) {
+            print "ok\n";
+        } else {
+            print "FEHLER\n";
+        }
+    }
+} else {
+    print "Keine Backups gefunden.\n";
+}
