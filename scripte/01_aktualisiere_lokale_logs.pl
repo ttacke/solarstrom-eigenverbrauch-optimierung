@@ -155,10 +155,6 @@ _aktualisiere_monatslogs(
 print "\n=== Einzeldateien ===\n";
 my @einzeldateien = qw(
     system_status.csv
-    wetter_stundenvorhersage.json
-    wetter_stundenvorhersage.csv
-    wetter_tagesvorhersage.json
-    wetter_tagesvorhersage.csv
     heizung_relay.status
     wasser_relay.status
     roller_relay.zustand_seit
@@ -174,6 +170,12 @@ my @einzeldateien = qw(
     frueh_laden_roller.status
 );
 _download($_) for @einzeldateien;
+
+my $wetter_ym = strftime('%Y-%m', localtime());
+_download("dach1_wettervorhersage_$wetter_ym.json");
+_download("dach2_wettervorhersage_$wetter_ym.json");
+_download("wetter_stundenvorhersage_$wetter_ym.csv");
+_download("wetter_tagesvorhersage_$wetter_ym.csv");
 
 # daten.json hat eine andere URL als die uebrigen Dateien
 print "daten.json...";
