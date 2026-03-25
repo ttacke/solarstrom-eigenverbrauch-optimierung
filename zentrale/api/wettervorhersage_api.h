@@ -17,7 +17,7 @@ namespace Local::Api {
 		const char* hourly_cache_filename_template = "wetter_stundenvorhersage_%04d-%02d.csv";
 		const char* dayly_cache_filename_template = "wetter_tagesvorhersage_%04d-%02d.csv";
 		const char* request_uri_template = "/v1/forecast?latitude=%0.2f&longitude=%0.2f&daily=sunrise,sunset,shortwave_radiation_sum&hourly=global_tilted_irradiance_instant&timezone=Europe/Berlin&tilt=%d&azimuth=%d&timeformat=unixtime&forecast_hours=12";
-		char request_uri_buffer[128];
+		char request_uri_buffer[256];
 
 		int zeitpunkt_sonnenuntergang = 0;
 		int zeitpunkt_tage_liste[5];
@@ -176,8 +176,8 @@ namespace Local::Api {
 			}
 			while(veraltete_tages_datensaetze > 0) {
 				veraltete_tages_datensaetze--;
-				zeitpunkt_tage_liste[stunden_anzahl - 1] = 0;
-				solarstrahlung_tage_liste[stunden_anzahl - 1] = 0;
+				zeitpunkt_tage_liste[tage_anzahl - 1] = 0;
+				solarstrahlung_tage_liste[tage_anzahl - 1] = 0;
 				for(int i = 1; i < tage_anzahl; i++) {
 					solarstrahlung_tage_liste[i - 1] = solarstrahlung_tage_liste[i];
 					zeitpunkt_tage_liste[i - 1] = zeitpunkt_tage_liste[i];
