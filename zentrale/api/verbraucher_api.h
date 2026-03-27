@@ -903,6 +903,14 @@ namespace Local::Api {
 				Local::SemipersistentData::heiz_verdichter_aus_seit = verbraucher.heiz_verdichter_aus_seit;
 				_schalte_heiz_verdichter_relay(verbraucher.heiz_verdichter_relay_ist_an);
 			} else {
+				if(// Bootstrap nach Neustart: relay aus, aus_seit nie gesetzt
+					!verbraucher.heiz_verdichter_relay_ist_an
+					&& verbraucher.heiz_verdichter_aus_seit == 0
+				) {
+					_log((char*) "heiz_verdichter: BOOTSTRAP");
+					verbraucher.heiz_verdichter_aus_seit = timestamp;
+					Local::SemipersistentData::heiz_verdichter_aus_seit = verbraucher.heiz_verdichter_aus_seit;
+				}
 				if(// Heiz-WP-An zuverlaessig ermitteln
 					verbraucher.heiz_verdichter_relay_ist_an
 					&& verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_max_ablufttemperatur_wenn_aktiv
@@ -956,6 +964,8 @@ namespace Local::Api {
 						cfg->heiz_verdichter_maximale_laufzeit_in_s
 				) {
 					_log((char*) "heiz_verdichter: ZWANGSPAUSE-START");
+					verbraucher.heiz_verdichter_aus_seit = timestamp;
+					Local::SemipersistentData::heiz_verdichter_aus_seit = verbraucher.heiz_verdichter_aus_seit;
 					verbraucher.heiz_verdichter_relay_ist_an = false;
 					_schalte_heiz_verdichter_relay(verbraucher.heiz_verdichter_relay_ist_an);
 					return;
