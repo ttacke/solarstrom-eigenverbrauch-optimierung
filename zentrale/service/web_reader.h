@@ -70,7 +70,7 @@ namespace Local::Service {
 				Serial.print("|");
 			}
 			_prepare_search_buffer();
-			content_length -= strlen(buffer);
+			content_length -= read_size;
 			if(content_length == 0 && is_chunked) {
 				_read_next_chunk_content_length();
 				if(debug) {
