@@ -217,14 +217,17 @@ namespace Local::Service {
 			if(content_length <= 0) {
 				return false;
 			}
-			if(wlan_client.available()) {
-				memcpy(old_buffer, buffer, strlen(buffer) + 1);
-				_read_body_content_to_buffer();
-				return true;
+			for(int i = 0; i < 15 && !wlan_client.available() && wlan_client.connected(); i++) {
+				delay(100);
 			}
-			buffer[0] = '\0';
-			content_length = 0;
-			return false;
+			if(!wlan_client.available()) {
+				buffer[0] = '\0';
+				content_length = 0;
+				return false;
+			}
+			memcpy(old_buffer, buffer, strlen(buffer) + 1);
+			_read_body_content_to_buffer();
+			return true;
 		}
 	};
 }
