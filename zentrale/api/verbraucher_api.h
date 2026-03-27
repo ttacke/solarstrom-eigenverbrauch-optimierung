@@ -983,6 +983,11 @@ namespace Local::Api {
 					verbraucher.aktueller_akku_ladenstand_in_promille >= akku_zielladestand_fuer_ueberladen_in_promille
 				)
 			) {
+				if(verbraucher.heizungs_temperatur_differenz <= cfg->heizstab_einschalt_differenzwert) {
+					_log((char*) "heizstab>an>TempDiffNiedrig");
+				} else {
+					_log((char*) "heizstab>an>SocHoch");
+				}
 				verbraucher.heizstabbetrieb_ist_erlaubt = true;
 				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
 				return;
@@ -993,6 +998,7 @@ namespace Local::Api {
 				&&
 				verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
 			) {
+				_log((char*) "heizstab>aus>TempDiffHoch");
 				verbraucher.heizstabbetrieb_ist_erlaubt = false;
 				_schalte_heizstab_relay(verbraucher.heizstabbetrieb_ist_erlaubt);
 				return;
@@ -1014,6 +1020,11 @@ namespace Local::Api {
 					|| wasser_begleit_erzwungen_aktiv
 				)
 			) {
+				if(wasser_begleit_erzwungen_aktiv) {
+					_log((char*) "begleit>an>Erzwungen");
+				} else {
+					_log((char*) "begleit>an>SocHoch");
+				}
 				verbraucher.wasser_begleitheizung_relay_is_an = true;
 				_schalte_wasser_begleitheizung_relay(verbraucher.wasser_begleitheizung_relay_is_an);
 				return;
@@ -1022,6 +1033,7 @@ namespace Local::Api {
 				&& verbraucher.aktueller_akku_ladenstand_in_promille < akku_zielladestand_fuer_ueberladen_in_promille - cfg->ueberladen_hysterese_in_promille
 				&& !wasser_begleit_erzwungen_aktiv
 			) {
+				_log((char*) "begleit>aus>SocNiedrig");
 				verbraucher.wasser_begleitheizung_relay_is_an = false;
 				_schalte_wasser_begleitheizung_relay(verbraucher.wasser_begleitheizung_relay_is_an);
 				return;
