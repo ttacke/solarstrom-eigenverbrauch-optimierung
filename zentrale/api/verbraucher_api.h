@@ -20,6 +20,16 @@ namespace Local::Api {
 		const char* roller_leistung_filename = "roller_leistung.status";
 		const char* auto_ladestatus_filename = "auto.ladestatus";
 		const char* automatisierung_log_filename_template = "verbraucher_automatisierung-%4d-%02d.log";
+		const char* schaltautomat_log_filename_template = "schaltautomat-%4d-%02d.log";
+
+		void _schaltautomat_log(char* msg) {
+			char filename[32];
+			sprintf(filename, schaltautomat_log_filename_template, year(timestamp), month(timestamp));
+			if(file_writer.open_file_to_append(filename)) {
+				file_writer.write_formated("%d:%s\n", timestamp, msg);
+				file_writer.close_file();
+			}
+		}
 
 		void _log(char* msg) {
 			char filename[32];
@@ -749,7 +759,7 @@ namespace Local::Api {
 
 	void _log_schaltautomat_zustand(Local::Model::Verbraucher& verbraucher) {
 			// s=soc_promille,ez=erzeug_w,vb=verbr_w,nz=netz_w,ubs=ueberschuss_w
-			char buf[52];
+			char buf[128];
 			sprintf(buf, "s=%d,ez=%d,vb=%d,nz=%d,ubs=%d",
 				verbraucher.aktueller_akku_ladenstand_in_promille,
 				verbraucher.aktuelle_erzeugung_in_w,
@@ -757,7 +767,7 @@ namespace Local::Api {
 				verbraucher.netzbezug_in_w,
 				verbraucher.gib_beruhigten_ueberschuss_in_w()
 			);
-			_log(buf);
+			_schaltautomat_log(buf);
 			// rl=auto|roller|wasser|heizung|heizstab|verdichter|begleit, wm=winter, ex=ersatz, l=autoLaden|rollerLaden(F=force S=solar)
 			sprintf(buf, "rl=%c%c%c%c%c%c%c,wm=%c,ex=%c,l=%c%c",
 				verbraucher.auto_relay_ist_an                   ? '1' : '0',
@@ -772,14 +782,44 @@ namespace Local::Api {
 				verbraucher.auto_ladestatus   == Local::Model::Verbraucher::Ladestatus::force ? 'F' : 'S',
 				verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force ? 'F' : 'S'
 			);
-			_log(buf);
+			_schaltautomat_log(buf);
 			// vc=abluft_grad, l=verdichter_laeuft_seit_s(0=aus), a=verdichter_aus_seit_s(0=unbekannt)
 			sprintf(buf, "vc=%.1f,l=%d,a=%d",
 				verbraucher.waermepumpen_abluft_temperatur,
 				verbraucher.heiz_verdichter_laeuft_seit == 0 ? 0 : timestamp - verbraucher.heiz_verdichter_laeuft_seit,
 				verbraucher.heiz_verdichter_aus_seit    == 0 ? 0 : timestamp - verbraucher.heiz_verdichter_aus_seit
 			);
-			_log(buf);
+			_schaltautomat_log(buf);
+			// rz=relay_zustand_seit in Sekunden: auto|roller|wasser|heizung (0=unbekannt/Neustart)
+			sprintf(buf, "rz=%d,%d,%d,%d",
+				verbraucher.auto_relay_zustand_seit    == 0 ? 0 : timestamp - verbraucher.auto_relay_zustand_seit,
+				verbraucher.roller_relay_zustand_seit  == 0 ? 0 : timestamp - verbraucher.roller_relay_zustand_seit,
+				verbraucher.wasser_relay_zustand_seit  == 0 ? 0 : timestamp - verbraucher.wasser_relay_zustand_seit,
+				verbraucher.heizung_relay_zustand_seit == 0 ? 0 : timestamp - verbraucher.heizung_relay_zustand_seit
+			);
+			_schaltautomat_log(buf);
+			// fl=frueh_leeren aktiv: auto|roller
+			sprintf(buf, "fl=%c%c",
+				Local::SemipersistentData::frueh_leeren_auto_ist_aktiv   ? '1' : '0',
+				Local::SemipersistentData::frueh_leeren_roller_ist_aktiv ? '1' : '0'
+			);
+			_schaltautomat_log(buf);
+			// vh=akku_ladestandsvorhersage_in_promille, 12 Stundenwerte (Index 3,7,...,47)
+			sprintf(buf, "vh=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+				verbraucher.akku_ladestandsvorhersage_in_promille[3],
+				verbraucher.akku_ladestandsvorhersage_in_promille[7],
+				verbraucher.akku_ladestandsvorhersage_in_promille[11],
+				verbraucher.akku_ladestandsvorhersage_in_promille[15],
+				verbraucher.akku_ladestandsvorhersage_in_promille[19],
+				verbraucher.akku_ladestandsvorhersage_in_promille[23],
+				verbraucher.akku_ladestandsvorhersage_in_promille[27],
+				verbraucher.akku_ladestandsvorhersage_in_promille[31],
+				verbraucher.akku_ladestandsvorhersage_in_promille[35],
+				verbraucher.akku_ladestandsvorhersage_in_promille[39],
+				verbraucher.akku_ladestandsvorhersage_in_promille[43],
+				verbraucher.akku_ladestandsvorhersage_in_promille[47]
+			);
+			_schaltautomat_log(buf);
 		}
 
 	public:
