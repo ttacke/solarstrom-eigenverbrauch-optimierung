@@ -747,6 +747,41 @@ namespace Local::Api {
 			return false;
 		}
 
+	void _log_schaltautomat_zustand(Local::Model::Verbraucher& verbraucher) {
+			// s=soc_promille,ez=erzeug_w,vb=verbr_w,nz=netz_w,ubs=ueberschuss_w
+			char buf[52];
+			sprintf(buf, "s=%d,ez=%d,vb=%d,nz=%d,ubs=%d",
+				verbraucher.aktueller_akku_ladenstand_in_promille,
+				verbraucher.aktuelle_erzeugung_in_w,
+				verbraucher.aktueller_verbrauch_in_w,
+				verbraucher.netzbezug_in_w,
+				verbraucher.gib_beruhigten_ueberschuss_in_w()
+			);
+			_log(buf);
+			// rl=auto|roller|wasser|heizung|heizstab|verdichter|begleit, wm=winter, ex=ersatz, l=autoLaden|rollerLaden(F=force S=solar)
+			sprintf(buf, "rl=%c%c%c%c%c%c%c,wm=%c,ex=%c,l=%c%c",
+				verbraucher.auto_relay_ist_an                   ? '1' : '0',
+				verbraucher.roller_relay_ist_an                 ? '1' : '0',
+				verbraucher.wasser_relay_ist_an                 ? '1' : '0',
+				verbraucher.heizung_relay_ist_an                ? '1' : '0',
+				verbraucher.heizstabbetrieb_ist_erlaubt         ? '1' : '0',
+				verbraucher.heiz_verdichter_relay_ist_an        ? '1' : '0',
+				verbraucher.wasser_begleitheizung_relay_is_an   ? '1' : '0',
+				verbraucher.ladeverhalten_wintermodus           ? '1' : '0',
+				verbraucher.ersatzstrom_ist_aktiv               ? '1' : '0',
+				verbraucher.auto_ladestatus   == Local::Model::Verbraucher::Ladestatus::force ? 'F' : 'S',
+				verbraucher.roller_ladestatus == Local::Model::Verbraucher::Ladestatus::force ? 'F' : 'S'
+			);
+			_log(buf);
+			// vc=abluft_grad, l=verdichter_laeuft_seit_s(0=aus), a=verdichter_aus_seit_s(0=unbekannt)
+			sprintf(buf, "vc=%.1f,l=%d,a=%d",
+				verbraucher.waermepumpen_abluft_temperatur,
+				verbraucher.heiz_verdichter_laeuft_seit == 0 ? 0 : timestamp - verbraucher.heiz_verdichter_laeuft_seit,
+				verbraucher.heiz_verdichter_aus_seit    == 0 ? 0 : timestamp - verbraucher.heiz_verdichter_aus_seit
+			);
+			_log(buf);
+		}
+
 	public:
 		int timestamp = 0;
 
@@ -832,6 +867,7 @@ namespace Local::Api {
 		}
 
 		void fuehre_schaltautomat_aus(Local::Model::Verbraucher& verbraucher) {
+			_log_schaltautomat_zustand(verbraucher);
 			int ausschalter_auto_relay_zustand_seit = verbraucher.auto_relay_zustand_seit;
 			int ausschalter_roller_relay_zustand_seit = verbraucher.roller_relay_zustand_seit;
 			int akku_zielladestand_in_promille = cfg->akku_zielladestand_in_promille;
