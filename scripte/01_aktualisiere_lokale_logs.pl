@@ -151,6 +151,12 @@ _aktualisiere_monatslogs(
     qr/^verbraucher_automatisierung-\d{4}-\d{2}\.log$/,
 );
 
+_aktualisiere_monatslogs(
+    'schaltautomat',
+    'schaltautomat-%4d-%02d.log',
+    qr/^schaltautomat-\d{4}-\d{2}\.log$/,
+);
+
 # Einzeldateien: immer ueberschreiben, kein Backup
 print "\n=== Einzeldateien ===\n";
 my @einzeldateien = qw(
