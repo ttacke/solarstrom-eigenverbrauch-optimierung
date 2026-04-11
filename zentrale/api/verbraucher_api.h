@@ -804,14 +804,17 @@ namespace Local::Api {
 				Local::SemipersistentData::frueh_leeren_roller_ist_aktiv ? '1' : '0'
 			);
 			_schaltautomat_log(buf);
-			// vh=akku_ladestandsvorhersage_in_promille, 12 Stundenwerte (Index 3,7,...,47)
-			sprintf(buf, "vh=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+			// vha/vhb=akku_ladestandsvorhersage_in_promille, je 6 Stundenwerte (Index 3..23, 27..47)
+			sprintf(buf, "vha=%d,%d,%d,%d,%d,%d",
 				verbraucher.akku_ladestandsvorhersage_in_promille[3],
 				verbraucher.akku_ladestandsvorhersage_in_promille[7],
 				verbraucher.akku_ladestandsvorhersage_in_promille[11],
 				verbraucher.akku_ladestandsvorhersage_in_promille[15],
 				verbraucher.akku_ladestandsvorhersage_in_promille[19],
-				verbraucher.akku_ladestandsvorhersage_in_promille[23],
+				verbraucher.akku_ladestandsvorhersage_in_promille[23]
+			);
+			_schaltautomat_log(buf);
+			sprintf(buf, "vhb=%d,%d,%d,%d,%d,%d",
 				verbraucher.akku_ladestandsvorhersage_in_promille[27],
 				verbraucher.akku_ladestandsvorhersage_in_promille[31],
 				verbraucher.akku_ladestandsvorhersage_in_promille[35],
