@@ -179,8 +179,8 @@ namespace Local::Api {
 				} else {
 					_log(log_key, (char*) "-solar>FruehLeerenAn");
 					*frueh_leeren_zuletzt_gestartet_an_timestamp = timestamp;
-					*frueh_leeren_ist_aktiv = true;
 					schalt_func(true);
+					*frueh_leeren_ist_aktiv = true;
 					return true;
 				}
 			}
@@ -199,7 +199,6 @@ namespace Local::Api {
 				) {
 					_log(log_key, (char*) "-solar>FruehLeerenAus");
 					*frueh_leeren_zuletzt_gestartet_an_timestamp = timestamp;
-					*frueh_leeren_ist_aktiv = false;
 					schalt_func(false);
 					return true;
 				}
@@ -262,6 +261,10 @@ namespace Local::Api {
 				shelly_daten
 			)) {
 				verbraucher.auto_relay_ist_an = shelly_daten.ison;
+				if(shelly_daten.ison != Local::SemipersistentData::auto_relay_letzter_eigener_zustand) {
+					Local::SemipersistentData::auto_relay_letzter_eigener_zustand = shelly_daten.ison;
+					Local::SemipersistentData::frueh_leeren_auto_ist_aktiv = false;
+				}
 			}
 			verbraucher.auto_relay_zustand_seit = Local::SemipersistentData::auto_relay_zustand_seit;
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben
@@ -370,6 +373,8 @@ namespace Local::Api {
 				);
 			}
 			Local::SemipersistentData::roller_relay_zustand_seit = timestamp;
+			Local::SemipersistentData::roller_relay_letzter_eigener_zustand = ein;
+			Local::SemipersistentData::frueh_leeren_roller_ist_aktiv = false;
 		}
 
 		void _schalte_auto_relay(bool ein) {
@@ -379,6 +384,8 @@ namespace Local::Api {
 				web_reader->default_timeout_in_hundertstel_s
 			);
 			Local::SemipersistentData::auto_relay_zustand_seit = timestamp;
+			Local::SemipersistentData::auto_relay_letzter_eigener_zustand = ein;
+			Local::SemipersistentData::frueh_leeren_auto_ist_aktiv = false;
 		}
 
 		void _schalte_wasser_relay(bool ein) {
@@ -586,6 +593,13 @@ namespace Local::Api {
 			shelly_roller_cache_timestamp = shelly_daten.timestamp;
 			shelly_roller_cache_ison = shelly_daten.ison;
 			shelly_roller_cache_power = shelly_daten.power;
+			if(
+				shelly_daten.timestamp != 0
+				&& shelly_daten.ison != Local::SemipersistentData::roller_relay_letzter_eigener_zustand
+			) {
+				Local::SemipersistentData::roller_relay_letzter_eigener_zustand = shelly_daten.ison;
+				Local::SemipersistentData::frueh_leeren_roller_ist_aktiv = false;
+			}
 		}
 		bool _read_shelly_content(char* host, int port, int version, Local::Model::Shelly& shelly) {
 			if(!web_reader->send_http_get_request(host, port, (version >= 2 ? "/rpc/Switch.GetStatus?id=0" : "/status"))) {
@@ -930,6 +944,8 @@ namespace Local::Api {
 				akku_zielladestand_fuer_ueberladen_in_promille = round((float) akku_zielladestand_fuer_ueberladen_in_promille * 1.2);
 				auto_min_schaltzeit_in_min = 5;
 				roller_min_schaltzeit_in_min = 5;
+				Local::SemipersistentData::frueh_leeren_auto_ist_aktiv = false;
+				Local::SemipersistentData::frueh_leeren_roller_ist_aktiv = false;
 			}
 
 			verbraucher.auto_lastschutz = false;
