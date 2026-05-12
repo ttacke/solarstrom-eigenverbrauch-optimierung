@@ -17,7 +17,6 @@ namespace Local::Api {
 		bool ladeverhalten_wintermodus = false;
 
 		const char* roller_ladestatus_filename = "roller.ladestatus";
-		const char* roller_leistung_filename = "roller_leistung.status";
 		const char* auto_ladestatus_filename = "auto.ladestatus";
 		const char* automatisierung_log_filename_template = "verbraucher_automatisierung-%4d-%02d.log";
 		const char* schaltautomat_log_filename_template = "schaltautomat-%4d-%02d.log";
@@ -431,17 +430,9 @@ namespace Local::Api {
 		}
 
 		int _gib_roller_benoetigte_ladeleistung_in_w() {
-			int leistung = cfg->roller_benoetigte_leistung_hoch_in_w;
-			if(file_reader->open_file_to_read(roller_leistung_filename)) {
-				while(file_reader->read_next_block_to_buffer()) {
-					if(file_reader->find_in_buffer((char*) "([0-9]+)")) {
-						int i = atoi(file_reader->finding_buffer);
-						if(i > 0) {
-							leistung = i;
-						}
-					}
-				}
-				file_reader->close_file();
+			int leistung = Local::SemipersistentData::roller_benoetigte_ladeleistung_in_w;
+			if(leistung == 0) {
+				leistung = cfg->roller_benoetigte_leistung_hoch_in_w;
 			}
 			return leistung;
 		}
@@ -465,10 +456,7 @@ namespace Local::Api {
 			} else {
 				roller_benoetigte_ladeleistung_in_w_cache = cfg->roller_benoetigte_leistung_hoch_in_w;
 			}
-			if(file_writer.open_file_to_overwrite(roller_leistung_filename)) {
-				file_writer.write_formated("%d", roller_benoetigte_ladeleistung_in_w_cache);
-				file_writer.close_file();
-			}
+			Local::SemipersistentData::roller_benoetigte_ladeleistung_in_w = roller_benoetigte_ladeleistung_in_w_cache;
 		}
 
 		void _schreibe_verbraucher_log(
