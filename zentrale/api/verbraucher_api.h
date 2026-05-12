@@ -16,8 +16,6 @@ namespace Local::Api {
 		int roller_benoetigte_ladeleistung_in_w_cache = 0;
 		bool ladeverhalten_wintermodus = false;
 
-		const char* roller_ladestatus_filename = "roller.ladestatus";
-		const char* auto_ladestatus_filename = "auto.ladestatus";
 		const char* automatisierung_log_filename_template = "verbraucher_automatisierung-%4d-%02d.log";
 		const char* schaltautomat_log_filename_template = "schaltautomat-%4d-%02d.log";
 
@@ -468,30 +466,6 @@ namespace Local::Api {
 			liste[length - 1] = aktuell;
 		}
 
-		int _lese_ladestatus(Local::Model::Verbraucher::Ladestatus& ladestatus, const char* filename) {
-			if(file_reader->open_file_to_read(filename)) {
-				while(file_reader->read_next_block_to_buffer()) {
-					if(file_reader->find_in_buffer((char*) "([a-z]+),")) {
-						if(strcmp(file_reader->finding_buffer, "force") == 0) {
-							ladestatus = Local::Model::Verbraucher::Ladestatus::force;
-							if(file_reader->find_in_buffer((char*) ",([0-9]+)")) {
-								return atoi(file_reader->finding_buffer);
-							}
-						}
-						if(ladestatus != Local::Model::Verbraucher::Ladestatus::solar) {
-							_log((char*) "LadestatusWechsel>solar", (char*) filename);
-							ladestatus = Local::Model::Verbraucher::Ladestatus::solar;
-						}
-						return 0;
-					}
-				}
-				file_reader->close_file();
-			} else {
-				_log((char*) "Lesefehler", (char*) filename);
-			}
-			return 0;
-		}
-
 		void _fuelle_akkuladestands_vorhersage(
 			Local::Model::Verbraucher& verbraucher,
 			Local::Model::Wetter wetter
@@ -906,8 +880,18 @@ namespace Local::Api {
 			verbraucher.ersatzstrom_ist_aktiv = elektroanlage.ersatzstrom_ist_aktiv;
 			verbraucher.zeitpunkt_sonnenuntergang = wetter.zeitpunkt_sonnenuntergang;
 
-			verbraucher.auto_ladestatus_seit = _lese_ladestatus(verbraucher.auto_ladestatus, auto_ladestatus_filename);
-			verbraucher.roller_ladestatus_seit = _lese_ladestatus(verbraucher.roller_ladestatus, roller_ladestatus_filename);
+			verbraucher.auto_ladestatus = Local::SemipersistentData::auto_ladestatus_ist_force
+				? Local::Model::Verbraucher::Ladestatus::force
+				: Local::Model::Verbraucher::Ladestatus::solar;
+			verbraucher.auto_ladestatus_seit = Local::SemipersistentData::auto_ladestatus_ist_force
+				? Local::SemipersistentData::auto_ladestatus_seit
+				: 0;
+			verbraucher.roller_ladestatus = Local::SemipersistentData::roller_ladestatus_ist_force
+				? Local::Model::Verbraucher::Ladestatus::force
+				: Local::Model::Verbraucher::Ladestatus::solar;
+			verbraucher.roller_ladestatus_seit = Local::SemipersistentData::roller_ladestatus_ist_force
+				? Local::SemipersistentData::roller_ladestatus_seit
+				: 0;
 			_fuelle_akkuladestands_vorhersage(verbraucher, wetter);
 		}
 
@@ -1242,36 +1226,28 @@ namespace Local::Api {
 		}
 
 		void setze_roller_ladestatus(Local::Model::Verbraucher::Ladestatus status) {
-			char stat[6];
 			if(status == Local::Model::Verbraucher::Ladestatus::force) {
-				strcpy(stat, "force");
 				_log((char*) "setze_roller_ladestatus>force");
+				Local::SemipersistentData::roller_ladestatus_ist_force = true;
 			} else {
-				strcpy(stat, "solar");
 				_log((char*) "setze_roller_ladestatus>solar");
+				Local::SemipersistentData::roller_ladestatus_ist_force = false;
 			}
-			if(file_writer.open_file_to_overwrite(roller_ladestatus_filename)) {
-				file_writer.write_formated("%s,%i", stat, timestamp);
-				file_writer.close_file();
-			}
+			Local::SemipersistentData::roller_ladestatus_seit = timestamp;
 			for(int i = 0; i < 5; i++) {
 				Local::SemipersistentData::roller_ladeleistung_log_in_w[i] = 0;
 			}
 		}
 
 		void setze_auto_ladestatus(Local::Model::Verbraucher::Ladestatus status) {
-			char stat[6];
 			if(status == Local::Model::Verbraucher::Ladestatus::force) {
-				strcpy(stat, "force");
 				_log((char*) "setze_auto_ladestatus>force");
+				Local::SemipersistentData::auto_ladestatus_ist_force = true;
 			} else {
-				strcpy(stat, "solar");
 				_log((char*) "setze_auto_ladestatus>solar");
+				Local::SemipersistentData::auto_ladestatus_ist_force = false;
 			}
-			if(file_writer.open_file_to_overwrite(auto_ladestatus_filename)) {
-				file_writer.write_formated("%s,%i", stat, timestamp);
-				file_writer.close_file();
-			}
+			Local::SemipersistentData::auto_ladestatus_seit = timestamp;
 			for(int i = 0; i < 5; i++) {
 				Local::SemipersistentData::auto_ladeleistung_log_in_w[i] = 0;
 			}
