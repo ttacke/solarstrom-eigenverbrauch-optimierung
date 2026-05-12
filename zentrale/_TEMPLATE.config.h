@@ -59,7 +59,7 @@ namespace Local {
 		const float heizungs_temperatur_differenz_umrechnungsfaktor = 1.875; // das sind 1°C
 		const int heiz_verdichter_maximale_laufzeit_in_s = 8 * 3600; // 8h
 		const int heiz_verdichter_zwangspausen_dauer_in_s = 1 * 3600; // 1h
-		const float heizung_max_ablufttemperatur_wenn_aktiv = 7.0;
+		const float heizung_max_ablufttemperatur_wenn_aktiv = 9.5;
 		const int wasser_begleitheizung_benoetigte_leistung_in_w = 500;// Einschaltwert, sinkt rapide auf ~120
 
 		const int grundverbrauch_in_w_pro_h_sommer = 330;
