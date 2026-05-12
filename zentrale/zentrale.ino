@@ -10,7 +10,6 @@ Local::Service::WebReader web_reader(wlan.client);
 Local::WebPresenter web_presenter(cfg, wlan);
 unsigned long runtime;
 unsigned long last_runtime;
-const char* daten_filename = "daten.json";
 int beat_count = 0;
 //int network_error_count = 0;
 
@@ -32,7 +31,7 @@ void setup(void) {
 		web_presenter.aendere();
 	});
 	web_presenter.webserver.add_http_get_handler("/daten.json", []() {
-		web_presenter.download_file(daten_filename);
+		web_presenter.zeige_daten_json();
 	});
 	web_presenter.webserver.add_http_get_handler("/download_file", []() {
 		web_presenter.download_file((const char*) web_presenter.webserver.server.arg("name").c_str());
@@ -123,7 +122,7 @@ void loop(void) {
 //				}
 //			}
 		}
-		web_presenter.heartbeat(daten_filename, beat_count);
+		web_presenter.heartbeat(beat_count);
 		Serial.println("done heartbeat!");
 		last_runtime = runtime;
 		return;
