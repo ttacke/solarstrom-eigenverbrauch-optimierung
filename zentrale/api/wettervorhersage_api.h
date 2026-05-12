@@ -14,8 +14,6 @@ namespace Local::Api {
 		char filename_buffer[40];
 		const char* roof1_filename_template = "dach1_wettervorhersage_%04d-%02d.json";
 		const char* roof2_filename_template = "dach2_wettervorhersage_%04d-%02d.json";
-		const char* hourly_cache_filename_template = "wetter_stundenvorhersage_%04d-%02d.csv";
-		const char* dayly_cache_filename_template = "wetter_tagesvorhersage_%04d-%02d.csv";
 		const char* request_uri_template = "/v1/forecast?latitude=%0.2f&longitude=%0.2f&daily=sunrise,sunset,shortwave_radiation_sum&hourly=global_tilted_irradiance_instant&timezone=Europe/Berlin&tilt=%d&azimuth=%d&timeformat=unixtime&forecast_hours=12";
 		char request_uri_buffer[256];
 
@@ -199,77 +197,45 @@ namespace Local::Api {
 			return day(timestamp) + (month(timestamp) * 100) + (year(timestamp) * 10000);
 		}
 
-		void _lese_stundencache_und_setze_ein(Local::Service::FileReader& file_reader, int now_timestamp) {
-			sprintf(filename_buffer, hourly_cache_filename_template, year(now_timestamp), month(now_timestamp));
-			if(!file_reader.open_file_to_read(filename_buffer)) {
-				return;
-			}
+		void _lese_stundencache_und_setze_ein(int now_timestamp) {
 			int i = 0;
-			while(file_reader.read_next_line_to_buffer() && i < stunden_anzahl) {
-				if(file_reader.find_in_buffer((char*) "^([0-9]+),([0-9]+)$")) {
-					int cache_zeit = atoi(file_reader.finding_buffer);
-					if(now_timestamp - 1800 > cache_zeit) {
-						continue;// Zu alt, ueberspringen
-					}
-					zeitpunkt_stunden_liste[i] = cache_zeit;
-					file_reader.fetch_next_finding();
-					solarstrahlung_stunden_liste[i] = atoi(file_reader.finding_buffer);
-					i++;
+			for(int j = 0; j < stunden_anzahl && i < stunden_anzahl; j++) {
+				int cache_zeit = Local::SemipersistentData::wetter_stundencache_zeitpunkt[j];
+				if(cache_zeit == 0 || now_timestamp - 1800 > cache_zeit) {
+					continue;// Zu alt oder leer, ueberspringen
 				}
+				zeitpunkt_stunden_liste[i] = cache_zeit;
+				solarstrahlung_stunden_liste[i] = Local::SemipersistentData::wetter_stundencache_solarstrahlung[j];
+				i++;
 			}
-			file_reader.close_file();
 		}
 
-		void _lese_tagescache_und_setze_ein(Local::Service::FileReader& file_reader, int now_timestamp) {
-			sprintf(filename_buffer, dayly_cache_filename_template, year(now_timestamp), month(now_timestamp));
-			if(!file_reader.open_file_to_read(filename_buffer)) {
-				return;
-			}
+		void _lese_tagescache_und_setze_ein(int now_timestamp) {
 			int i = 0;
 			int now_date = _timestamp_to_date(now_timestamp);
-			while(file_reader.read_next_line_to_buffer() && i < tage_anzahl) {
-				if(file_reader.find_in_buffer((char*) "^([0-9]+),([0-9]+)$")) {
-					int cache_zeit = atoi(file_reader.finding_buffer);
-					if(_timestamp_to_date(cache_zeit) < now_date) {
-						continue;// Zu alt, ueberspringen
-					}
-					zeitpunkt_tage_liste[i] = cache_zeit;
-					file_reader.fetch_next_finding();
-					solarstrahlung_tage_liste[i] = atoi(file_reader.finding_buffer);
-					i++;
+			for(int j = 0; j < tage_anzahl && i < tage_anzahl; j++) {
+				int cache_zeit = Local::SemipersistentData::wetter_tagescache_zeitpunkt[j];
+				if(cache_zeit == 0 || _timestamp_to_date(cache_zeit) < now_date) {
+					continue;// Zu alt oder leer, ueberspringen
 				}
+				zeitpunkt_tage_liste[i] = cache_zeit;
+				solarstrahlung_tage_liste[i] = Local::SemipersistentData::wetter_tagescache_solarstrahlung[j];
+				i++;
 			}
-			file_reader.close_file();
 		}
 
-		void _schreibe_stundencache(Local::Service::FileWriter& file_writer, int now_timestamp) {
-			sprintf(filename_buffer, hourly_cache_filename_template, year(now_timestamp), month(now_timestamp));
-			if(!file_writer.open_file_to_overwrite(filename_buffer)) {
-				return;
-			}
+		void _schreibe_stundencache() {
 			for(int i = 0; i < stunden_anzahl; i++) {
-				file_writer.write_formated(
-					"%d,%d\n",
-					zeitpunkt_stunden_liste[i],
-					solarstrahlung_stunden_liste[i]
-				);
+				Local::SemipersistentData::wetter_stundencache_zeitpunkt[i] = zeitpunkt_stunden_liste[i];
+				Local::SemipersistentData::wetter_stundencache_solarstrahlung[i] = solarstrahlung_stunden_liste[i];
 			}
-			file_writer.close_file();
 		}
 
-		void _schreibe_tagescache(Local::Service::FileWriter& file_writer, int now_timestamp) {
-			sprintf(filename_buffer, dayly_cache_filename_template, year(now_timestamp), month(now_timestamp));
-			if(!file_writer.open_file_to_overwrite(filename_buffer)) {
-				return;
-			}
+		void _schreibe_tagescache() {
 			for(int i = 0; i < tage_anzahl; i++) {
-				file_writer.write_formated(
-					"%d,%d\n",
-					zeitpunkt_tage_liste[i],
-					solarstrahlung_tage_liste[i]
-				);
+				Local::SemipersistentData::wetter_tagescache_zeitpunkt[i] = zeitpunkt_tage_liste[i];
+				Local::SemipersistentData::wetter_tagescache_solarstrahlung[i] = solarstrahlung_tage_liste[i];
 			}
-			file_writer.close_file();
 		}
 
 	public:
@@ -312,8 +278,8 @@ namespace Local::Api {
 				wetter.setze_tagesvorhersage_solarstrahlung(i, 0);
 			}
 
-			_lese_stundencache_und_setze_ein(file_reader, now_timestamp);
-			_lese_tagescache_und_setze_ein(file_reader, now_timestamp);
+			_lese_stundencache_und_setze_ein(now_timestamp);
+			_lese_tagescache_und_setze_ein(now_timestamp);
 
 			_lese_daten_und_setze_ein(file_reader, roof1_filename_template, now_timestamp);
 
@@ -330,14 +296,14 @@ namespace Local::Api {
 			for(int i = 0; i < stunden_anzahl; i++) {
 				wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_stunden_liste[i]);
 			}
-			_schreibe_stundencache(file_writer, now_timestamp);
+			_schreibe_stundencache();
 
 			wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_tage_liste[0];
 			wetter.zeitpunkt_sonnenuntergang = zeitpunkt_sonnenuntergang;
 			for(int i = 0; i < tage_anzahl; i++) {
 				wetter.setze_tagesvorhersage_solarstrahlung(i, solarstrahlung_tage_liste[i]);
 			}
-			_schreibe_tagescache(file_writer, now_timestamp);
+			_schreibe_tagescache();
 		}
 	};
 }
