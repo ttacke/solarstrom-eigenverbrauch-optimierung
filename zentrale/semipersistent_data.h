@@ -14,6 +14,7 @@ namespace Local::SemipersistentData {
 	int wetter_stundencache_solarstrahlung[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 	int wetter_tagescache_zeitpunkt[5] = {0,0,0,0,0};
 	int wetter_tagescache_solarstrahlung[5] = {0,0,0,0,0};
+	int wetter_zeitpunkt_sonnenuntergang = 0;
 	bool auto_ladestatus_ist_force = false;
 	int auto_ladestatus_seit = 0;
 	bool roller_ladestatus_ist_force = false;

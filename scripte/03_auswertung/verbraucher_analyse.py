@@ -4,7 +4,7 @@ Verbraucher-Analyse: Heizstab, Heizungs-WP, Begleitheizung, Warmwasser-WP, Wallb
 
 Methoden:
   Heizstab       : heizungsunterstuetzung_an == 1 → 1500 W
-  Heizungs-WP    : waermepumpen_abluft_temperatur in (0, 7) → 420 W
+  Heizungs-WP    : waermepumpen_abluft_temperatur in (0, 9.5] → 420 W
   Begleitheizung : begleitheizung_leistung (W direkt)
   Warmwasser-WP  : wasser_wp_leistung (W, Standby 0–2 W filtern)
   Wallbox        : auto_laden_ist_an == 1 → auto_benoetigte_ladeleistung_in_w (Fallback 2300 W)
@@ -22,7 +22,7 @@ WALLBOX_LEISTUNG_W    = 2300   # Fallback wenn benoetigte_ladeleistung fehlt
 ROLLER_LEISTUNG_W     = 840    # Fallback
 HEIZSTAB_LEISTUNG_W   = 1500
 WP_HEIZUNG_LEISTUNG_W = 420
-WP_HEIZUNG_MAX_TEMP   = 7.0
+WP_HEIZUNG_MAX_TEMP   = 9.5
 STANDBY_MAX_W         = 2
 EUR_PRO_KWH           = 0.33
 DAILY_COUNT           = 14
@@ -64,7 +64,7 @@ else:
 if 'waermepumpen_abluft_temperatur' in df.columns:
     temp = df['waermepumpen_abluft_temperatur'].fillna(0)
     df['heiz_wp_w'] = np.where(
-        (temp > 0) & (temp < WP_HEIZUNG_MAX_TEMP),
+        (temp > 0) & (temp <= WP_HEIZUNG_MAX_TEMP),
         WP_HEIZUNG_LEISTUNG_W, 0
     )
 else:

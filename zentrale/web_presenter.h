@@ -393,13 +393,13 @@ namespace Local {
 				)
 			) {// Insgesamt also 1x die Stunde ca 10 nach um, plus Notfall-Refresh wenn Cache leer
 				Serial.println("Hole Wettervorhersage-Daten");
-				wettervorhersage_api.daten_holen_und_persistieren(file_reader, file_writer, now_timestamp);
-				wettervorhersage_api.persistierte_daten_einsetzen(file_reader, file_writer, wetter, now_timestamp);
+				wettervorhersage_api.daten_holen_und_persistieren(now_timestamp);
+				wettervorhersage_api.persistierte_daten_einsetzen(wetter, now_timestamp);
 				Local::SemipersistentData::wettervorhersage_letzter_abruf = now_timestamp;
 				yield();
 				return;
 			}
-			wettervorhersage_api.persistierte_daten_einsetzen(file_reader, file_writer, wetter, now_timestamp);
+			wettervorhersage_api.persistierte_daten_einsetzen(wetter, now_timestamp);
 
 			verbraucher_api.daten_holen_und_einsetzen(verbraucher, elektroanlage, wetter);
 			yield();// ESP-Controller zeit fuer interne Dinge (Wlan z.B.) geben

@@ -12,10 +12,11 @@ namespace Local::Service {
 		MatchState match_state;
 
 		int content_length = 0;
-		char old_buffer[64];
-		char search_buffer[128];
+		char old_buffer[128];
+		char search_buffer[256];
 		bool is_chunked = false;
 		bool debug = false;
+		int next_capture_group = 0;
 
 		bool _send_request(
 			const char* host, const char* request_uri, int timeout_in_hundertstel_s
@@ -82,8 +83,8 @@ namespace Local::Service {
 		}
 
 	public:
-		char finding_buffer[65];
-		char buffer[64];
+		char finding_buffer[129];
+		char buffer[128];
 		int default_timeout_in_hundertstel_s = 2000;
 		int kurzer_timeout_in_hundertstel_s = 500;
 
@@ -95,6 +96,16 @@ namespace Local::Service {
 			char result = match_state.Match(regex);
 			if(result > 0) {
 				match_state.GetCapture(finding_buffer, 0);
+				next_capture_group = 1;
+				return true;
+			}
+			return false;
+		}
+
+		bool fetch_next_finding() {
+			if(next_capture_group < match_state.level) {
+				match_state.GetCapture(finding_buffer, next_capture_group);
+				next_capture_group++;
 				return true;
 			}
 			return false;

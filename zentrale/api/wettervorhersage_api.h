@@ -1,6 +1,5 @@
 #pragma once
 #include "base_api.h"
-#include "../service/file_reader.h"
 #include "../model/wetter.h"
 #include <TimeLib.h>
 
@@ -10,10 +9,6 @@ namespace Local::Api {
 	using BaseAPI::BaseAPI;
 
 	protected:
-		// SD Daten korrumpieren innerhalb weniger Jahre, daher 1x im Jahr autom. wechseln
-		char filename_buffer[40];
-		const char* roof1_filename_template = "dach1_wettervorhersage_%04d-%02d.json";
-		const char* roof2_filename_template = "dach2_wettervorhersage_%04d-%02d.json";
 		const char* request_uri_template = "/v1/forecast?latitude=%0.2f&longitude=%0.2f&daily=sunrise,sunset,shortwave_radiation_sum&hourly=global_tilted_irradiance_instant&timezone=Europe/Berlin&tilt=%d&azimuth=%d&timeformat=unixtime&forecast_hours=12";
 		char request_uri_buffer[256];
 
@@ -31,18 +26,7 @@ namespace Local::Api {
 			}
 		}
 
-		void _daten_holen_und_persistieren(
-			Local::Service::FileReader& file_reader,
-			Local::Service::FileWriter& file_writer,
-			const char* filename, int now_timestamp,
-			const int neigung_in_grad, const int azimuth
-		) {
-			// geht der Abruf schief, wird die vorherige Datei zerstoehrt.
-			// Der entstehende Schaden ist nicht relevant genug, um sich darum zu kuemmern
-			if(!file_writer.open_file_to_overwrite(filename)) {
-				Serial.println("Schreibfehler!");
-				return;
-			}
+		bool _daten_holen_und_parsen(int neigung_in_grad, int azimuth, int now_timestamp) {
 			sprintf(
 				request_uri_buffer,
 				request_uri_template,
@@ -51,23 +35,13 @@ namespace Local::Api {
 				neigung_in_grad,
 				azimuth
 			);
-			web_reader->send_http_get_request(
+			if(!web_reader->send_http_get_request(
 				"api.open-meteo.com",
 				80,
 				request_uri_buffer
-			);
-			while(web_reader->read_next_block_to_buffer()) {
-				file_writer.write(web_reader->buffer, strlen(web_reader->buffer));
-			}
-			file_writer.close_file();
-		}
-
-		void _lese_daten_und_setze_ein(Local::Service::FileReader& file_reader, const char* filename, int now_timestamp) {
-			sprintf(filename_buffer, filename, year(now_timestamp), month(now_timestamp));
-			if(!file_reader.open_file_to_read(filename_buffer)) {
-				Serial.println("FEHLER Beim Lesen");
-				Serial.println(filename_buffer);
-				return;
+			)) {
+				Serial.println("FEHLER Open-Meteo-Request");
+				return false;
 			}
 
 			int veraltete_stunden_datensaetze = 0;
@@ -76,32 +50,29 @@ namespace Local::Api {
 			bool searching_dayly_time = false;
 			bool searching_hourly_radiation = false;
 			bool searching_hourly_time = false;
-			zeitpunkt_sonnenuntergang = 0;
-			while(file_reader.read_next_block_to_buffer()) {
+			while(web_reader->read_next_block_to_buffer()) {
 				if(
 					zeitpunkt_sonnenuntergang == 0
-					&& file_reader.find_in_buffer((char*) "\"sunset\":[^0-9]([0-9]+)[^0-9]")
+					&& web_reader->find_in_buffer((char*) "\"sunset\":[^0-9]([0-9]+)[^0-9]")
 				) {
-					int zeitpunkt = atoi(file_reader.finding_buffer);
+					int zeitpunkt = atoi(web_reader->finding_buffer);
 					if(zeitpunkt >= now_timestamp || zeitpunkt > now_timestamp - 4 * 3600) {
 						zeitpunkt_sonnenuntergang = zeitpunkt;
 					}
 				}
 
-				if(file_reader.find_in_buffer((char*) "(\"daily\":{)")) { // Ohne Klammern gehts nicht
+				if(web_reader->find_in_buffer((char*) "(\"daily\":{)")) {
 					searching_dayly_radiation = true;
 					searching_dayly_time = true;
 				}
 				if(searching_dayly_time) {
-					if(file_reader.find_in_buffer((char*) "\"time\":[^0-9]([0-9]+)[^0-9]")) {
+					if(web_reader->find_in_buffer((char*) "\"time\":[^0-9]([0-9]+)[^0-9]")) {
 						searching_dayly_time = false;
-						veraltete_tages_datensaetze = 0;// Hier kommt man ggf 2x vorbei, weil der SearchBuffer "zu gross" ist
-						int zeitpunkt = atoi(file_reader.finding_buffer);
-						for(int i = 0; i < tage_anzahl; i++) {// Nur die erste Zeit finden, die anderen sind immer 1h weiter. Grund: das Finden ist unnoetig aufwendig
+						veraltete_tages_datensaetze = 0;
+						int zeitpunkt = atoi(web_reader->finding_buffer);
+						for(int i = 0; i < tage_anzahl; i++) {
 							zeitpunkt_tage_liste[i] = zeitpunkt + (i * 86400);
-							if(
-								now_timestamp > zeitpunkt_tage_liste[i] + 86400 // Zu altes ueberspringen
-							) {
+							if(now_timestamp > zeitpunkt_tage_liste[i] + 86400) {
 								veraltete_tages_datensaetze++;
 							}
 						}
@@ -109,41 +80,38 @@ namespace Local::Api {
 				}
 				if(searching_dayly_radiation) {
 					if(
-						file_reader.find_in_buffer(// shortwave_radiation_sum -> verkuerzt, um den Buffer nicht zu ueberforrdern
+						web_reader->find_in_buffer(
 							(char*) "\"shortwave_radiation_sum\":[^0-9]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]"
 						)
 					) {
 						searching_dayly_radiation = false;
-						// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
 						int i = 0;
 						solarstrahlung_tage_liste[i] = round(
-							atof(file_reader.finding_buffer)
+							atof(web_reader->finding_buffer)
 							* cfg->tageswert_anpassung
 						);
-						while(file_reader.fetch_next_finding() && i < tage_anzahl - 1) {
+						while(web_reader->fetch_next_finding() && i < tage_anzahl - 1) {
 							i++;
 							solarstrahlung_tage_liste[i] = round(
-								atoi(file_reader.finding_buffer)
+								atoi(web_reader->finding_buffer)
 								* cfg->tageswert_anpassung
 							);
 						}
 					}
 				}
 
-				if(file_reader.find_in_buffer((char*) "(\"hourly\":{)")) { // Ohne Klammern gehts nicht
+				if(web_reader->find_in_buffer((char*) "(\"hourly\":{)")) {
 					searching_hourly_radiation = true;
 					searching_hourly_time = true;
 				}
 				if(searching_hourly_time) {
-					if(file_reader.find_in_buffer((char*) "\"time\":[^0-9]([0-9]+)[^0-9]")) {
+					if(web_reader->find_in_buffer((char*) "\"time\":[^0-9]([0-9]+)[^0-9]")) {
 						searching_hourly_time = false;
-						veraltete_stunden_datensaetze = 0;// Hier kommt man ggf 2x vorbei, weil der SearchBuffer "zu gross" ist
-						int zeitpunkt = atoi(file_reader.finding_buffer);
-						for(int i = 0; i < stunden_anzahl; i++) {// Nur die erste Zeit finden, die anderen sind immer 1h weiter. Grund: das Finden ist unnoetig aufwendig
+						veraltete_stunden_datensaetze = 0;
+						int zeitpunkt = atoi(web_reader->finding_buffer);
+						for(int i = 0; i < stunden_anzahl; i++) {
 							zeitpunkt_stunden_liste[i] = zeitpunkt + (i * 3600);
-							if(
-								now_timestamp > zeitpunkt_stunden_liste[i] + 1800 // Zu altes ueberspringen
-							) {
+							if(now_timestamp > zeitpunkt_stunden_liste[i] + 1800) {
 								veraltete_stunden_datensaetze++;
 							}
 						}
@@ -151,21 +119,20 @@ namespace Local::Api {
 				}
 				if(searching_hourly_radiation) {
 					if(
-						file_reader.find_in_buffer(// global_tilted_irradiance_instant -> verkuerzt, um den Buffer nicht zu ueberforrdern
+						web_reader->find_in_buffer(
 							(char*) "instant\":[^0-9]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]([0-9.]+)[^0-9.]"
 						)
 					) {
 						searching_hourly_radiation = false;
-						// Nur den Ganzzahlwert, Nachkommastellen sind irrelevant
 						int i = 0;
 						solarstrahlung_stunden_liste[i] = round(
-							atof(file_reader.finding_buffer)
+							atof(web_reader->finding_buffer)
 							* cfg->stundenwert_anpassung
 						);
-						while(file_reader.fetch_next_finding() && i < stunden_anzahl - 1) {
+						while(web_reader->fetch_next_finding() && i < stunden_anzahl - 1) {
 							i++;
 							solarstrahlung_stunden_liste[i] = round(
-								atoi(file_reader.finding_buffer)
+								atoi(web_reader->finding_buffer)
 								* cfg->stundenwert_anpassung
 							);
 						}
@@ -190,7 +157,7 @@ namespace Local::Api {
 					zeitpunkt_stunden_liste[i - 1] = zeitpunkt_stunden_liste[i];
 				}
 			}
-			file_reader.close_file();
+			return true;
 		}
 
 		int _timestamp_to_date(int timestamp) {
@@ -239,31 +206,44 @@ namespace Local::Api {
 		}
 
 	public:
-		void daten_holen_und_persistieren(
-			Local::Service::FileReader& file_reader,
-			Local::Service::FileWriter& file_writer,
-			int now_timestamp
-		) {
-			sprintf(filename_buffer, roof1_filename_template, year(now_timestamp), month(now_timestamp));
-			_daten_holen_und_persistieren(
-				file_reader, file_writer, filename_buffer, now_timestamp,
-				cfg->wettervorhersage_dach1_neigung_in_grad,
-				cfg->wettervorhersage_dach1_ausrichtung_azimuth
-			);
+		void daten_holen_und_persistieren(int now_timestamp) {
+			_reset(zeitpunkt_stunden_liste, stunden_anzahl);
+			_reset(solarstrahlung_stunden_liste, stunden_anzahl);
+			_reset(zeitpunkt_tage_liste, tage_anzahl);
+			_reset(solarstrahlung_tage_liste, tage_anzahl);
+			zeitpunkt_sonnenuntergang = 0;
 
-			sprintf(filename_buffer, roof2_filename_template, year(now_timestamp), month(now_timestamp));
-			_daten_holen_und_persistieren(
-				file_reader, file_writer, filename_buffer, now_timestamp,
+			if(!_daten_holen_und_parsen(
+				cfg->wettervorhersage_dach1_neigung_in_grad,
+				cfg->wettervorhersage_dach1_ausrichtung_azimuth,
+				now_timestamp
+			)) {
+				return;
+			}
+
+			int temp[12];
+			for(int i = 0; i < stunden_anzahl; i++) {
+				temp[i] = solarstrahlung_stunden_liste[i];
+			}
+
+			if(!_daten_holen_und_parsen(
 				cfg->wettervorhersage_dach2_neigung_in_grad,
-				cfg->wettervorhersage_dach2_ausrichtung_azimuth
-			);
+				cfg->wettervorhersage_dach2_ausrichtung_azimuth,
+				now_timestamp
+			)) {
+				return;
+			}
+
+			for(int i = 0; i < stunden_anzahl; i++) {
+				solarstrahlung_stunden_liste[i] = round((temp[i] + solarstrahlung_stunden_liste[i]) / 2);
+			}
+
+			_schreibe_stundencache();
+			_schreibe_tagescache();
+			Local::SemipersistentData::wetter_zeitpunkt_sonnenuntergang = zeitpunkt_sonnenuntergang;
 		}
 
-		void persistierte_daten_einsetzen(
-			Local::Service::FileReader& file_reader,
-			Local::Service::FileWriter& file_writer,
-			Local::Model::Wetter& wetter, int now_timestamp
-		) {
+		void persistierte_daten_einsetzen(Local::Model::Wetter& wetter, int now_timestamp) {
 			_reset(zeitpunkt_stunden_liste, stunden_anzahl);
 			_reset(solarstrahlung_stunden_liste, stunden_anzahl);
 			_reset(zeitpunkt_tage_liste, tage_anzahl);
@@ -281,29 +261,16 @@ namespace Local::Api {
 			_lese_stundencache_und_setze_ein(now_timestamp);
 			_lese_tagescache_und_setze_ein(now_timestamp);
 
-			_lese_daten_und_setze_ein(file_reader, roof1_filename_template, now_timestamp);
-
-			int temp[12];
-			for(int i = 0; i < stunden_anzahl; i++) {
-				temp[i] = solarstrahlung_stunden_liste[i];
-			}
-			_lese_daten_und_setze_ein(file_reader, roof2_filename_template, now_timestamp);
-			for(int i = 0; i < stunden_anzahl; i++) {
-				solarstrahlung_stunden_liste[i] = round((temp[i] + solarstrahlung_stunden_liste[i]) / 2);
-			}
-
 			wetter.stundenvorhersage_startzeitpunkt = zeitpunkt_stunden_liste[0];
 			for(int i = 0; i < stunden_anzahl; i++) {
 				wetter.setze_stundenvorhersage_solarstrahlung(i, solarstrahlung_stunden_liste[i]);
 			}
-			_schreibe_stundencache();
 
 			wetter.tagesvorhersage_startzeitpunkt = zeitpunkt_tage_liste[0];
-			wetter.zeitpunkt_sonnenuntergang = zeitpunkt_sonnenuntergang;
+			wetter.zeitpunkt_sonnenuntergang = Local::SemipersistentData::wetter_zeitpunkt_sonnenuntergang;
 			for(int i = 0; i < tage_anzahl; i++) {
 				wetter.setze_tagesvorhersage_solarstrahlung(i, solarstrahlung_tage_liste[i]);
 			}
-			_schreibe_tagescache();
 		}
 	};
 }
