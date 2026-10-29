@@ -133,10 +133,10 @@ sub _aktualisiere_monatslogs {
         _download($filename);
     }
 
-    my $aktuell = sprintf($name_tmpl, $current_year, $current_month);
-    printf("Aktueller Monat wird immer aktualisiert: %s\n", $aktuell);
-    _backup_file($aktuell);
-    _download($aktuell);
+    # my $aktuell = sprintf($name_tmpl, $current_year, $current_month);
+    # printf("Aktueller Monat wird immer aktualisiert: %s\n", $aktuell);
+    # _backup_file($aktuell);
+    # _download($aktuell);
 }
 
 _aktualisiere_monatslogs(
