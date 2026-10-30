@@ -22,7 +22,11 @@ WALLBOX_LEISTUNG_W    = 2300   # Fallback wenn benoetigte_ladeleistung fehlt
 ROLLER_LEISTUNG_W     = 840    # Fallback
 HEIZSTAB_LEISTUNG_W   = 1500
 WP_HEIZUNG_LEISTUNG_W = 420
-WP_HEIZUNG_MAX_TEMP   = 9.5
+WP_HEIZUNG_MAX_TEMP_JE_MONAT = {
+    1: 9.00, 2: 8.50, 3: 8.80, 4: 9.60, 5: 10.30,
+    6: 10.82, 7: 11.34, 8: 11.86, 9: 12.38,
+    10: 12.90, 11: 11.00, 12: 10.00,
+}  # spiegelt config.h:heizung_max_ablufttemperatur_wenn_aktiv(monat)
 STANDBY_MAX_W         = 2
 EUR_PRO_KWH           = 0.33
 DAILY_COUNT           = 14
@@ -63,8 +67,9 @@ else:
 
 if 'waermepumpen_abluft_temperatur' in df.columns:
     temp = df['waermepumpen_abluft_temperatur'].fillna(0)
+    df['heiz_wp_schwelle'] = df['monat'].map(WP_HEIZUNG_MAX_TEMP_JE_MONAT)
     df['heiz_wp_w'] = np.where(
-        (temp > 0) & (temp <= WP_HEIZUNG_MAX_TEMP),
+        (temp > 0) & (temp <= df['heiz_wp_schwelle']),
         WP_HEIZUNG_LEISTUNG_W, 0
     )
 else:

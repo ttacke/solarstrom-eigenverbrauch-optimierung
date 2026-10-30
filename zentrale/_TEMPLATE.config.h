@@ -59,7 +59,27 @@ namespace Local {
 		const float heizungs_temperatur_differenz_umrechnungsfaktor = 1.875; // das sind 1°C
 		const int heiz_verdichter_maximale_laufzeit_in_s = 8 * 3600; // 8h
 		const int heiz_verdichter_zwangspausen_dauer_in_s = 1 * 3600; // 1h
-		const float heizung_max_ablufttemperatur_wenn_aktiv = 9.5;
+		// Schwelle fuer "Heiz-WP laeuft" je Monat (Index 1..12, [0] unbenutzt).
+		// Die Abluft liegt bei stehender WP auf Raumtemperatur; die Schwelle muss
+		// zwischen Kaltluft (Luefter laeuft) und Raumtemperatur liegen, im unteren
+		// Drittel. Die Raumtemperatur des Kellers steigt ueber das Jahr um ~10 K,
+		// eine feste Schwelle wuerde im Sommer nie unterschritten.
+		// Monate 6..9 sind linear zwischen Mai und Oktober gesetzt.
+		const float heizung_max_ablufttemperatur_wenn_aktiv_pro_monat[13] = {
+			0.0,    // unbenutzt
+			9.00,   // Januar
+			8.50,   // Februar
+			8.80,   // Maerz
+			9.60,   // April
+			10.30,  // Mai
+			10.82,  // Juni
+			11.34,  // Juli
+			11.86,  // August
+			12.38,  // September
+			12.90,  // Oktober
+			11.00,  // November
+			10.00   // Dezember
+		};
 		const int wasser_begleitheizung_benoetigte_leistung_in_w = 500;// Einschaltwert, sinkt rapide auf ~120
 
 		const int grundverbrauch_in_w_pro_h_sommer = 330;

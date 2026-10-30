@@ -15,7 +15,11 @@ import matplotlib.dates as mdates
 SCRIPTE_DIR = os.path.dirname(os.path.abspath(__file__))
 CSV = os.path.join(SCRIPTE_DIR, "..", "solar.csv")
 OUTPUT_DIR = "."
-WP_HEIZUNG_MAX_TEMP = 9.5  # Proxy: WP gilt als an, wenn Abluft <= diesem Wert (spiegelt config.h:heizung_max_ablufttemperatur_wenn_aktiv)
+WP_HEIZUNG_MAX_TEMP_JE_MONAT = {
+    1: 9.00, 2: 8.50, 3: 8.80, 4: 9.60, 5: 10.30,
+    6: 10.82, 7: 11.34, 8: 11.86, 9: 12.38,
+    10: 12.90, 11: 11.00, 12: 10.00,
+}  # spiegelt config.h:heizung_max_ablufttemperatur_wenn_aktiv(monat)
 
 
 def lade_letzte_3_tage() -> pd.DataFrame:
@@ -39,9 +43,11 @@ def lade_letzte_3_tage() -> pd.DataFrame:
         df["heizung_relay_ist_an"], errors="coerce"
     ).fillna(0)
 
+    df["schwelle"] = df["ts"].dt.month.map(WP_HEIZUNG_MAX_TEMP_JE_MONAT)
+
     df["wp_laeuft_proxy"] = (
         df["waermepumpen_abluft_temperatur"].notna()
-        & (df["waermepumpen_abluft_temperatur"] <= WP_HEIZUNG_MAX_TEMP)
+        & (df["waermepumpen_abluft_temperatur"] <= df["schwelle"])
     ).astype(int)
 
     return df

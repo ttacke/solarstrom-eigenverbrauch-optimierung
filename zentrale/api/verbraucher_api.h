@@ -19,6 +19,19 @@ namespace Local::Api {
 		const char* automatisierung_log_filename_template = "verbraucher_automatisierung-%4d-%02d.log";
 		const char* schaltautomat_log_filename_template = "schaltautomat-%4d-%02d.log";
 
+		// Schwelle fuer "Heiz-WP laeuft" des laufenden Monats. Die Abluft liegt
+		// bei stehender WP auf Raumtemperatur; die Schwelle muss zwischen
+		// Kaltluft (Luefter laeuft) und Raumtemperatur liegen, im unteren Drittel.
+		// Die Keller-Raumtemperatur steigt ueber das Jahr um ~10 K, eine feste
+		// Schwelle wuerde im Sommer nie unterschritten.
+		float _heizung_max_ablufttemperatur_wenn_aktiv() {
+			int monat = month(timestamp);
+			if(monat < 1 || monat > 12) {
+				monat = 1;
+			}
+			return cfg->heizung_max_ablufttemperatur_wenn_aktiv_pro_monat[monat];
+		}
+
 		void _schaltautomat_log(char* msg) {
 			char filename[32];
 			sprintf(filename, schaltautomat_log_filename_template, year(timestamp), month(timestamp));
@@ -980,7 +993,8 @@ namespace Local::Api {
 				}
 				if(// Heiz-WP-An zuverlaessig ermitteln
 					verbraucher.heiz_verdichter_relay_ist_an
-					&& verbraucher.waermepumpen_abluft_temperatur <= cfg->heizung_max_ablufttemperatur_wenn_aktiv
+					&& verbraucher.waermepumpen_abluft_temperatur
+						<= _heizung_max_ablufttemperatur_wenn_aktiv()
 				) {
 					verbraucher.heizung_ist_an = true;
 					if(verbraucher.heiz_verdichter_laeuft_seit == 0) {
