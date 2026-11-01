@@ -18,8 +18,6 @@ Konkret:
  
 Zusätzliche Features:
 - Optimierung des Energieverbrauches für die Heizung:
-  - Wegen Fehlen einer Abtaueinrichtung an der Heizungs-Wärmepumpe gibt es einen externen Zuluft-Erwärmer. Der wird nur dann gesteuert, wenn
-    die Abluft akutes einfrieren anzeigt.
   - Der Elektro-heizstab der Heizung wird nur dann freigeschaltet, wenn der Temperaturunterschied von Vor- und Rücklauf sehr gerung ist.
     Die Wärmepumpe startet ihn sonst schon bei <45° Kesseltemperatur, was unnötig ist.
 - Winter-Ladeverhalten für Auto und Roller
@@ -38,7 +36,6 @@ Zusätzliche Features:
   - der Roller-Lader ist dann aber dauerhaft aus und muss über eine normale Steckdose benutzt werden
   - die Warmwasser-Begleitheizung wird nur von 18-23 Uhr gestartet
   - der Heizungs-Heizstab wird von der Heizungs-Wärmepumpe gesteuert
-  - der Heizungs-Zuluft-Erwärmer wird von seinem eingebauten Temperaturfühler gesteuert
 
 ## Steuerungs-UI (optional)
 
@@ -55,7 +52,6 @@ Zusätzliche Features:
     - Warmwasser-Begleitheizung
     - Heizungs-Wärmepumpe
     - Heizungs-Elektro-Heizstab
-    - Heizungs-Zuluft-Vorwärmer
   - "aus": Ist explizit abgeschaltet
   - "frei": Verbraucher ist erlaubt. Etwas anderes bestimmt, ob er aktiviert wird
     - Bsp Warmwasser: das ist fast immer "frei", denn nur die WP selbst weiß, ob das Wasser nacherwärmt werden muss
@@ -91,7 +87,7 @@ Zusätzliche Features:
 - 1x "Shelly 1 Mini"
   - um den Heizungs-Elektro-Heizstab zu sperren bzw freizugeben
 - 4x "Shelly Plug S", 1x "Shelly-Plug"
-  - um den Roller-Lader (1x innen und 1x aussen), die Warmwasser-Begleitheizung (1x), den Heizungs-Zuluft-Erwärmer (1x) zu schalten
+  - um den Roller-Lader (1x innen und 1x aussen) und die Warmwasser-Begleitheizung (1x) zu schalten
   - um die Aktivität der Warmwasser-Wärmepumpe (1x) zu messen
   - wird per WLAN gesteuert
 - Ein (ausgedienter) KindlePaperwhite der ersten Generation als Anzeige
