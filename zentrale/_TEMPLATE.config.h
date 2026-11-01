@@ -58,6 +58,9 @@ namespace Local {
 		const int heizstab_ausschalt_differenzwert = 7;// +3°
 		const float heizungs_temperatur_differenz_umrechnungsfaktor = 1.875; // das sind 1°C
 		const int heiz_verdichter_maximale_laufzeit_in_s = 8 * 3600; // 8h
+		// Nur nach erreichter Maximallaufzeit: Relais aus, nach dieser Dauer wieder
+		// freigeben. Bei einem normalen Verdichterstopp wird nicht geschaltet, der
+		// Stopp wird nur erkannt und geloggt.
 		const int heiz_verdichter_zwangspausen_dauer_in_s = 1 * 3600; // 1h
 		// Schwelle fuer "Heiz-WP laeuft" je Monat (Index 1..12, [0] unbenutzt).
 		// Die Abluft liegt bei stehender WP auf Raumtemperatur; die Schwelle muss

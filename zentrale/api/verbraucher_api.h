@@ -1012,14 +1012,10 @@ namespace Local::Api {
 						Local::SemipersistentData::heiz_verdichter_laeuft_seit = verbraucher.heiz_verdichter_laeuft_seit;
 						verbraucher.heiz_verdichter_aus_seit = timestamp;
 						Local::SemipersistentData::heiz_verdichter_aus_seit = verbraucher.heiz_verdichter_aus_seit;
-
-						_log((char*) "heiz_verdichter: MINDESTPAUSE");
-						verbraucher.heiz_verdichter_relay_ist_an = false;
-						_schalte_heiz_verdichter_relay(verbraucher.heiz_verdichter_relay_ist_an);
 						return;
 					}
 				}
-				if(// Zwangs & Mindestpausenzeit beenden
+				if(// Zwangspause nach 8h Laufzeit beenden
 					!verbraucher.heizung_ist_an
 					&& !verbraucher.heiz_verdichter_relay_ist_an
 					&& verbraucher.heiz_verdichter_aus_seit > 0
